@@ -1,0 +1,7 @@
+Django>=4.2,<5.0
+djangorestframework>=3.14
+celery>=5.3
+redis>=5.0
+pikepdf>=8.0
+Pillow>=10.0
+python-mimeparse>=1.6

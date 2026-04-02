@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing - PDF Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: url('/static/city.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+        .lang-switch {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+        .lang-btn {
+            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+        .lang-btn.active { background: #667eea; color: white; }
+        
+        h1 { color: #333; margin-bottom: 20px; font-size: 22px; }
+        .status {
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .status.pending { background: #fef3cd; color: #856404; }
+        .status.processing { background: #cce5ff; color: #004085; }
+        .status.done { background: #d4edda; color: #155724; }
+        .status.failed { background: #f8d7da; color: #721c24; }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .progress-container {
+            margin: 24px 0;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            margin-top: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .progress-percent {
+            font-size: 28px;
+            color: #667eea;
+        }
+        
+        .text-en, .text-kh { display: none; }
+        body.lang-en .text-en { display: block; }
+        body.lang-kh .text-kh { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-switch">
+            <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" id="langKh" onclick="setLang('kh')">KH</button>
+        </div>
+        
+        <h1>
+            <span class="text-en">PDF Processing</span>
+            <span class="text-kh">កំពុងដំណើរការ PDF</span>
+        </h1>
+        
+        <div class="status {{ job.status }}">
+            <span id="statusText">
+                <span class="text-en">{{ job.get_status_display }}</span>
+                <span class="text-kh">{% if job.status == 'pending' %}កំពុងរង់ចាំ{% elif job.status == 'processing' %}កំពុងដំណើរការ{% elif job.status == 'done' %}បានចាញ់{% elif job.status == 'failed' %}មិនជោគជ័យ{% endif %}</span>
+            </span>
+        </div>
+        
+        {% if job.status == 'failed' %}
+            <div class="error-message">
+                <span class="text-en">Error: {{ job.error_message }}</span>
+                <span class="text-kh">កំហុស: {{ job.error_message }}</span>
+            </div>
+            <p><a href="/" style="color: #667eea; font-family: 'Kantumruy Pro', sans-serif;">
+                <span class="text-en">Try again</span>
+                <span class="text-kh">សាកម្តងទៀត</span>
+            </a></p>
+        {% else %}
+            <div class="spinner"></div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent" id="progressPercent">0</span>%
+                </div>
+            </div>
+            
+            <p>
+                <span class="text-en">Please wait while your PDF is being processed...</span>
+                <span class="text-kh">សូមរង់ចាំ ឯកសារ PDF របស់អ្នកកំពុងដំណើរការ...</span>
+            </p>
+        {% endif %}
+        
+        {% if job.status == 'done' and job.result %}
+            <script>
+                setTimeout(() => {
+                    window.location.href = '/khqr/?download={{ job.result.url }}';
+                }, 1500);
+            </script>
+        {% endif %}
+    </div>
+    
+    <script>
+        function setLang(lang) {
+            if (lang === 'kh') {
+                document.body.className = 'lang-kh';
+                document.getElementById('langKh').classList.add('active');
+                document.getElementById('langEn').classList.remove('active');
+            } else {
+                document.body.className = 'lang-en';
+                document.getElementById('langEn').classList.add('active');
+                document.getElementById('langKh').classList.remove('active');
+            }
+            localStorage.setItem('pdf_lang', lang);
+        }
+        
+        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
+        setLang(savedLang);
+        
+        const status = '{{ job.status }}';
+        
+        const progressBar = document.getElementById('progressBar');
+        const percentEl = document.getElementById('progressPercent');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        if (status === 'pending' || status === 'processing') {
+            progressBar.style.width = '0%';
+            percentEl.textContent = '0';
+            
+            let progress = 0;
+            const jobId = '{{ job.id }}';
+            
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 6 + 2;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+                percentEl.textContent = Math.round(progress);
+            }, 500);
+            
+            function checkStatus() {
+                fetch('/api/job/' + jobId + '/')
+                    .then(r => r.json())
+                    .then(job => {
+                        if (job.status === 'done') {
+                            clearInterval(progressInterval);
+                            progressBar.style.width = '100%';
+                            percentEl.textContent = '100';
+                            setTimeout(() => {
+                                window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
+                            }, 500);
+                        } else if (job.status === 'failed') {
+                            clearInterval(progressInterval);
+                            progressBar.style.width = '0%';
+                            percentEl.textContent = '0';
+                        } else if (job.status === 'pending' || job.status === 'processing') {
+                            setTimeout(checkStatus, 2000);
+                        }
+                    })
+                    .catch(e => {
+                        setTimeout(checkStatus, 2000);
+                    });
+            }
+            
+            setTimeout(checkStatus, 1500);
+        } else if (status === 'done') {
+            progressBar.style.width = '100%';
+            percentEl.textContent = '100';
+        }
+    </script>
+</body>
+</html>

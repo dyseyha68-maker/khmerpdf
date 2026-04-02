@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    {% load static %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: url('/static/city.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .header {
+            background: rgba(255,255,255,0.95);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 0 auto 40px auto;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #333;
+        }
+        .logo-icon { font-size: 28px; }
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: #d32f2f;
+        }
+        .logo-page { 
+            color: white; 
+            font-size: 48px; 
+            font-weight: 700; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            text-align: center;
+            margin-bottom: 40px;
+            width: 100%;
+        }
+        .logo-page span { font-size: 18px; display: block; opacity: 0.8; }
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover {
+            background: #f5f5f5;
+            color: #d32f2f;
+        }
+        .nav-links a.active {
+            background: #d32f2f;
+            color: white;
+        }
+        .logo-page { 
+            color: white; 
+            font-size: 48px; 
+            font-weight: 700; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-page span { font-size: 18px; display: block; opacity: 0.8; }
+        
+        .lang-btns { 
+            display: flex; 
+            gap: 8px; 
+        }
+        .lang-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .lang-btn.active { background: #d32f2f; color: white; }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1000px;
+            justify-items: center;
+            margin: 0 auto;
+        }
+        
+        .tool-card {
+            background: white;
+            border-radius: 16px;
+            width: 320px;
+            padding: 40px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .tool-card:hover { transform: translateY(-8px); box-shadow: 0 15px 50px rgba(0,0,0,0.4); }
+        .tool-card.active { background: #d32f2f; color: white; }
+        
+        .tool-icon { font-size: 80px; margin-bottom: 20px; }
+        .tool-card h2 { font-size: 26px; margin-bottom: 10px; }
+        .tool-card p { font-size: 16px; opacity: 0.8; }
+        
+        .tool-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .tool-panel.active { display: flex; }
+        
+        .panel-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            padding: 40px;
+            position: relative;
+            text-align: center;
+        }
+        .close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .panel-title { font-size: 28px; margin-bottom: 8px; color: #333; }
+        .panel-subtitle { color: #666; margin-bottom: 32px; }
+        
+        .drop-zone {
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            padding: 50px 30px;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .drop-zone:hover { border-color: #d32f2f; background: #fff5f5; }
+        .drop-zone-icon { font-size: 48px; margin-bottom: 12px; }
+        
+        .select-btn {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+        .select-btn:hover { background: #b71c1c; }
+        
+        .file-info {
+            margin: 16px 0;
+            padding: 16px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: none;
+        }
+        .file-info.show { display: block; }
+        
+        .compression-level {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .compression-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .compression-option {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .compression-option:hover { border-color: #d32f2f; }
+        .compression-option.selected {
+            border-color: #d32f2f;
+            background: #fff5f5;
+        }
+        .compression-option input { display: none; }
+        .compression-option .radio {
+            min-width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            margin-right: 14px;
+            margin-top: 2px;
+            position: relative;
+        }
+        .compression-option.selected .radio {
+            border-color: #d32f2f;
+        }
+        .compression-option.selected .radio::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 8px;
+            height: 8px;
+            background: #d32f2f;
+            border-radius: 50%;
+        }
+        .compression-option .opt-text {
+            display: block;
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .compression-option .opt-desc {
+            display: block;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .selected-files {
+            margin: 16px 0;
+        }
+        .selected-file {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .selected-file .remove { color: #d32f2f; cursor: pointer; font-weight: bold; }
+        .add-more-btn {
+            display: inline-block;
+            background: #f5f5f5;
+            border: 2px dashed #ddd;
+            color: #666;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 8px;
+            width: 100%;
+            text-align: center;
+        }
+        .add-more-btn:hover { border-color: #d32f2f; color: #d32f2f; }
+        
+        .action-btn {
+            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Kantumruy Pro', sans-serif;
+            box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+        }
+        .action-btn:hover { transform: translateY(-2px); }
+        
+        .page-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin: 16px 0;
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+        .page-input:focus { outline: none; border-color: #d32f2f; }
+        
+        .split-options { margin: 20px 0; }
+        .split-mode-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .split-tab {
+            font-family: 'Kantumruy Pro', sans-serif;
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .split-tab:hover { border-color: #d32f2f; }
+        .split-tab.active {
+            background: #d32f2f;
+            color: white;
+            border-color: #d32f2f;
+        }
+        
+        .page-thumbnails {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            width: 100%;
+        }
+        
+        .page-thumb {
+            width: 150px;
+            height: 200px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            padding: 8px;
+        }
+        .page-thumb:hover { border-color: #d32f2f; transform: scale(1.05); }
+        .page-thumb.selected {
+            border-color: #d32f2f;
+            background: #fff5f5;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+        }
+        .page-thumb.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #d32f2f;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-thumb .page-num {
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .page-thumb canvas, .page-thumb img {
+            max-width: 130px;
+            max-height: 150px;
+            object-fit: contain;
+        }
+        
+        .loading { display: none; text-align: center; padding: 40px; }
+        .loading.active { display: block; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #d32f2f;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            display: none;
+        }
+        .progress-container.active { display: block; }
+        .progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #d32f2f, #ff5722);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .progress-percent {
+            font-size: 24px;
+            color: #d32f2f;
+        }
+        
+        .text-en, .text-kh { display: none; }
+        body.lang-en .text-en { display: block; }
+        body.lang-kh .text-kh { display: block; }
+        body.lang-en .lang-en { display: inline; }
+        body.lang-kh .lang-kh { display: inline; }
+        
+        .merge-files { margin-bottom: 16px; }
+        .merge-file {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            align-items: center;
+            cursor: move;
+            transition: background 0.2s;
+        }
+        .merge-file:hover { background: #e0e0e0; }
+        .merge-file.dragging { opacity: 0.5; }
+        .merge-file .remove { color: #d32f2f; cursor: pointer; font-weight: bold; margin-left: 10px; }
+    </style>
+</head>
+<body class="lang-kh">
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">KHMER PDF Tools</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/compress/">
+                    <span class="text-en">Compress</span>
+                    <span class="text-kh">បង្រួម</span>
+                </a>
+                <a href="/merge/">
+                    <span class="text-en">Merge</span>
+                    <span class="text-kh">បញ្ជូល</span>
+                </a>
+                <a href="/pdf-split/">
+                    <span class="text-en">Split</span>
+                    <span class="text-kh">បំបែក</span>
+                </a>
+                <a href="/organize/">
+                    <span class="text-en">Organize</span>
+                    <span class="text-kh">រៀបចំ</span>
+                </a>
+                <a href="/calendar/">
+                    <span class="text-en">Calendar</span>
+                    <span class="text-kh">ប្រតិទិក</span>
+                </a>
+            </nav>
+        </div>
+        <div class="lang-btns">
+            <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" id="langKh" onclick="setLang('kh')">KH</button>
+        </div>
+    </div>
+      
+    <div class="cards-container">
+        <!-- Compress Card -->
+        <div class="tool-card" onclick="window.location.href='/compress/'">
+            <div class="tool-icon">🗜️</div>
+            <h2>
+                <span class="text-en">Compress PDF</span>
+                <span class="text-kh">បង្រួមទំហំ PDF</span>
+            </h2>
+            <p>
+                <span class="text-en">Reduce file size</span>
+                <span class="text-kh">បង្រួមទំហំឯកសារ</span>
+            </p>
+        </div>
+        
+        <!-- Merge Card -->
+        <div class="tool-card" onclick="window.location.href='/merge/'">
+            <div class="tool-icon">📑</div>
+            <h2>
+                <span class="text-en">Merge PDF</span>
+                <span class="text-kh">បញ្ជូលឯកសារ PDF</span>
+            </h2>
+            <p>
+                <span class="text-en">Combine PDF files</span>
+                <span class="text-kh">រួមបញ្ចូលឯកសារ PDF</span>
+            </p>
+        </div>
+        
+        <!-- Split Card -->
+        <div class="tool-card" onclick="window.location.href='/pdf-split/'">
+            <div class="tool-icon">✂️</div>
+            <h2>
+                <span class="text-en">Split PDF</span>
+                <span class="text-kh">បំបែកឯកសារ PDF</span>
+            </h2>
+            <p>
+                <span class="text-en">Extract pages</span>
+                <span class="text-kh">ចម្លងយកទំព័រ</span>
+            </p>
+        </div>
+        
+        <!-- Organize Card -->
+        <div class="tool-card" onclick="window.location.href='/organize/'">
+            <div class="tool-icon">📋</div>
+            <h2>
+                <span class="text-en">Organize PDF</span>
+                <span class="text-kh">រៀបចំឯកសារ PDF</span>
+            </h2>
+            <p>
+                <span class="text-en">Reorder pages</span>
+                <span class="text-kh">ផ្លាស់ទីទំព័រ</span>
+            </p>
+        </div>
+        
+        <!-- Calendar Card -->
+        <div class="tool-card" onclick="window.location.href='/calendar/'">
+            <div class="tool-icon">📅</div>
+            <h2>
+                <span class="text-en">Cambodia Calendar</span>
+                <span class="text-kh">ប្រតិទិកកម្ម</span>
+            </h2>
+            <p>
+                <span class="text-en">View Khmer calendar</span>
+                <span class="text-kh">មើលប្រតិទិកខ្មែរ</span>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Compress Panel -->
+    <div class="tool-panel" id="compress-panel">
+        <div class="panel-content" style="max-width: 800px;">
+            <button class="close-btn" onclick="closePanel()">×</button>
+            <h2 class="panel-title" style="font-size: 32px; margin-bottom: 20px;">
+                <span class="text-en">Compress PDF</span>
+                <span class="text-kh">បង្រួមទំហំឯកសារ PDF</span>
+            </h2>
+            
+            <div style="display: flex; gap: 30px; text-align: left;">
+                <!-- Left Column - File Selection -->
+                <div style="flex: 1;">
+                    <div class="drop-zone" id="compressDropZone" onclick="document.getElementById('compressFileInput').click()" style="padding: 30px;">
+                        <div class="drop-zone-icon" style="font-size: 48px; margin-bottom: 12px;">📄</div>
+                        <p style="font-size: 16px;">
+                            <span class="text-en">Select PDF files</span>
+                            <span class="text-kh">ជ្រើសរើសឯកសារ PDF</span>
+                        </p>
+                        <input type="file" id="compressFileInput" accept=".pdf" multiple style="display:none" onchange="compressSelectFile()">
+                    </div>
+                    
+                    <div class="selected-files" id="compressFilesList" style="max-height: 250px; overflow-y: auto; margin-top: 16px;"></div>
+                </div>
+                
+                <!-- Right Column - Compression Level -->
+                <div style="flex: 1;">
+                    <p style="font-weight: 600; margin-bottom: 14px; color: #333; font-size: 16px;">
+                        <span class="text-en">Compression level</span>
+                        <span class="text-kh">កម្រិតនៃការបង្រួម</span>
+                    </p>
+                    <div class="compression-options">
+                        <label class="compression-option selected" onclick="selectCompression(this, 'extreme')" style="padding: 20px;">
+                            <input type="radio" name="compression" value="extreme" checked>
+                            <span class="radio" style="width: 24px; height: 24px;"></span>
+                            <div>
+                                <span class="opt-text" style="font-size: 18px;">
+                                    <span class="text-en">Extreme</span>
+                                    <span class="text-kh">កម្រិតខ្លាំង</span>
+                                </span>
+                                <span class="opt-desc" style="font-size: 14px;">
+                                    <span class="text-en">Less quality, more compression</span>
+                                    <span class="text-kh">គុណភាពតិចតួច បង្រួមទំហំបានច្រើន</span>
+                                </span>
+                            </div>
+                        </label>
+                        <label class="compression-option" onclick="selectCompression(this, 'recommended')" style="padding: 20px;">
+                            <input type="radio" name="compression" value="recommended">
+                            <span class="radio" style="width: 24px; height: 24px;"></span>
+                            <div>
+                                <span class="opt-text" style="font-size: 18px;">
+                                    <span class="text-en">Recommended</span>
+                                    <span class="text-kh">ណែនាំ</span>
+                                </span>
+                                <span class="opt-desc" style="font-size: 14px;">
+                                    <span class="text-en">Balanced quality and size</span>
+                                    <span class="text-kh">តុល្យភាពគុណភាពនិងទំហំ</span>
+                                </span>
+                            </div>
+                        </label>
+                        <label class="compression-option" onclick="selectCompression(this, 'less')" style="padding: 20px;">
+                            <input type="radio" name="compression" value="less">
+                            <span class="radio" style="width: 24px; height: 24px;"></span>
+                            <div>
+                                <span class="opt-text" style="font-size: 18px;">
+                                    <span class="text-en">Less</span>
+                                    <span class="text-kh">តិច</span>
+                                </span>
+                                <span class="opt-desc" style="font-size: 14px;">
+                                    <span class="text-en">More quality, less compression</span>
+                                    <span class="text-kh">គុណភាពច្រើន បង្រួមបានតិច</span>
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="action-btn" onclick="compressPdf()" style="display:none; width: 100%; margin-top: 24px; padding: 18px 40px; font-size: 18px;" id="compressBtn">
+                <span class="text-en">Compress PDF</span>
+                <span class="text-kh">បង្រួមទំហំ PDF</span>
+            </button>
+            
+            <div class="loading" id="compressLoading">
+                <div class="spinner" style="width: 60px; height: 60px;"></div>
+                <p style="font-size: 18px;">
+                    <span class="text-en">Compressing...</span>
+                    <span class="text-kh">កំពុងបង្រួមទំហំ...</span>
+                </p>
+                <div class="progress-container" id="compressProgress">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar" id="compressProgressBar"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span class="progress-percent" id="compressPercent">0</span>%
+                    </div>
+                </div>
+                <button class="action-btn" onclick="cancelProcess()" style="margin-top: 16px; background: #666; font-size: 14px; padding: 12px 24px;">
+                    <span class="text-en">Cancel</span>
+                    <span class="text-kh">បោះបង់</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Merge Panel -->
+    <div class="tool-panel" id="merge-panel">
+        <div class="panel-content">
+            <button class="close-btn" onclick="closePanel()">×</button>
+            <h2 class="panel-title">
+                <span class="text-en">Merge PDF</span>
+                <span class="text-kh">បញ្ចូលឯកសារ PDF</span>
+            </h2>
+            <p class="panel-subtitle">
+                <span class="text-en">Combine multiple PDF files</span>
+                <span class="text-kh">រួមបញ្ចូលឯកសារ PDF ច្រើន</span>
+            </p>
+            
+            <div class="drop-zone" id="mergeDropZone" onclick="document.getElementById('mergeFileInput').click()">
+                <div class="drop-zone-icon">📑</div>
+                <p>
+                    <span class="text-en">Select PDF files or drop here</span>
+                    <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
+                </p>
+                <input type="file" id="mergeFileInput" accept=".pdf" multiple style="display:none" onchange="mergeSelectFiles()">
+            </div>
+            
+            <div class="merge-files" id="mergeFilesList"></div>
+            
+            <button class="action-btn" onclick="mergePdf()" style="display:none" id="mergeBtn">
+                <span class="text-en">Merge PDF</span>
+                <span class="text-kh">បញ្ចូលឯកសារ PDF</span>
+            </button>
+            
+            <div class="loading" id="mergeLoading">
+                <div class="spinner"></div>
+                <p>
+                    <span class="text-en">Merging...</span>
+                    <span class="text-kh">កំពុងបញ្ចូលឯកសារ...</span>
+                </p>
+                <div class="progress-container" id="mergeProgress">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar" id="mergeProgressBar"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span class="progress-percent" id="mergePercent">0</span>%
+                    </div>
+                </div>
+                <button class="action-btn" onclick="cancelProcess()" style="margin-top: 16px; background: #666; font-size: 14px; padding: 12px 24px;">
+                    <span class="text-en">Cancel</span>
+                    <span class="text-kh">បោះបង់</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Split Panel -->
+    <div class="tool-panel" id="split-panel">
+        <div class="panel-content" style="max-width: 1000px;">
+            <button class="close-btn" onclick="closePanel()">×</button>
+            <h2 class="panel-title">
+                <span class="text-en">Split PDF</span>
+                <span class="text-kh">បំបែកឯកសារ PDF</span>
+            </h2>
+            <p class="panel-subtitle">
+                <span class="text-en">Extract specific pages</span>
+                <span class="text-kh">ចម្លងយកទំព័រណាជាក់លាក់</span>
+            </p>
+            
+            <div class="drop-zone" id="splitDropZone" onclick="document.getElementById('splitFileInput').click()">
+                <div class="drop-zone-icon">✂️</div>
+                <p>
+                    <span class="text-en">Select PDF file or drop here</span>
+                    <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
+                </p>
+                <input type="file" id="splitFileInput" accept=".pdf" style="display:none" onchange="splitSelectFile()">
+            </div>
+            
+            <div class="file-info" id="splitFileInfo">
+                <span id="splitFileName"></span>
+            </div>
+            
+            <div class="split-options">
+                <div class="split-mode-tabs">
+                    <button type="button" class="split-tab active" onclick="showSplitMode('range')">
+                        <span class="text-en">By Range</span>
+                        <span class="text-kh">តាមចន្លោះ</span>
+                    </button>
+                    <button type="button" class="split-tab" onclick="showSplitMode('single')">
+                        <span class="text-en">One per Page</span>
+                        <span class="text-kh">១ទំព័រក្នុងឯកសារ</span>
+                    </button>
+                    <button type="button" class="split-tab" onclick="showSplitMode('organize')">
+                        <span class="text-en">Organize</span>
+                        <span class="text-kh">រៀបចំ</span>
+                    </button>
+                </div>
+                
+                <div class="split-mode-content" id="split-mode-range">
+                    <input type="text" class="page-input" id="splitPageRange" placeholder="e.g., 1-3, 5, 7-10">
+                </div>
+                
+                <div class="split-mode-content" id="split-mode-single" style="display:none;">
+                    <p style="color:#666;font-size:14px;">
+                        <span class="text-en">Split each page into separate PDF files</span>
+                        <span class="text-kh">បំបែកទំព័រនីមួយៗទៅជាឯកសារ PDF ដាច់ដោយឡែក</span>
+                    </p>
+                </div>
+                
+                <div class="split-mode-content" id="split-mode-select" style="display:none;">
+                    <p style="color:#666;font-size:14px;margin-bottom:10px;">
+                        <span class="text-en">Click pages to select/deselect. Drag to reorder.</span>
+                        <span class="text-kh">ចុចទំព័រដើម្បីជ្រើសរើស/មិនជ្រើសរើស រៀបចំតាមលំដាប់។</span>
+                    </p>
+                    <div class="page-thumbnails" id="pageThumbnails"></div>
+                </div>
+                
+                <div class="split-mode-content" id="split-mode-organize" style="display:none;">
+                    <p style="color:#666;font-size:14px;margin-bottom:10px;">
+                        <span class="text-en">Click to select/deselect pages. Drag to reorder.</span>
+                        <span class="text-kh">ចុចទំព័រដើម្បីជ្រើសរើស/មិនជ្រើសរើស រៀបចំតាមលំដាប់។</span>
+                    </p>
+                    <div class="page-thumbnails" id="organizeThumbnails"></div>
+                </div>
+            </div>
+            
+            <button class="action-btn" onclick="splitPdf()" style="display:none" id="splitBtn">
+                <span class="text-en">Split PDF</span>
+                <span class="text-kh">បំបែកឯកសារ PDF</span>
+            </button>
+            
+            <div class="loading" id="splitLoading">
+                <div class="spinner"></div>
+                <p>
+                    <span class="text-en">Splitting...</span>
+                    <span class="text-kh">កំពុងបំបែក...</span>
+                </p>
+                <div class="progress-container" id="splitProgress">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar" id="splitProgressBar"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span class="progress-percent" id="splitPercent">0</span>%
+                    </div>
+                </div>
+                <button class="action-btn" onclick="cancelProcess()" style="margin-top: 16px; background: #666; font-size: 14px; padding: 12px 24px;">
+                    <span class="text-en">Cancel</span>
+                    <span class="text-kh">បោះបង់</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function setLang(lang) {
+            if (lang === 'kh') {
+                document.body.className = 'lang-kh';
+                document.getElementById('langKh').classList.add('active');
+                document.getElementById('langEn').classList.remove('active');
+            } else {
+                document.body.className = 'lang-en';
+                document.getElementById('langEn').classList.add('active');
+                document.getElementById('langKh').classList.remove('active');
+            }
+            localStorage.setItem('pdf_lang', lang);
+        }
+        
+        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
+        setLang(savedLang);
+        
+        let currentTool = '';
+        let currentJobId = '';
+        
+        function animateProgress(tool, duration) {
+            const progressBar = document.getElementById(tool + 'ProgressBar');
+            const percentEl = document.getElementById(tool + 'Percent');
+            const progressContainer = document.getElementById(tool + 'Progress');
+            
+            progressContainer.classList.add('active');
+            progressBar.style.width = '0%';
+            
+            let startTime = null;
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min((elapsed / duration) * 85, 85);
+                progressBar.style.width = progress + '%';
+                percentEl.textContent = Math.round(progress);
+                
+                if (progress < 85) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+        
+        function checkJobStatus(jobId, tool) {
+            return fetch('/api/job/' + jobId + '/')
+                .then(r => r.json());
+        }
+        
+        function completeProgress(tool, success) {
+            const progressBar = document.getElementById(tool + 'ProgressBar');
+            const percentEl = document.getElementById(tool + 'Percent');
+            progressBar.style.width = success ? '100%' : '0%';
+            percentEl.textContent = success ? '100' : '0';
+        }
+        
+        function openPanel(tool) {
+            currentTool = tool;
+            document.getElementById(tool + '-panel').classList.add('active');
+        }
+        
+        function closePanel() {
+            document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+            resetForms();
+        }
+        
+        function resetForms() {
+            document.getElementById('compressFileInput').value = '';
+            document.getElementById('compressFilesList').innerHTML = '';
+            document.getElementById('compressBtn').style.display = 'none';
+            compressFiles = [];
+            
+            document.getElementById('mergeFileInput').value = '';
+            document.getElementById('mergeFilesList').innerHTML = '';
+            document.getElementById('mergeBtn').style.display = 'none';
+            
+            document.getElementById('splitFileInput').value = '';
+            document.getElementById('splitFileInfo').classList.remove('show');
+            document.getElementById('splitPageRange').value = '';
+            document.getElementById('splitBtn').style.display = 'none';
+        }
+        
+        let compressFiles = [];
+        let mergeFiles = [];
+        let splitFile = null;
+        let compressionLevel = 'extreme';
+        
+        function selectCompression(el, level) {
+            document.querySelectorAll('.compression-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            compressionLevel = level;
+        }
+        
+        function compressSelectFile() {
+            const input = document.getElementById('compressFileInput');
+            const newFiles = Array.from(input.files);
+            for (let f of newFiles) {
+                if (f.name.toLowerCase().endsWith('.pdf')) {
+                    const exists = compressFiles.some(cf => cf.name === f.name && cf.size === f.size);
+                    if (!exists) compressFiles.push(f);
+                }
+            }
+            input.value = '';
+            updateCompressList();
+        }
+        
+        function updateCompressList() {
+            const list = document.getElementById('compressFilesList');
+            list.innerHTML = compressFiles.map((f, i) => `
+                <div class="selected-file" style="padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; background: #f5f5f5; border-radius: 8px;">
+                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis;">${f.name}</span>
+                    <span style="color: #999; font-size: 12px; margin-left: 10px;">${formatSize(f.size)}</span>
+                    <span class="remove" onclick="removeCompressFile(${i})" style="margin-left: 10px; cursor: pointer; color: #d32f2f; font-weight: bold;">✕</span>
+                </div>
+            `).join('');
+            document.getElementById('compressBtn').style.display = compressFiles.length > 0 ? 'inline-block' : 'none';
+        }
+        
+        function removeCompressFile(i) {
+            compressFiles.splice(i, 1);
+            updateCompressList();
+        }
+        
+        function mergeSelectFiles() {
+            const input = document.getElementById('mergeFileInput');
+            mergeFiles = [];
+            for (let f of input.files) {
+                if (f.name.toLowerCase().endsWith('.pdf')) mergeFiles.push(f);
+            }
+            updateMergeList();
+        }
+        
+        function updateMergeList() {
+            const list = document.getElementById('mergeFilesList');
+            list.innerHTML = mergeFiles.map((f, i) => `
+                <div class="merge-file" draggable="true" data-index="${i}">
+                    <span>${f.name}</span>
+                    <span class="remove" onclick="removeMergeFile(${i})">✕</span>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.merge-file').forEach(el => {
+                el.addEventListener('dragstart', handleDragStart);
+                el.addEventListener('dragover', handleDragOver);
+                el.addEventListener('drop', handleDrop);
+                el.addEventListener('dragend', handleDragEnd);
+            });
+            
+            document.getElementById('mergeBtn').style.display = mergeFiles.length > 0 ? 'inline-block' : 'none';
+        }
+        
+        let draggedIndex = null;
+        
+        function handleDragStart(e) {
+            draggedIndex = parseInt(e.target.dataset.index);
+            e.target.classList.add('dragging');
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetIndex = parseInt(e.target.closest('.merge-file').dataset.index);
+            if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                const item = mergeFiles.splice(draggedIndex, 1)[0];
+                mergeFiles.splice(targetIndex, 0, item);
+                updateMergeList();
+            }
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedIndex = null;
+        }
+        
+        function removeMergeFile(i) {
+            mergeFiles.splice(i, 1);
+            updateMergeList();
+        }
+        
+        function splitSelectFile() {
+            const input = document.getElementById('splitFileInput');
+            if (input.files.length > 0) {
+                splitFile = input.files[0];
+                document.getElementById('splitFileName').textContent = splitFile.name + ' (' + formatSize(splitFile.size) + ')';
+                document.getElementById('splitFileInfo').classList.add('show');
+                document.getElementById('splitBtn').style.display = 'inline-block';
+                
+                selectedPages = [];
+                loadPdfThumbnails(splitFile);
+            }
+        }
+        
+        let pdfPages = [];
+        
+        async function loadPdfThumbnails(file) {
+            const container = document.getElementById('pageThumbnails');
+            const organizeContainer = document.getElementById('organizeThumbnails');
+            container.innerHTML = '<p style="color:#666;">Loading...</p>';
+            organizeContainer.innerHTML = '<p style="color:#666;">Loading...</p>';
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const totalPages = pdf.numPages;
+                pdfPages = [];
+                
+                container.innerHTML = '';
+                organizeContainer.innerHTML = '';
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 0.3 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    
+                    const imgData = canvas.toDataURL();
+                    
+                    [container, organizeContainer].forEach((cont, idx) => {
+                        const div = document.createElement('div');
+                        div.className = 'page-thumb';
+                        div.dataset.page = i;
+                        div.draggable = true;
+                        
+                        const img = document.createElement('img');
+                        img.src = imgData;
+                        img.style.width = '100%';
+                        img.style.height = 'auto';
+                        img.style.objectFit = 'contain';
+                        
+                        const num = document.createElement('span');
+                        num.className = 'page-num';
+                        num.textContent = i;
+                        
+                        div.appendChild(img);
+                        div.appendChild(num);
+                        
+                        const targetMode = idx === 0 ? 'select' : 'organize';
+                        div.addEventListener('click', () => {
+                            if (targetMode === 'organize') {
+                                toggleOrganizePageSelection(i);
+                            } else {
+                                togglePageSelection(i);
+                            }
+                        });
+                        div.addEventListener('dragstart', (e) => handlePageDragStart(e, targetMode));
+                        div.addEventListener('dragover', handlePageDragOver);
+                        div.addEventListener('drop', (e) => handlePageDrop(e, targetMode));
+                        div.addEventListener('dragend', handlePageDragEnd);
+                        
+                        cont.appendChild(div);
+                    });
+                    
+                    pdfPages.push({ num: i });
+                }
+                
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<p style="color:red;">Error loading PDF</p>';
+                organizeContainer.innerHTML = '<p style="color:red;">Error loading PDF</p>';
+            }
+        }
+        
+        let draggedPage = null;
+        let currentDragMode = 'select';
+        
+        function handlePageDragStart(e, mode) {
+            draggedPage = parseInt(e.target.dataset.page);
+            currentDragMode = mode;
+            e.target.classList.add('dragging');
+        }
+        
+        function handlePageDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handlePageDrop(e, mode) {
+            e.preventDefault();
+            const targetPage = parseInt(e.target.closest('.page-thumb').dataset.page);
+            if (draggedPage && draggedPage !== targetPage) {
+                const fromIdx = pdfPages.findIndex(p => p.num === draggedPage);
+                const toIdx = pdfPages.findIndex(p => p.num === targetPage);
+                
+                const [moved] = pdfPages.splice(fromIdx, 1);
+                pdfPages.splice(toIdx, 0, moved);
+                
+                renderPdfPages(mode);
+            }
+        }
+        
+        function handlePageDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedPage = null;
+        }
+        
+        function renderPdfPages(mode) {
+            const container = mode === 'organize' ? document.getElementById('organizeThumbnails') : document.getElementById('pageThumbnails');
+            container.innerHTML = '';
+            
+            pdfPages.forEach((p, idx) => {
+                const div = document.createElement('div');
+                div.className = 'page-thumb';
+                if (mode === 'organize' ? organizeSelectedPages.includes(p.num) : selectedPages.includes(p.num)) {
+                    div.classList.add('selected');
+                }
+                div.dataset.page = p.num;
+                div.draggable = true;
+                
+                const num = document.createElement('span');
+                num.className = 'page-num';
+                num.textContent = idx + 1;
+                
+                div.appendChild(num);
+                
+                div.addEventListener('click', () => {
+                    if (mode === 'organize') {
+                        toggleOrganizePageSelection(p.num);
+                    } else {
+                        togglePageSelection(p.num);
+                    }
+                });
+                div.addEventListener('dragstart', (e) => handlePageDragStart(e, mode));
+                div.addEventListener('dragover', handlePageDragOver);
+                div.addEventListener('drop', (e) => handlePageDrop(e, mode));
+                div.addEventListener('dragend', handlePageDragEnd);
+                
+                container.appendChild(div);
+            });
+        }
+        
+        function togglePageSelection(pageNum) {
+            const idx = selectedPages.indexOf(pageNum);
+            if (idx > -1) {
+                selectedPages.splice(idx, 1);
+            } else {
+                selectedPages.push(pageNum);
+            }
+            updatePageThumbSelection();
+        }
+        
+        function toggleOrganizePageSelection(pageNum) {
+            const idx = organizeSelectedPages.indexOf(pageNum);
+            if (idx > -1) {
+                organizeSelectedPages.splice(idx, 1);
+            } else {
+                organizeSelectedPages.push(pageNum);
+            }
+            updateOrganizeThumbSelection();
+            document.getElementById('splitBtn').style.display = organizeSelectedPages.length > 0 ? 'inline-block' : 'none';
+        }
+        
+        function updateOrganizeThumbSelection() {
+            document.querySelectorAll('#organizeThumbnails .page-thumb').forEach(el => {
+                const pageNum = parseInt(el.dataset.page);
+                if (organizeSelectedPages.includes(pageNum)) {
+                    el.classList.add('selected');
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+        }
+        
+        function updatePageThumbSelection() {
+            document.querySelectorAll('.page-thumb').forEach(el => {
+                const pageNum = parseInt(el.dataset.page);
+                if (selectedPages.includes(pageNum)) {
+                    el.classList.add('selected');
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+            
+            document.getElementById('splitBtn').style.display = selectedPages.length > 0 ? 'inline-block' : 'none';
+        }
+        
+        let splitMode = 'range';
+        let selectedPages = [];
+        let organizeSelectedPages = [];
+        
+        function showSplitMode(mode) {
+            splitMode = mode;
+            document.querySelectorAll('.split-tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.split-tab').classList.add('active');
+            
+            document.querySelectorAll('.split-mode-content').forEach(c => c.style.display = 'none');
+            document.getElementById('split-mode-' + mode).style.display = 'block';
+            
+            if (mode === 'single') {
+                document.getElementById('splitBtn').textContent = 'Split all pages';
+            }
+        }
+        
+        function formatSize(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+            return (b/(1024*1024)).toFixed(1) + ' MB';
+        }
+        
+        function processPdf(url, file, files, pageRange, compressionLevel, splitMode) {
+            const fd = new FormData();
+            if (file) fd.append('file', file);
+            if (files) files.forEach(f => fd.append('files', f));
+            if (pageRange) fd.append('page_range', pageRange);
+            if (compressionLevel) fd.append('compression_level', compressionLevel);
+            if (splitMode) fd.append('split_mode', splitMode);
+            
+            const tool = currentTool;
+            document.getElementById(tool + 'Loading').classList.add('active');
+            document.getElementById(tool + 'Btn').style.display = 'none';
+            
+            const progressBar = document.getElementById(tool + 'ProgressBar');
+            const percentEl = document.getElementById(tool + 'Percent');
+            const progressContainer = document.getElementById(tool + 'Progress');
+            progressContainer.classList.add('active');
+            progressBar.style.width = '0%';
+            percentEl.textContent = '0';
+            
+            let isCancelled = false;
+            
+            fetch(url, { method: 'POST', body: fd })
+                .then(r => {
+                    if (!r.ok) {
+                        return r.text().then(text => { throw new Error(text); });
+                    }
+                    return r.json();
+                })
+                .then(d => {
+                    if (d.job_id && !isCancelled) {
+                        let progress = 0;
+                        const jobId = d.job_id;
+                        
+                        const progressInterval = setInterval(() => {
+                            if (isCancelled) {
+                                clearInterval(progressInterval);
+                                return;
+                            }
+                            progress += Math.random() * 6 + 2;
+                            if (progress > 90) progress = 90;
+                            progressBar.style.width = progress + '%';
+                            percentEl.textContent = Math.round(progress);
+                        }, 500);
+                        
+                        function checkStatus() {
+                            if (isCancelled) return;
+                            
+                            fetch('/api/job/' + jobId + '/')
+                                .then(r => r.json())
+                                .then(job => {
+                                    if (isCancelled) return;
+                                    
+                                    if (job.status === 'done') {
+                                        clearInterval(progressInterval);
+                                        progressBar.style.width = '100%';
+                                        percentEl.textContent = '100';
+                                        setTimeout(() => {
+                                            window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
+                                        }, 500);
+                                    } else if (job.status === 'failed') {
+                                        clearInterval(progressInterval);
+                                        progressBar.style.width = '0%';
+                                        percentEl.textContent = '0';
+                                        alert(job.error || 'Processing failed');
+                                        document.getElementById(tool + 'Loading').classList.remove('active');
+                                        document.getElementById(tool + 'Btn').style.display = 'inline-block';
+                                    } else {
+                                        setTimeout(checkStatus, 2000);
+                                    }
+                                })
+                                .catch(e => {
+                                    if (!isCancelled) setTimeout(checkStatus, 2000);
+                                });
+                        }
+                        
+                        setTimeout(checkStatus, 1500);
+                    } else {
+                        alert(d.error || 'Error');
+                        document.getElementById(tool + 'Loading').classList.remove('active');
+                        document.getElementById(tool + 'Btn').style.display = 'inline-block';
+                    }
+                })
+                .catch(e => {
+                    console.error(e);
+                    alert('Error: ' + e.message);
+                    document.getElementById(tool + 'Loading').classList.remove('active');
+                    document.getElementById(tool + 'Btn').style.display = 'inline-block';
+                });
+        }
+        
+        function cancelProcess() {
+            isCancelled = true;
+            document.querySelectorAll('.loading').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.action-btn').forEach(b => b.style.display = 'inline-block');
+        }
+        
+        function compressPdf() { processPdf('/api/compress/', null, compressFiles, null, compressionLevel); }
+        function mergePdf() { processPdf('/api/merge/', null, mergeFiles, null); }
+        function splitPdf() {
+            let range = '';
+            
+            if (splitMode === 'range') {
+                range = document.getElementById('splitPageRange').value || '1';
+            } else if (splitMode === 'single') {
+                range = 'all';
+            } else if (splitMode === 'organize') {
+                range = organizeSelectedPages.join(',');
+            }
+            
+            if (!range && splitMode !== 'single') {
+                range = '1';
+            }
+            
+            processPdf('/api/split/', splitFile, null, range, null, splitMode);
+        }
+        
+        function resetForms() {
+            document.getElementById('compressFileInput').value = '';
+            document.getElementById('compressFilesList').innerHTML = '';
+            document.getElementById('compressBtn').style.display = 'none';
+            compressFiles = [];
+            
+            document.getElementById('mergeFileInput').value = '';
+            document.getElementById('mergeFilesList').innerHTML = '';
+            document.getElementById('mergeBtn').style.display = 'none';
+            
+            document.getElementById('splitFileInput').value = '';
+            document.getElementById('splitFileInfo').classList.remove('show');
+            document.getElementById('splitPageRange').value = '';
+            document.getElementById('splitBtn').style.display = 'none';
+            splitFile = null;
+            selectedPages = [];
+            organizeSelectedPages = [];
+            pdfPages = [];
+            document.getElementById('pageThumbnails').innerHTML = '';
+            document.getElementById('organizeThumbnails').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organize PDF - PDF Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    {% load static %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: url('/static/city.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.95);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #333;
+        }
+        .logo-icon { font-size: 28px; }
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover {
+            background: #f5f5f5;
+            color: #667eea;
+        }
+        .nav-links a.active {
+            background: #667eea;
+            color: white;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .lang-btns { display: flex; gap: 8px; }
+        .lang-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .lang-btn.active { background: #667eea; color: white; }
+        
+        .back-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: #f5f5f5;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            color: #333;
+        }
+        .back-btn:hover { background: #e0e0e0; }
+        
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            gap: 24px;
+        }
+        
+        .left-panel {
+            width: 280px;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        .left-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .left-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .left-panel::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+        
+        .drop-zone {
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+        .drop-zone:hover { border-color: #667eea; background: #f5f7ff; }
+        .drop-zone-icon { font-size: 32px; margin-bottom: 8px; }
+        
+        .file-info {
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 10;
+        }
+        .file-info h3 { font-size: 13px; color: #333; margin-bottom: 4px; word-break: break-all; }
+        .file-info p { font-size: 11px; color: #666; }
+        .file-info button { position: relative; z-index: 20; pointer-events: auto; }
+        
+        .actions-section {
+            margin-bottom: 16px;
+        }
+        .actions-section h3 {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .action-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: white;
+            border: 2px solid #ddd;
+            color: #333;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .action-btn:hover { border-color: #667eea; color: #667eea; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .extract-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: auto;
+        }
+        .extract-btn:hover { transform: translateY(-2px); }
+        .extract-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        
+        .right-panel {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: calc(100vh - 140px);
+            overflow: hidden;
+        }
+        
+        .right-panel-inner {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            height: 100%;
+        }
+        
+        .right-panel-inner::-webkit-scrollbar {
+            width: 10px;
+        }
+        .right-panel-inner::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        .right-panel-inner::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+        
+        .page-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: flex-start;
+            align-content: flex-start;
+            padding: 10px;
+        }
+        
+        .page-item {
+            width: 160px;
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            padding: 8px;
+        }
+        .page-item:hover {
+            border-color: #667eea;
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .page-item.selected {
+            border-color: #667eea;
+            background: #f5f7ff;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .page-item.is-blank {
+            background: #f0f0f0;
+            border-color: #999;
+        }
+        .page-item.is-replaced {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+        .page-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        .page-item.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-item img {
+            max-width: 140px;
+            max-height: 160px;
+            object-fit: contain;
+            margin-bottom: 6px;
+        }
+        .page-item .page-num {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        .page-item .page-num-new {
+            position: absolute;
+            bottom: 6px;
+            left: 6px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .selection-info {
+            padding: 10px 16px;
+            background: #f5f7ff;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #333;
+        }
+        .selection-info strong { color: #667eea; }
+        
+        .instructions {
+            padding: 12px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #2e7d32;
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: #666;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .text-en, .text-kh { display: none; }
+        body.lang-en .text-en { display: block; }
+        body.lang-kh .text-kh { display: block; }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .modal-overlay.active { 
+            display: flex; 
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            margin-top: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .progress-percent {
+            font-size: 28px;
+            color: #667eea;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; }
+            .left-panel { width: 100%; }
+            .page-item { width: 130px; }
+            .page-item img { max-width: 100px; max-height: 120px; }
+        }
+    </style>
+</head>
+<body class="lang-kh">
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">PDF Tools</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/compress/">
+                    <span class="text-en">Compress</span>
+                    <span class="text-kh">បង្រួម</span>
+                </a>
+                <a href="/merge/">
+                    <span class="text-en">Merge</span>
+                    <span class="text-kh">បញ្ជូល</span>
+                </a>
+                <a href="/pdf-split/">
+                    <span class="text-en">Split</span>
+                    <span class="text-kh">បំបែក</span>
+                </a>
+                <a href="/organize/" class="active">
+                    <span class="text-en">Organize</span>
+                    <span class="text-kh">រៀបចំ</span>
+                </a>
+                <a href="/calendar/">
+                    <span class="text-en">Calendar</span>
+                    <span class="text-kh">ប្រតិទិក</span>
+                </a>
+            </nav>
+        </div>
+        <div class="header-actions">
+            <div class="lang-btns">
+                <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
+                <button class="lang-btn" id="langKh" onclick="setLang('kh')">KH</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="left-panel">
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <div class="drop-zone-icon">📄</div>
+                <p>
+                    <span class="text-en">Select PDF file or drop here</span>
+                    <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
+                </p>
+                <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="loadFile()">
+            </div>
+            
+            <div class="file-info" id="fileInfo" style="display:none;">
+                <h3 id="fileName"></h3>
+                <p id="fileSize"></p>
+                <button onclick="setTimeout(closeFile, 10)" id="closeFileBtn" style="display:none;margin-top:8px;padding:6px 12px;background:#f5f5f5;border:1px solid #ddd;border-radius:4px;cursor:pointer;font-size:12px;color:#d32f2f;width:100%;">
+                    <span class="text-en">Remove</span>
+                    <span class="text-kh">លុប</span>
+                </button>
+            </div>
+            
+            <div class="actions-section" id="actionsSection" style="display:none;">
+                <h3>
+                    <span class="text-en">Actions</span>
+                    <span class="text-kh">សកម្មភាព</span>
+                </h3>
+                <div class="action-btns">
+                    <button class="action-btn" onclick="selectAll()">
+                        <span class="text-en">Select All</span>
+                        <span class="text-kh">ជ្រើសទាំងអស់</span>
+                    </button>
+                    <button class="action-btn" onclick="deselectAll()">
+                        <span class="text-en">Deselect All</span>
+                        <span class="text-kh">មិនជ្រើស</span>
+                    </button>
+                    <button class="action-btn" onclick="addBlankPage()">
+                        <span class="text-en">Add Blank Page</span>
+                        <span class="text-kh">បន្ថែមទំព័រទទេ</span>
+                    </button>
+                    <button class="action-btn" onclick="document.getElementById('replaceInput').click()" id="replaceBtn" disabled>
+                        <span class="text-en">Replace Selected</span>
+                        <span class="text-kh">ជ្វីស្តាយ</span>
+                    </button>
+                    <input type="file" id="replaceInput" accept=".pdf" multiple style="display:none" onchange="replaceSelected(event)">
+                    <button class="action-btn" onclick="deleteSelected()" id="deleteBtn" disabled>
+                        <span class="text-en">Delete Selected</span>
+                        <span class="text-kh">លុបចេញ</span>
+                    </button>
+                </div>
+            </div>
+            
+            <button class="extract-btn" id="extractBtn" disabled onclick="extractPdf()">
+                <span class="text-en">Extract Selected Pages</span>
+                <span class="text-kh">ទាញយកទំព័រជ្រើស</span>
+            </button>
+        </div>
+        
+        <div class="right-panel">
+            <div class="right-panel-inner">
+                <div class="instructions" id="instructions">
+                    <span class="text-en">👆 Upload a PDF to reorder pages. Drag pages to rearrange. Click to select/deselect.</span>
+                    <span class="text-kh">👆 បញ្ចូល PDF ដើម្បីរៀបចំទំព័រ ទាញទំព័រដើម្បីផ្លាស់ទី ចុចដើម្បីជ្រើស/មិនជ្រើស</span>
+                </div>
+                
+                <div class="selection-info" id="selectionInfo" style="display:none;">
+                    <span>
+                        <span class="text-en">Selected: <strong id="selectedCount">0</strong> pages</span>
+                        <span class="text-kh">បានជ្រើស: <strong id="selectedCount">0</strong> ទំព័រ</span>
+                    </span>
+                    <span>
+                        <span class="text-en">Total: <strong id="totalCount">0</strong> pages</span>
+                        <span class="text-kh">សរុប: <strong id="totalCount">0</strong> ទំព័រ</span>
+                    </span>
+                </div>
+                
+                <div class="page-grid" id="pageGrid">
+                    <div class="loading" id="loading">
+                        <p style="color:#666;font-size:16px;">
+                            <span class="text-en">No PDF loaded</span>
+                            <span class="text-kh">មិនមាន PDF</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for progress -->
+    <div class="modal-overlay" id="modalOverlay" style="display:none;">
+        <div class="modal">
+            <h2>
+                <span class="text-en">Processing...</span>
+                <span class="text-kh">កំពុងដំណើរការ...</span>
+            </h2>
+            
+            <div class="progress-container">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="modalProgressBar"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent" id="modalPercent">0</span>%
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function setLang(lang) {
+            if (lang === 'kh') {
+                document.body.className = 'lang-kh';
+                document.getElementById('langKh').classList.add('active');
+                document.getElementById('langEn').classList.remove('active');
+            } else {
+                document.body.className = 'lang-en';
+                document.getElementById('langEn').classList.add('active');
+                document.getElementById('langKh').classList.remove('active');
+            }
+            localStorage.setItem('pdf_lang', lang);
+        }
+        
+        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
+        setLang(savedLang);
+        
+        let currentFile = null;
+        let pdfPages = [];
+        let selectedPages = [];
+        let loadingCancelled = false;
+        
+        const dropZone = document.getElementById('dropZone');
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#667eea';
+            dropZone.style.background = '#f5f7ff';
+        });
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ddd';
+            dropZone.style.background = 'transparent';
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ddd';
+            dropZone.style.background = 'transparent';
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.toLowerCase().endsWith('.pdf')) {
+                if (pdfPages.length > 0) {
+                    if (!confirm('You have unsaved changes. Replace with new file?')) {
+                        return;
+                    }
+                }
+                loadingCancelled = false;
+                pdfPages = [];
+                selectedPages = [];
+                document.getElementById('pageGrid').innerHTML = '';
+                currentFile = files[0];
+                document.getElementById('fileName').textContent = currentFile.name;
+                document.getElementById('fileSize').textContent = formatSize(currentFile.size);
+                document.getElementById('fileInfo').style.display = 'block';
+                loadPdfPages(currentFile);
+            }
+        });
+        
+        function formatSize(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+            return (b/(1024*1024)).toFixed(1) + ' MB';
+        }
+        
+        function loadFile() {
+            const input = document.getElementById('fileInput');
+            if (input.files.length > 0) {
+                if (pdfPages.length > 0) {
+                    if (!confirm('You have unsaved changes. Replace with new file?')) {
+                        input.value = '';
+                        return;
+                    }
+                }
+                loadingCancelled = false;
+                pdfPages = [];
+                selectedPages = [];
+                document.getElementById('pageGrid').innerHTML = '';
+                currentFile = input.files[0];
+                document.getElementById('fileName').textContent = currentFile.name;
+                document.getElementById('fileSize').textContent = formatSize(currentFile.size);
+                document.getElementById('fileInfo').style.display = 'block';
+                
+                loadPdfPages(currentFile);
+            }
+        }
+        
+        function closeFile() {
+            console.log('closeFile called');
+            loadingCancelled = true;
+            currentFile = null;
+            pdfPages = [];
+            selectedPages = [];
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('closeFileBtn').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('actionsSection').style.display = 'none';
+            document.getElementById('selectionInfo').style.display = 'none';
+            document.getElementById('pageGrid').innerHTML = '<div class="loading"><p style="color:#666;font-size:16px;"><span class="text-en">No PDF loaded</span><span class="text-kh">មិនមាន PDF</span></p></div>';
+            document.getElementById('extractBtn').disabled = true;
+            console.log('closeFile done, currentFile:', currentFile);
+        }
+        
+        async function loadPdfPages(file) {
+            loadingCancelled = false;
+            const grid = document.getElementById('pageGrid');
+            grid.innerHTML = '';
+            
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.innerHTML = '<div class="spinner"></div><p><span class="text-en">Loading PDF pages...</span><span class="text-kh">កំពុងផ្ទុក...</span></p>';
+            loading.style.display = 'flex';
+            grid.appendChild(loading);
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                if (loadingCancelled) return;
+                
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                if (loadingCancelled) return;
+                
+                const totalPages = pdf.numPages;
+                pdfPages = [];
+                
+                loading.style.display = 'none';
+                grid.innerHTML = '';
+                
+                document.getElementById('actionsSection').style.display = 'block';
+                document.getElementById('closeFileBtn').style.display = 'block';
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    if (loadingCancelled) return;
+                    const page = await pdf.getPage(i);
+                    if (loadingCancelled) return;
+                    const viewport = page.getViewport({ scale: 0.4 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    if (loadingCancelled) return;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'page-item';
+                    div.dataset.page = i;
+                    div.dataset.original = i;
+                    div.draggable = true;
+                    
+                    const img = document.createElement('img');
+                    img.src = canvas.toDataURL();
+                    
+                    const num = document.createElement('span');
+                    num.className = 'page-num';
+                    num.textContent = 'P' + i;
+                    
+                    const newNum = document.createElement('span');
+                    newNum.className = 'page-num-new';
+                    newNum.textContent = '#' + i;
+                    
+                    div.appendChild(img);
+                    div.appendChild(num);
+                    div.appendChild(newNum);
+                    
+                    div.addEventListener('click', () => togglePage(i));
+                    div.addEventListener('dragstart', handleDragStart);
+                    div.addEventListener('dragover', handleDragOver);
+                    div.addEventListener('drop', handleDrop);
+                    div.addEventListener('dragend', handleDragEnd);
+                    
+                    grid.appendChild(div);
+                    pdfPages.push({ num: i, original: i, el: div });
+                }
+                
+                if (loadingCancelled) return;
+                
+                updateSelection();
+                
+            } catch (e) {
+                console.error(e);
+                grid.innerHTML = '<p style="color:red;text-align:center;">Error loading PDF</p>';
+            }
+        }
+        
+        function togglePage(pageNum) {
+            const idx = selectedPages.indexOf(pageNum);
+            if (idx > -1) {
+                selectedPages.splice(idx, 1);
+            } else {
+                selectedPages.push(pageNum);
+            }
+            updateSelection();
+        }
+        
+        function selectAll() {
+            if (pdfPages.length === 0) return;
+            selectedPages = pdfPages.map(p => p.num);
+            updateSelection();
+        }
+        
+        function deselectAll() {
+            selectedPages = [];
+            updateSelection();
+        }
+        
+        function deleteSelected() {
+            if (selectedPages.length === 0) return;
+            
+            if (confirm('Delete ' + selectedPages.length + ' selected page(s)?')) {
+                const toDelete = [...selectedPages];
+                pdfPages = pdfPages.filter(p => !toDelete.includes(p.num));
+                
+                renderPages();
+                selectedPages = [];
+                updateSelection();
+            }
+        }
+        
+        function addBlankPage() {
+            if (selectedPages.length > 0) {
+                const insertIndex = Math.min(...selectedPages) - 1;
+                const newPage = {
+                    num: 0,
+                    original: 'blank',
+                    isBlank: true,
+                    el: null
+                };
+                pdfPages.splice(insertIndex, 0, newPage);
+                renderPages();
+            } else {
+                const newPage = {
+                    num: 0,
+                    original: 'blank',
+                    isBlank: true,
+                    el: null
+                };
+                pdfPages.push(newPage);
+                renderPages();
+            }
+        }
+        
+        let replaceFiles = [];
+        
+        async function replaceSelected(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0 || selectedPages.length === 0) return;
+            
+            try {
+                let newPages = [];
+                let replaceIdx = 0;
+                
+                for (const file of files) {
+                    replaceFiles.push(file);
+                    const fileIndex = replaceFiles.length - 1;
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    const totalPages = pdf.numPages;
+                    
+                    for (let i = 1; i <= totalPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const viewport = page.getViewport({ scale: 0.4 });
+                        
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        
+                        await page.render({ canvasContext: context, viewport: viewport }).promise;
+                        
+                        const replacePageNum = selectedPages[replaceIdx] || (replaceStartIndex + replaceIdx + 1);
+                        
+                        newPages.push({
+                            num: 0,
+                            original: replacePageNum,
+                            originalFile: currentFile.name,
+                            isReplaced: true,
+                            replacedImg: canvas.toDataURL(),
+                            replacedFileIndex: fileIndex,
+                            replacedPageNum: i,
+                            replacedName: file.name,
+                            el: null
+                        });
+                        replaceIdx++;
+                    }
+                }
+                
+                const replaceStartIndex = Math.min(...selectedPages) - 1;
+                const replaceEndIndex = Math.max(...selectedPages);
+                const replaceCount = replaceEndIndex - replaceStartIndex;
+                
+                const pagesToAdd = newPages.length;
+                const pagesToRemove = Math.min(replaceCount, pagesToAdd);
+                
+                pdfPages.splice(replaceStartIndex, pagesToRemove, ...newPages);
+                
+                renderPages();
+            } catch (e) {
+                console.error(e);
+                alert('Error loading replacement PDF');
+            }
+            
+            event.target.value = '';
+        }
+        
+        function updateSelection() {
+            document.querySelectorAll('.page-item').forEach(el => {
+                const pageNum = parseInt(el.dataset.page);
+                if (selectedPages.includes(pageNum)) {
+                    el.classList.add('selected');
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+            
+            document.getElementById('selectedCount').textContent = selectedPages.length;
+            document.getElementById('totalCount').textContent = pdfPages.length;
+            document.getElementById('selectionInfo').style.display = 'block';
+            document.getElementById('extractBtn').disabled = pdfPages.length === 0;
+            document.getElementById('deleteBtn').disabled = selectedPages.length === 0;
+            document.getElementById('replaceBtn').disabled = selectedPages.length === 0;
+        }
+        
+        let draggedPage = null;
+        
+        function handleDragStart(e) {
+            draggedPage = parseInt(e.target.dataset.page);
+            e.target.classList.add('dragging');
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            const target = e.target.closest('.page-item');
+            if (!target) return;
+            const targetPage = parseInt(target.dataset.page);
+            if (draggedPage && draggedPage !== targetPage) {
+                const fromIdx = pdfPages.findIndex(p => p.num === draggedPage);
+                const toIdx = pdfPages.findIndex(p => p.num === targetPage);
+                
+                const [moved] = pdfPages.splice(fromIdx, 1);
+                pdfPages.splice(toIdx, 0, moved);
+                
+                renderPages();
+            }
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedPage = null;
+        }
+        
+        function renderPages() {
+            const grid = document.getElementById('pageGrid');
+            grid.innerHTML = '';
+            
+            pdfPages = pdfPages.map((p, idx) => ({...p, num: idx + 1}));
+            
+            pdfPages.forEach((p, idx) => {
+                const newNum = idx + 1;
+                const origNum = p.original;
+                
+                const div = document.createElement('div');
+                div.className = 'page-item';
+                div.dataset.page = newNum;
+                div.dataset.original = origNum;
+                div.draggable = true;
+                
+                if (p.isBlank) {
+                    div.style.background = '#f0f0f0';
+                    div.style.borderColor = '#999';
+                }
+                if (p.isReplaced) {
+                    div.style.borderColor = '#667eea';
+                    div.style.background = '#f5f7ff';
+                }
+                
+                let img = null;
+                
+                if (p.isBlank) {
+                    const blankCanvas = document.createElement('canvas');
+                    blankCanvas.width = 150;
+                    blankCanvas.height = 200;
+                    const ctx = blankCanvas.getContext('2d');
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, blankCanvas.width, blankCanvas.height);
+                    ctx.strokeStyle = '#ccc';
+                    ctx.strokeRect(5, 5, blankCanvas.width - 10, blankCanvas.height - 10);
+                    ctx.fillStyle = '#999';
+                    ctx.font = '14px Kantumruy Pro';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Blank', blankCanvas.width / 2, blankCanvas.height / 2);
+                    
+                    img = document.createElement('img');
+                    img.src = blankCanvas.toDataURL();
+                } else if (p.isReplaced && p.replacedImg) {
+                    img = document.createElement('img');
+                    img.src = p.replacedImg;
+                } else if (p.el && p.el.querySelector('img')) {
+                    img = p.el.querySelector('img').cloneNode(true);
+                }
+                
+                if (img) {
+                    img.style.maxWidth = '140px';
+                    img.style.maxHeight = '160px';
+                    img.style.objectFit = 'contain';
+                    div.appendChild(img);
+                }
+                
+                const num = document.createElement('span');
+                num.className = 'page-num';
+                if (p.isReplaced && p.replacedName) {
+                    num.textContent = p.replacedName.substring(0, 8) + '..';
+                    num.title = 'P' + p.original + ' from ' + (p.originalFile || 'original');
+                } else {
+                    num.textContent = 'P' + origNum;
+                }
+                
+                const newNumSpan = document.createElement('span');
+                newNumSpan.className = 'page-num-new';
+                newNumSpan.textContent = '#' + newNum;
+                
+                div.appendChild(num);
+                div.appendChild(newNumSpan);
+                
+                div.addEventListener('click', () => togglePage(newNum));
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragover', handleDragOver);
+                div.addEventListener('drop', handleDrop);
+                div.addEventListener('dragend', handleDragEnd);
+                
+                grid.appendChild(div);
+            });
+            
+            selectedPages = [];
+            updateSelection();
+        }
+        
+        function extractPdf() {
+            if (pdfPages.length === 0) {
+                alert('No pages to save');
+                return;
+            }
+            
+            const pageOrder = pdfPages.map((p, idx) => ({
+                original: p.original,
+                isBlank: p.isBlank,
+                isReplaced: p.isReplaced,
+                replacedFileIndex: p.replacedFileIndex !== undefined ? p.replacedFileIndex : null,
+                replacedPageNum: p.replacedPageNum || null,
+                index: idx
+            }));
+            
+            const hasReplacements = pdfPages.some(p => p.isReplaced);
+            
+            const formData = new FormData();
+            formData.append('file', currentFile);
+            formData.append('page_order', JSON.stringify(pageOrder));
+            
+            if (hasReplacements && replaceFiles.length > 0) {
+                replaceFiles.forEach((file, idx) => {
+                    formData.append('replace_file_' + idx, file);
+                });
+            }
+            
+            const btn = document.getElementById('extractBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="text-en">Processing...</span><span class="text-kh">កំពុងដំណើរការ...</span>';
+            
+            const modalOverlay = document.getElementById('modalOverlay');
+            const progressBar = document.getElementById('modalProgressBar');
+            const percentEl = document.getElementById('modalPercent');
+            
+            console.log('Showing modal');
+            modalOverlay.style.display = 'flex';
+            progressBar.style.width = '0%';
+            percentEl.textContent = '0';
+            
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 6 + 2;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+                percentEl.textContent = Math.round(progress);
+            }, 200);
+            
+            console.log('Sending request to /api/organize/');
+            
+            fetch('/api/organize/', { method: 'POST', body: formData })
+                .then(r => {
+                    if (!r.ok) {
+                        return r.text().then(text => { throw new Error(text); });
+                    }
+                    return r.json();
+                })
+                .then(d => {
+                    if (d.job_id) {
+                        checkJobStatus(d.job_id, progressInterval, modalOverlay, btn);
+                    } else {
+                        clearInterval(progressInterval);
+                        modalOverlay.style.display = 'none';
+                        alert(d.error || 'Error');
+                        btn.disabled = false;
+                    }
+                })
+                .catch(e => {
+                    clearInterval(progressInterval);
+                    modalOverlay.style.display = 'none';
+                    alert('Error: ' + e.message);
+                    btn.disabled = false;
+                });
+        }
+        
+        function checkJobStatus(jobId, progressInterval, modalOverlay, btn) {
+            const progressBar = document.getElementById('modalProgressBar');
+            const percentEl = document.getElementById('modalPercent');
+            
+            const interval = setInterval(() => {
+                fetch('/api/job/' + jobId + '/')
+                    .then(r => r.json())
+                    .then(job => {
+                        if (job.status === 'done') {
+                            clearInterval(interval);
+                            clearInterval(progressInterval);
+                            progressBar.style.width = '100%';
+                            percentEl.textContent = '100';
+                            setTimeout(() => {
+                                modalOverlay.style.display = 'none';
+                                window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
+                            }, 500);
+                        } else if (job.status === 'failed') {
+                            clearInterval(interval);
+                            clearInterval(progressInterval);
+                            modalOverlay.style.display = 'none';
+                            alert('Error: ' + (job.error || 'Processing failed'));
+                            if (btn) btn.disabled = false;
+                        }
+                    });
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
