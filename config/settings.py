@@ -116,3 +116,7 @@ else:
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Create media directories if they don't exist
+os.makedirs(os.path.join(BASE_DIR, 'media', 'uploads'), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, 'media', 'processed'), exist_ok=True)
