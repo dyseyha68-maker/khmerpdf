@@ -48,8 +48,13 @@ def ocr_page(request):
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def compress_api(request):
+    import logging
+    logger = logging.getLogger(__name__)
+    
     files = request.FILES.getlist('files')
     compression_level = request.data.get('compression_level', 'extreme')
+    
+    logger.info(f'Compress API called, files count: {len(files)}')
     
     if not files:
         return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,33 +65,44 @@ def compress_api(request):
         if f.size > settings.MAX_UPLOAD_SIZE:
             return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
-    if len(files) == 1:
-        job = Job.objects.create(file=files[0], tool='compress', compression_level=compression_level)
-    else:
-        file_ids = []
-        for f in files:
-            job = Job.objects.create(file=f, tool='upload')
-            file_ids.append(str(job.id))
-        job = Job.objects.create(files=file_ids, tool='compress', compression_level=compression_level)
-    
-    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
-        compress_pdf(str(job.id))
-        job.refresh_from_db()
+    try:
+        if len(files) == 1:
+            job = Job.objects.create(file=files[0], tool='compress', compression_level=compression_level)
+        else:
+            file_ids = []
+            for f in files:
+                job = Job.objects.create(file=f, tool='upload')
+                file_ids.append(str(job.id))
+            job = Job.objects.create(files=file_ids, tool='compress', compression_level=compression_level)
         
-        return Response({
-            'job_id': str(job.id),
-            'status': job.status,
-            'result_url': job.result.url if job.result else None,
-            'message': 'File compressed successfully'
-        }, status=status.HTTP_201_CREATED)
-    else:
-        compress_pdf.delay(str(job.id))
+        logger.info(f'Job created: {job.id}')
         
-        return Response({
-            'job_id': str(job.id),
-            'status': 'pending',
-            'message': 'Job created successfully'
-        }, status=status.HTTP_201_CREATED)
+        if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+            from apps.pdf.tasks import compress_pdf
+            compress_pdf(str(job.id))
+            job.refresh_from_db()
+            
+            logger.info(f'Job completed, status: {job.status}, result: {job.result}')
+            
+            return Response({
+                'job_id': str(job.id),
+                'status': job.status,
+                'result_url': job.result.url if job.result else None,
+                'message': 'File compressed successfully'
+            }, status=status.HTTP_201_CREATED)
+        else:
+            from apps.pdf.tasks import compress_pdf
+            compress_pdf.delay(str(job.id))
+            
+            return Response({
+                'job_id': str(job.id),
+                'status': 'pending',
+                'message': 'Job created successfully'
+            }, status=status.HTTP_201_CREATED)
+            
+    except Exception as e:
+        logger.error(f'Compress API error: {e}', exc_info=True)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
