@@ -10,3 +10,5 @@ whitenoise>=6.0
 reportlab>=4.0
 pypdf>=4.0
 PyMuPDF>=1.23
+pytesseract>=0.3.10
+ocrmypdf>=16.0

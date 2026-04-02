@@ -431,3 +431,50 @@ def organize_pdf(job_id, replace_files=None):
         job.error_message = str(e)
         job.save()
         raise
+
+
+def ocr_pdf(job_id):
+    from apps.pdf.models import Job
+    
+    job = Job.objects.get(id=job_id)
+    job.status = 'processing'
+    job.save()
+    
+    ocr_lang = job.compression_level or 'eng'
+    
+    lang_map = {
+        'eng': 'eng',
+        'khm': 'khm',
+        'eng+khm': 'eng+khm'
+    }
+    tesseract_lang = lang_map.get(ocr_lang, 'eng')
+    
+    try:
+        input_path = job.file.path
+        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.pdf'
+        output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        import subprocess
+        result = subprocess.run(
+            ['ocrmypdf', '--language', tesseract_lang, '--force-ocr', input_path, output_path],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode != 0:
+            raise Exception(f'OCR failed: {result.stderr}')
+        
+        job.result.save(output_filename, open(output_path, 'rb'))
+        os.remove(output_path)
+        
+        job.status = 'done'
+        job.save()
+        
+        return {'status': 'done', 'job_id': str(job_id)}
+        
+    except Exception as e:
+        job.status = 'failed'
+        job.error_message = str(e)
+        job.save()
+        raise

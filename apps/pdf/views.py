@@ -41,6 +41,10 @@ def khqr(request):
     return render(request, 'khqr.html', {'download_url': download_url})
 
 
+def ocr_page(request):
+    return render(request, 'ocr.html')
+
+
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def compress_api(request):
@@ -243,6 +247,60 @@ def organize_api(request):
         }, status=status.HTTP_201_CREATED)
     else:
         organize_pdf.delay(str(job.id), replace_files)
+        
+        return Response({
+            'job_id': str(job.id),
+            'status': 'pending',
+            'message': 'Job created successfully'
+        }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def ocr_api(request):
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    file = request.FILES.get('file')
+    ocr_lang = request.data.get('ocr_lang', 'eng')
+    
+    logger.info(f'ocr_api called, file: {file}, lang: {ocr_lang}')
+    
+    if not file:
+        return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not file.name.lower().endswith('.pdf'):
+        return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if file.size > settings.MAX_UPLOAD_SIZE:
+        return Response({'error': 'File too large. Max 50MB'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    job = Job.objects.create(
+        file=file,
+        tool='ocr',
+        compression_level=ocr_lang
+    )
+    
+    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+        try:
+            from .tasks import ocr_pdf
+            ocr_pdf(str(job.id))
+            job.refresh_from_db()
+        except Exception as e:
+            logger.error(f'Error in ocr_pdf: {e}')
+            job.status = 'failed'
+            job.error_message = str(e)
+            job.save()
+        
+        return Response({
+            'job_id': str(job.id),
+            'status': job.status,
+            'result_url': job.result.url if job.result else None,
+            'message': 'OCR completed successfully'
+        }, status=status.HTTP_201_CREATED)
+    else:
+        from .tasks import ocr_pdf
+        ocr_pdf.delay(str(job.id))
         
         return Response({
             'job_id': str(job.id),
