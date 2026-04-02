@@ -455,24 +455,44 @@ def ocr_pdf(job_id):
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
-        import subprocess
+        import pytesseract
+        from PIL import Image
+        from pdf2image import convert_from_path
         
-        cmd = ['ocrmypdf', '--force-ocr', '--skip-text']
+        pages = convert_from_path(input_path, dpi=300)
         
-        if tesseract_lang == 'eng+khm':
-            cmd.extend(['--lang', 'eng', '--lang', 'khm'])
-        else:
-            cmd.extend(['--lang', tesseract_lang])
+        from pypdf import PdfWriter
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter
+        import io
         
-        cmd.extend([input_path, output_path])
+        writer = PdfWriter()
         
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        for i, page in enumerate(pages):
+            img_byte_arr = io.BytesIO()
+            page.save(img_byte_arr, format='PNG', optimize=True)
+            img_byte_arr.seek(0)
+            
+            img = Image.open(img_byte_arr)
+            text = pytesseract.image_to_string(img, lang=tesseract_lang)
+            
+            packet = io.BytesIO()
+            c = canvas.Canvas(packet, pagesize=letter)
+            c.drawString(50, 750, f"Page {i+1}")
+            text_y = 720
+            for line in text.split('\n')[:50]:
+                if text_y > 50:
+                    c.drawString(50, text_y, line[:100])
+                    text_y -= 15
+            c.save()
+            packet.seek(0)
+            
+            from pypdf import PdfReader
+            text_pdf = PdfReader(packet)
+            writer.add_page(text_pdf.pages[0])
         
-        if result.returncode != 0 and not os.path.exists(output_path):
-            raise Exception(f'OCR failed: {result.stderr}')
-        
-        if not os.path.exists(output_path):
-            raise Exception(f'OCR output not found: {result.stderr}')
+        with open(output_path, 'wb') as f:
+            writer.write(f)
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
