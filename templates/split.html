@@ -385,6 +385,66 @@
         body.lang-en .text-en { display: block; }
         body.lang-kh .text-kh { display: block; }
         
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            margin-top: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .progress-percent {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: 700;
+        }
+        
         @media (max-width: 900px) {
             .main-content { flex-direction: column; }
             .left-panel { width: 100%; }
@@ -861,21 +921,65 @@
         }
         
         function checkJobStatus(jobId) {
+            const modalInterval = showModal();
             const interval = setInterval(() => {
                 fetch('/api/job/' + jobId + '/')
                     .then(r => r.json())
                     .then(job => {
                         if (job.status === 'done') {
                             clearInterval(interval);
+                            clearInterval(modalInterval);
+                            hideModal();
                             window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
                         } else if (job.status === 'failed') {
                             clearInterval(interval);
+                            clearInterval(modalInterval);
+                            hideModal();
                             alert('Error: ' + (job.error || 'Processing failed'));
                             document.getElementById('splitBtn').disabled = false;
                         }
                     });
             }, 1000);
         }
+        
+        function showModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+            let progress = 0;
+            const progressBar = document.getElementById('modalProgressBar');
+            const percentEl = document.getElementById('modalPercent');
+            
+            const modalInterval = setInterval(() => {
+                progress += Math.random() * 8 + 2;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+                percentEl.textContent = Math.round(progress);
+            }, 300);
+            
+            return modalInterval;
+        }
+        
+        function hideModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.getElementById('modalProgressBar').style.width = '0%';
+            document.getElementById('modalPercent').textContent = '0';
+        }
     </script>
+    
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>
+                <span class="text-en">Splitting PDF...</span>
+                <span class="text-kh">កំពុងបំបែក PDF...</span>
+            </h2>
+            <div class="progress-container">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="modalProgressBar"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent" id="modalPercent">0</span>%
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
