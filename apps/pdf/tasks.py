@@ -12,6 +12,8 @@ from pypdf import PdfReader, PdfWriter
 
 def compress_with_ghostscript(input_path, output_path, compression_level='recommended'):
     """Use Ghostscript for powerful PDF compression - best for scanned documents"""
+    import logging
+    logger = logging.getLogger(__name__)
     
     # PDFSETTINGS presets:
     # /screen   - 72 DPI, smallest size (for web/screen)
@@ -19,30 +21,48 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
     # /printer  - 300 DPI, high quality (for printing)
     # /prepress - 300 DPI, best quality (for professional print)
     
+    # More aggressive settings for better compression
     preset_map = {
         'extreme': '/screen',
-        'recommended': '/ebook',
-        'less': '/printer',
+        'recommended': '/screen',  # Changed from /ebook to /screen for better compression
+        'less': '/ebook',         # Changed from /printer to /ebook
     }
-    preset = preset_map.get(compression_level, '/ebook')
+    preset = preset_map.get(compression_level, '/screen')
     
-    # Ghostscript command for PDF compression
+    logger.info(f'Compressing with Ghostscript, preset: {preset}')
+    
+    # Ghostscript command for PDF compression with additional optimization flags
     cmd = [
         'gs',
         '-sDEVICE=pdfwrite',
         '-dCompatibilityLevel=1.4',
         f'-dPDFSETTINGS={preset}',
+        '-dDetectDuplicateImages=true',
+        '-dRemoveUnusedResources=true',
+        '-dCompressFonts=true',
+        '-dSubsetFonts=true',
         '-dNOPAUSE',
         '-dQUIET',
         '-dBATCH',
+        '-dSAFER',
         f'-sOutputFile={output_path}',
         input_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    logger.info(f'Running: {" ".join(cmd)}')
+    
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     
     if result.returncode != 0:
+        logger.error(f'Ghostscript error: {result.stderr}')
         raise Exception(f'Ghostscript error: {result.stderr}')
+    
+    # Check output file exists and has size
+    if os.path.exists(output_path):
+        output_size = os.path.getsize(output_path)
+        logger.info(f'Compressed file size: {output_size} bytes')
+    else:
+        raise Exception('Ghostscript did not create output file')
     
     return output_path
 
@@ -146,7 +166,9 @@ def compress_pdf(job_id):
                             # Try Ghostscript first, fallback to PyMuPDF
                             try:
                                 compress_with_ghostscript(input_path, output_path, compression_level)
+                                logger.info(f'Used Ghostscript for {base_name}')
                             except Exception as gs_err:
+                                logger.warning(f'Ghostscript failed, falling back to PyMuPDF: {gs_err}')
                                 # Fallback to PyMuPDF if Ghostscript fails
                                 compress_with_pymupdf(input_path, output_path, compression_level)
                             
@@ -175,7 +197,9 @@ def compress_pdf(job_id):
             # Try Ghostscript first, fallback to PyMuPDF
             try:
                 compress_with_ghostscript(input_path, output_path, compression_level)
+                logger.info(f'Used Ghostscript for single file')
             except Exception as gs_err:
+                logger.warning(f'Ghostscript failed, falling back to PyMuPDF: {gs_err}')
                 # Fallback to PyMuPDF if Ghostscript fails
                 compress_with_pymupdf(input_path, output_path, compression_level)
             
