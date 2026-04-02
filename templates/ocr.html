@@ -251,6 +251,8 @@
             border-radius: 12px;
             padding: 24px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
         }
         
         .right-panel h2 {
@@ -258,6 +260,45 @@
             color: #333;
             margin-bottom: 16px;
             text-align: center;
+        }
+        
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .file-thumb {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .file-thumb:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .file-thumb img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .file-thumb .file-name {
+            font-size: 12px;
+            color: #333;
+            word-break: break-all;
+            margin-bottom: 4px;
+        }
+        .file-thumb .page-count {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
         }
         
         .text-en, .text-kh { display: none; }
@@ -412,6 +453,12 @@
                 <span class="text-en">Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages.</span>
                 <span class="text-kh">បង្ហាញ PDF ស្កេន ឬ ឯកសារ PDF ដោយផ្អែកលើរូបភាព ដើម្បីបំលែងទៅជា PDF ដែលអាចស្វែងរកបាន ជាមួយអត្ថបទជ្រើសរើស គាំទ្រភាសាអង់គ្លេស និង ខ្មែរ</span>
             </p>
+            <div class="preview-grid" id="previewGrid">
+                <div class="empty-state">
+                    <span class="text-en">👆 Upload a PDF to preview</span>
+                    <span class="text-kh">👆 បង្ហាញ PDF ដើម្បីមើល</span>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -459,6 +506,53 @@
                 const fileList = document.getElementById('fileList');
                 fileList.innerHTML = '<div class="file-item"><span class="file-icon">📄</span><span class="file-name">' + currentFile.name + '</span><span class="file-size">' + (currentFile.size / 1024 / 1024).toFixed(2) + ' MB</span></div>';
                 document.getElementById('ocrBtn').disabled = false;
+                renderPreview();
+            }
+        }
+        
+        async function renderPreview() {
+            const grid = document.getElementById('previewGrid');
+            grid.innerHTML = '';
+            
+            try {
+                const arrayBuffer = await currentFile.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const totalPages = pdf.numPages;
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 0.5 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    
+                    const fileThumb = document.createElement('div');
+                    fileThumb.className = 'file-thumb';
+                    
+                    const img = document.createElement('img');
+                    img.src = canvas.toDataURL();
+                    
+                    const name = document.createElement('div');
+                    name.className = 'file-name';
+                    name.textContent = 'Page ' + i;
+                    
+                    const count = document.createElement('div');
+                    count.className = 'page-count';
+                    count.textContent = totalPages + ' ' + (totalPages > 1 ? 
+                        (document.body.classList.contains('lang-kh') ? 'ទំព័រ' : 'pages') : 
+                        (document.body.classList.contains('lang-kh') ? 'ទំព័រ' : 'page'));
+                    
+                    fileThumb.appendChild(img);
+                    fileThumb.appendChild(name);
+                    fileThumb.appendChild(count);
+                    grid.appendChild(fileThumb);
+                }
+            } catch (e) {
+                grid.innerHTML = '<div class="empty-state"><span class="text-en">Error loading preview</span><span class="text-kh">កំហុសក្នុងការបង្ហាញ</span></div>';
             }
         }
         
