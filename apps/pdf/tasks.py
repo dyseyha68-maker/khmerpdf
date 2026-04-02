@@ -15,6 +15,10 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
     import logging
     logger = logging.getLogger(__name__)
     
+    # Get file size
+    file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
+    logger.info(f'Input file size: {file_size_mb:.2f} MB')
+    
     # PDFSETTINGS presets:
     # /screen   - 72 DPI, smallest size (for web/screen)
     # /ebook    - 150 DPI, balanced (for e-readers) 
@@ -24,12 +28,17 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
     # More aggressive settings for better compression
     preset_map = {
         'extreme': '/screen',
-        'recommended': '/screen',  # Changed from /ebook to /screen for better compression
-        'less': '/ebook',         # Changed from /printer to /ebook
+        'recommended': '/screen',
+        'less': '/ebook',
     }
     preset = preset_map.get(compression_level, '/screen')
     
     logger.info(f'Compressing with Ghostscript, preset: {preset}')
+    
+    # Adjust timeout based on file size (larger files need more time)
+    # 1 minute per 10MB, minimum 2 minutes, max 15 minutes
+    timeout = max(120, int(file_size_mb * 6))  # 6 seconds per MB
+    timeout = min(timeout, 900)  # max 15 minutes
     
     # Ghostscript command for PDF compression with additional optimization flags
     cmd = [
@@ -45,22 +54,31 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
         '-dQUIET',
         '-dBATCH',
         '-dSAFER',
+        # Memory settings for large files
+        '-dMaxBitmap=500000000',  # 500MB max bitmap
+        '-dBufferSpace=100000000',  # 100MB buffer
         f'-sOutputFile={output_path}',
         input_path
     ]
     
-    logger.info(f'Running: {" ".join(cmd)}')
+    logger.info(f'Running Ghostscript with timeout {timeout}s')
     
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        logger.error(f'Ghostscript timed out after {timeout}s')
+        raise Exception(f'Compression timed out for large file ({file_size_mb:.1f}MB)')
     
     if result.returncode != 0:
         logger.error(f'Ghostscript error: {result.stderr}')
-        raise Exception(f'Ghostscript error: {result.stderr}')
+        # Try fallback method
+        raise Exception(f'Ghostscript error: {result.stderr[:200]}')
     
     # Check output file exists and has size
     if os.path.exists(output_path):
         output_size = os.path.getsize(output_path)
-        logger.info(f'Compressed file size: {output_size} bytes')
+        output_size_mb = output_size / (1024 * 1024)
+        logger.info(f'Compressed file size: {output_size_mb:.2f} MB (was {file_size_mb:.2f} MB)')
     else:
         raise Exception('Ghostscript did not create output file')
     

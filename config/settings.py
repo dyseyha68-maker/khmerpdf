@@ -80,7 +80,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # File upload settings
-MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB
+MAX_UPLOAD_SIZE = 350 * 1024 * 1024  # 350MB - allow large PDF files
 ALLOWED_EXTENSIONS = ['pdf']
 
 # Celery settings (use 'solo' broker for Windows local dev without Redis)

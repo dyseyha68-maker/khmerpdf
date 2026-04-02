@@ -58,7 +58,7 @@ def compress_api(request):
         if not f.name.lower().endswith('.pdf'):
             return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
         if f.size > settings.MAX_UPLOAD_SIZE:
-            return Response({'error': f'File {f.name} too large. Max 50MB'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
     if len(files) == 1:
         job = Job.objects.create(file=files[0], tool='compress', compression_level=compression_level)
@@ -104,7 +104,7 @@ def merge_api(request):
     file_ids = []
     for f in files:
         if f.size > settings.MAX_UPLOAD_SIZE:
-            return Response({'error': f'File {f.name} too large. Max 50MB'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
         job = Job.objects.create(file=f, tool='upload')
         file_ids.append(str(job.id))
     
@@ -144,7 +144,7 @@ def split_api(request):
         return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
     
     if file.size > settings.MAX_UPLOAD_SIZE:
-        return Response({'error': 'File too large. Max 50MB'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'File too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
     job = Job.objects.create(file=file, tool='split', page_range=page_range, compression_level=split_mode)
     
@@ -213,7 +213,7 @@ def organize_api(request):
         return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
     
     if file.size > settings.MAX_UPLOAD_SIZE:
-        return Response({'error': 'File too large. Max 50MB'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'File too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
     import json
     try:
@@ -273,7 +273,7 @@ def ocr_api(request):
         return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
     
     if file.size > settings.MAX_UPLOAD_SIZE:
-        return Response({'error': 'File too large. Max 50MB'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'File too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
     job = Job.objects.create(
         file=file,
