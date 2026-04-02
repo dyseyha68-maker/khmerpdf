@@ -605,12 +605,13 @@
                     if (d.job_id) {
                         checkJobStatus(d.job_id, modalInterval);
                     } else {
-                        alert(d.error || 'Error');
+                        alert(d.error || 'Error: ' + JSON.stringify(d));
                         btn.disabled = false;
                         hideModal();
                     }
                 })
                 .catch(e => {
+                    console.error('OCR Error:', e);
                     alert('Error: ' + e.message);
                     btn.disabled = false;
                     hideModal();
@@ -622,6 +623,7 @@
                 fetch('/api/job/' + jobId + '/')
                     .then(r => r.json())
                     .then(job => {
+                        console.log('Job status:', job);
                         if (job.status === 'done') {
                             clearInterval(interval);
                             clearInterval(modalInterval);
@@ -634,6 +636,9 @@
                             alert('Error: ' + (job.error || 'Processing failed'));
                             document.getElementById('ocrBtn').disabled = false;
                         }
+                    })
+                    .catch(e => {
+                        console.error('Job status error:', e);
                     });
             }, 2000);
         }

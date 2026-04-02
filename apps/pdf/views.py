@@ -281,13 +281,16 @@ def ocr_api(request):
         compression_level=ocr_lang
     )
     
+    logger.info(f'Created job {job.id}, CELERY_TASK_ALWAYS_EAGER={getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False)}')
+    
     if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
         try:
             from .tasks import ocr_pdf
             ocr_pdf(str(job.id))
             job.refresh_from_db()
+            logger.info(f'Job {job.id} completed with status {job.status}, result={job.result}')
         except Exception as e:
-            logger.error(f'Error in ocr_pdf: {e}')
+            logger.error(f'Error in ocr_pdf: {e}', exc_info=True)
             job.status = 'failed'
             job.error_message = str(e)
             job.save()
