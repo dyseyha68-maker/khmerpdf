@@ -1,6 +1,7 @@
 import os
 import uuid
 import zipfile
+import subprocess
 from celery import shared_task
 from django.conf import settings
 import fitz
@@ -9,13 +10,53 @@ import io
 from pypdf import PdfReader, PdfWriter
 
 
-def compress_single_pdf(input_path, output_path, compression_level='extreme'):
+def compress_with_ghostscript(input_path, output_path, compression_level='recommended'):
+    """Use Ghostscript for powerful PDF compression - best for scanned documents"""
+    
+    # PDFSETTINGS presets:
+    # /screen   - 72 DPI, smallest size (for web/screen)
+    # /ebook    - 150 DPI, balanced (for e-readers) 
+    # /printer  - 300 DPI, high quality (for printing)
+    # /prepress - 300 DPI, best quality (for professional print)
+    
+    preset_map = {
+        'extreme': '/screen',
+        'recommended': '/ebook',
+        'less': '/printer',
+    }
+    preset = preset_map.get(compression_level, '/ebook')
+    
+    # Ghostscript command for PDF compression
+    cmd = [
+        'gs',
+        '-sDEVICE=pdfwrite',
+        '-dCompatibilityLevel=1.4',
+        f'-dPDFSETTINGS={preset}',
+        '-dNOPAUSE',
+        '-dQUIET',
+        '-dBATCH',
+        f'-sOutputFile={output_path}',
+        input_path
+    ]
+    
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    
+    if result.returncode != 0:
+        raise Exception(f'Ghostscript error: {result.stderr}')
+    
+    return output_path
+
+
+def compress_with_pymupdf(input_path, output_path, compression_level='recommended'):
+    """Fallback: Use PyMuPDF for compression - works for embedded images"""
+    
     quality_map = {
         'extreme': 10,
         'recommended': 30,
         'less': 50,
     }
     quality = quality_map.get(compression_level, 20)
+    
     max_dim_map = {
         'extreme': 300,
         'recommended': 600,
@@ -68,25 +109,13 @@ def compress_pdf(job_id):
     job.status = 'processing'
     job.save()
     
-    compression_level = job.compression_level or 'extreme'
-    
-    quality_map = {
-        'extreme': 10,
-        'recommended': 30,
-        'less': 50,
-    }
-    quality = quality_map.get(compression_level, 20)
-    max_dim_map = {
-        'extreme': 300,
-        'recommended': 600,
-        'less': 1200,
-    }
-    max_dim = max_dim_map.get(compression_level, 400)
+    compression_level = job.compression_level or 'recommended'
     
     try:
         file_ids = job.files if job.files else []
         
         if file_ids and len(file_ids) > 1:
+            # Multiple files - create ZIP
             first_base_name = ''
             for idx, file_id in enumerate(file_ids):
                 try:
@@ -114,7 +143,12 @@ def compress_pdf(job_id):
                             output_filename = f'{base_name}_compressed.pdf'
                             output_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'{uuid.uuid4().hex[:8]}_compressed.pdf')
                             
-                            compress_single_pdf(input_path, output_path, compression_level)
+                            # Try Ghostscript first, fallback to PyMuPDF
+                            try:
+                                compress_with_ghostscript(input_path, output_path, compression_level)
+                            except Exception as gs_err:
+                                # Fallback to PyMuPDF if Ghostscript fails
+                                compress_with_pymupdf(input_path, output_path, compression_level)
                             
                             compressed_size = os.path.getsize(output_path)
                             zip_file.write(output_path, output_filename)
@@ -129,62 +163,31 @@ def compress_pdf(job_id):
             return {'status': 'done', 'job_id': str(job_id)}
         
         else:
+            # Single file
             input_path = job.file.path
             original_size = os.path.getsize(input_path)
             base_name = os.path.splitext(os.path.basename(job.file.name))[0]
             output_filename = f'{base_name}_compressed.pdf'
             output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
-        
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        
-        doc = fitz.open(input_path)
-        
-        for page_num, page in enumerate(doc):
-            images = page.get_images(full=True)
-            for img_index, img in enumerate(images):
-                xref = img[0]
-                try:
-                    base_img = doc.extract_image(xref)
-                    img_data = base_img["image"]
-                    
-                    img_pil = Image.open(io.BytesIO(img_data))
-                    
-                    if img_pil.mode in ('RGBA', 'P'):
-                        img_pil = img_pil.convert('RGB')
-                    
-                    max_dim = max_dim
-                    if img_pil.width > max_dim or img_pil.height > max_dim:
-                        img_pil.thumbnail((max_dim, max_dim), Image.LANCZOS)
-                    
-                    output_buffer = io.BytesIO()
-                    img_pil.save(output_buffer, format='JPEG', quality=quality, optimize=True)
-                    img_data_compressed = output_buffer.getvalue()
-                    
-                    img_rect = page.get_image_rects(xref)
-                    if img_rect:
-                        rect = img_rect[0]
-                        page.insert_image(rect, stream=img_data_compressed, keep_proportion=True)
-                        try:
-                            page.delete_image(xref)
-                        except:
-                            pass
-                            
-                except Exception as e:
-                    continue
-        
-        doc.save(output_path, deflate=True, garbage=4, clean=True)
-        doc.close()
-        
-        compressed_size = os.path.getsize(output_path)
-        
-        job.result.save(output_filename, open(output_path, 'rb'))
-        
-        os.remove(output_path)
-        
-        job.status = 'done'
-        job.save()
-        
-        return {'status': 'done', 'job_id': str(job_id), 'original': original_size, 'compressed': compressed_size}
+            
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            
+            # Try Ghostscript first, fallback to PyMuPDF
+            try:
+                compress_with_ghostscript(input_path, output_path, compression_level)
+            except Exception as gs_err:
+                # Fallback to PyMuPDF if Ghostscript fails
+                compress_with_pymupdf(input_path, output_path, compression_level)
+            
+            compressed_size = os.path.getsize(output_path)
+            
+            job.result.save(output_filename, open(output_path, 'rb'))
+            os.remove(output_path)
+            
+            job.status = 'done'
+            job.save()
+            
+            return {'status': 'done', 'job_id': str(job_id), 'original': original_size, 'compressed': compressed_size}
         
     except Exception as e:
         job.status = 'failed'

@@ -2,8 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install Tesseract OCR, Poppler, and language packs + dependencies
+# Install Ghostscript, Tesseract OCR, Poppler, and language packs + dependencies
 RUN apt-get update && apt-get install -y \
+    ghostscript \
     tesseract-ocr \
     tesseract-ocr-eng \
     tesseract-ocr-khm \
