@@ -2,6 +2,7 @@ import os
 import uuid
 import zipfile
 import subprocess
+import logging
 from celery import shared_task
 from django.conf import settings
 import fitz
@@ -9,11 +10,11 @@ from PIL import Image
 import io
 from pypdf import PdfReader, PdfWriter
 
+logger = logging.getLogger(__name__)
+
 
 def compress_with_ghostscript(input_path, output_path, compression_level='recommended'):
     """Use Ghostscript for powerful PDF compression - best for scanned documents"""
-    import logging
-    logger = logging.getLogger(__name__)
     
     # Get file size
     file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
