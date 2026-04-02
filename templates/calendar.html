@@ -221,6 +221,30 @@
         .text-en, .text-kh { display: none; }
         body.lang-en .text-en { display: block; }
         body.lang-kh .text-kh { display: block; }
+        
+        @media (max-width: 900px) {
+            .header { flex-direction: column; gap: 12px; padding: 12px; }
+            .header-left { flex-direction: column; gap: 12px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 4px; }
+            .nav-links a { padding: 6px 10px; font-size: 12px; }
+            .logo-text { font-size: 18px; }
+            .main-content { flex-direction: column; height: auto; }
+            .panels-wrapper { flex-direction: column; }
+            .left-panel { width: 100%; }
+            .right-panel { width: 100%; }
+            .calendar-grid { font-size: 12px; }
+            .calendar-day { min-height: 50px; }
+            .day-number { font-size: 12px; }
+            .khmer-day { font-size: 6px; }
+        }
+        
+        @media (max-width: 600px) {
+            .nav-links { display: none; }
+            .month-grid { grid-template-columns: repeat(3, 1fr); }
+            .year-nav { gap: 8px; }
+            .holiday-list { max-height: 150px; }
+            .left-panel, .right-panel { padding: 12px; }
+        }
     </style>
 </head>
 <body class="lang-kh">

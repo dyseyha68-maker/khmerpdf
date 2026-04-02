@@ -395,71 +395,27 @@
         body.lang-en .text-en { display: block; }
         body.lang-kh .text-kh { display: block; }
         
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-overlay.active { display: flex; }
-        
-        .modal {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .modal h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 20px;
-        }
-        
-        .progress-container {
-            width: 100%;
-            margin: 20px 0;
-        }
-        .progress-bar-bg {
-            width: 100%;
-            height: 20px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 10px;
-        }
-        .progress-text {
-            margin-top: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-        .progress-percent {
-            font-size: 24px;
-            color: #667eea;
-            font-weight: 700;
-        }
-        
         @media (max-width: 900px) {
             .main-content { flex-direction: column; }
-            .left-panel { width: 100%; }
-            .page-item { width: 140px; height: 190px; }
-            .page-item img { max-width: 110px; max-height: 140px; }
+            .left-panel { width: 100%; max-height: none; }
+            .header { flex-direction: column; gap: 12px; padding: 12px; }
+            .header-left { flex-direction: column; gap: 12px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 4px; }
+            .nav-links a { padding: 6px 10px; font-size: 12px; }
+            .logo-text { font-size: 18px; }
+            .header-actions { width: 100%; justify-content: center; }
+            .right-panel { width: 100%; }
+            .page-grid { grid-template-columns: repeat(3, 1fr); }
+            .page-item { width: 100px; height: 140px; }
+            .page-item img { max-width: 80px; max-height: 100px; }
+        }
+        
+        @media (max-width: 600px) {
+            .nav-links { display: none; }
+            .page-grid { grid-template-columns: repeat(2, 1fr); }
+            .left-panel { padding: 12px; }
+            .split-mode-btns { flex-direction: column; }
+            .split-btn { padding: 12px; font-size: 14px; }
         }
     </style>
 </head>

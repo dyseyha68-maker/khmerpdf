@@ -440,9 +440,24 @@
         
         @media (max-width: 900px) {
             .main-content { flex-direction: column; }
-            .left-panel { width: 100%; }
-            .page-item { width: 130px; }
-            .page-item img { max-width: 100px; max-height: 120px; }
+            .left-panel { width: 100%; max-height: none; }
+            .header { flex-direction: column; gap: 12px; padding: 12px; }
+            .header-left { flex-direction: column; gap: 12px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 4px; }
+            .nav-links a { padding: 6px 10px; font-size: 12px; }
+            .logo-text { font-size: 18px; }
+            .header-actions { width: 100%; justify-content: center; }
+            .right-panel { width: 100%; }
+            .page-grid { grid-template-columns: repeat(3, 1fr); }
+            .page-item { width: 100px; }
+            .page-item img { max-width: 80px; max-height: 100px; }
+        }
+        
+        @media (max-width: 600px) {
+            .nav-links { display: none; }
+            .page-grid { grid-template-columns: repeat(2, 1fr); }
+            .left-panel { padding: 12px; }
+            .organize-btn { padding: 12px; font-size: 14px; }
         }
     </style>
 </head>

@@ -503,6 +503,31 @@
         .merge-file:hover { background: #e0e0e0; }
         .merge-file.dragging { opacity: 0.5; }
         .merge-file .remove { color: #d32f2f; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        
+        @media (max-width: 900px) {
+            .header { flex-direction: column; gap: 12px; padding: 12px; }
+            .header-left { flex-direction: column; gap: 12px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 4px; }
+            .nav-links a { padding: 6px 10px; font-size: 12px; }
+            .logo-text { font-size: 18px; }
+            .header-actions { width: 100%; justify-content: center; }
+            .cards-container { grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 100%; }
+            .tool-card { width: 100%; padding: 20px; }
+            .tool-icon { font-size: 40px; }
+            .tool-card h2 { font-size: 18px; }
+            .tool-card p { font-size: 14px; }
+            .calendar-date { width: 60px; height: 60px; }
+            .calendar-date .cal-month { font-size: 10px; }
+            .calendar-date .cal-day { font-size: 28px; }
+        }
+        
+        @media (max-width: 600px) {
+            .nav-links { display: none; }
+            .cards-container { grid-template-columns: 1fr; }
+            .header h1 { font-size: 18px; }
+            .lang-btns { gap: 4px; }
+            .lang-btn { padding: 4px 10px; font-size: 12px; }
+        }
     </style>
 </head>
 <body class="lang-kh">
