@@ -710,10 +710,14 @@
             
             fetch('/api/compress/', { 
                 method: 'POST', 
-                body: fd,
-                signal: AbortSignal.timeout(600000) // 10 minute timeout for large files
+                body: fd
             })
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) {
+                        return r.json().then(err => { throw new Error(err.error || 'Upload failed'); });
+                    }
+                    return r.json();
+                })
                 .then(d => {
                     if (d.job_id) {
                         checkJobStatus(d.job_id, modalInterval);
@@ -725,7 +729,11 @@
                 })
                 .catch(e => {
                     console.error('Compress error:', e);
-                    alert('Error: ' + e.message + '\n\nNote: Large files may take several minutes. Please wait...');
+                    let msg = e.message || 'Unknown error';
+                    if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch')) {
+                        msg = 'Upload timed out. Large files (>200MB) may take several minutes. Please try again or use a smaller file.';
+                    }
+                    alert('Error: ' + msg);
                     btn.disabled = false;
                     hideModal();
                 });
@@ -758,12 +766,21 @@
             const progressBar = document.getElementById('modalProgressBar');
             const percentEl = document.getElementById('modalPercent');
             
+            // For large files, show uploading progress first
+            const isLargeFile = files.length > 0 && files[0].size > 50 * 1024 * 1024;
+            
             const modalInterval = setInterval(() => {
-                progress += Math.random() * 8 + 2;
-                if (progress > 90) progress = 90;
+                if (progress < 30) {
+                    // Uploading phase - slow progress
+                    progress += Math.random() * 2 + 0.5;
+                } else if (progress < 95) {
+                    // Processing phase
+                    progress += Math.random() * 5 + 1;
+                }
+                if (progress > 95) progress = 95;
                 progressBar.style.width = progress + '%';
                 percentEl.textContent = Math.round(progress);
-            }, 300);
+            }, 500);
             
             return modalInterval;
         }
