@@ -484,8 +484,13 @@
                             <span class="text-kh">ខ្លាំងបំផុត</span>
                         </strong>
                         <div style="font-size:11px;color:#666;">
-                            <span class="text-en">Smallest file</span>
-                            <span class="text-kh">ឯកសារតូចបំផុត</span>
+                            <span class="text-en">~70-90% smaller</span>
+                            <span class="text-kh">~70-90% តូចជាង</span>
+                        </div>
+                        <div id="extreme-size" style="font-size:10px;color:#d32f2f;display:none;">
+                            <span class="text-en">Est: </span>
+                            <span class="text-kh">ប៉ាន់ស្មារ: </span>
+                            <span id="extreme-size-val">-</span>
                         </div>
                     </div>
                 </label>
@@ -499,8 +504,13 @@
                             <span class="text-kh">ណែនាំ</span>
                         </strong>
                         <div style="font-size:11px;color:#666;">
-                            <span class="text-en">Balanced</span>
-                            <span class="text-kh">ល្អបើប្រៀប</span>
+                            <span class="text-en">~40-60% smaller</span>
+                            <span class="text-kh">~40-60% តូចជាង</span>
+                        </div>
+                        <div id="recommended-size" style="font-size:10px;color:#d32f2f;display:none;">
+                            <span class="text-en">Est: </span>
+                            <span class="text-kh">ប៉ាន់ស្មារ: </span>
+                            <span id="recommended-size-val">-</span>
                         </div>
                     </div>
                 </label>
@@ -514,8 +524,13 @@
                             <span class="text-kh">តិច</span>
                         </strong>
                         <div style="font-size:11px;color:#666;">
-                            <span class="text-en">Better quality</span>
-                            <span class="text-kh">គុណភាពល្អជាង</span>
+                            <span class="text-en">~20-40% smaller</span>
+                            <span class="text-kh">~20-40% តូចជាង</span>
+                        </div>
+                        <div id="less-size" style="font-size:10px;color:#d32f2f;display:none;">
+                            <span class="text-en">Est: </span>
+                            <span class="text-kh">ប៉ាន់ស្មារ: </span>
+                            <span id="less-size-val">-</span>
                         </div>
                     </div>
                 </label>
@@ -634,6 +649,38 @@
                 fileList.appendChild(item);
             });
             renderPreview();
+            estimateFileSizes();
+        }
+        
+        function estimateFileSizes() {
+            if (files.length === 0) {
+                document.getElementById('extreme-size').style.display = 'none';
+                document.getElementById('recommended-size').style.display = 'none';
+                document.getElementById('less-size').style.display = 'none';
+                return;
+            }
+            
+            const fileSize = files[0].size;
+            
+            // Estimated compression ratios based on Ghostscript presets
+            const ratios = {
+                extreme: 0.15,   // ~85% smaller
+                recommended: 0.40, // ~60% smaller  
+                less: 0.65       // ~35% smaller
+            };
+            
+            const formatSize = (bytes) => {
+                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            };
+            
+            document.getElementById('extreme-size').style.display = 'block';
+            document.getElementById('recommended-size').style.display = 'block';
+            document.getElementById('less-size').style.display = 'block';
+            
+            document.getElementById('extreme-size-val').textContent = formatSize(fileSize * ratios.extreme);
+            document.getElementById('recommended-size-val').textContent = formatSize(fileSize * ratios.recommended);
+            document.getElementById('less-size-val').textContent = formatSize(fileSize * ratios.less);
         }
         
         function removeFile(index) {
@@ -691,6 +738,7 @@
             document.querySelectorAll('.compress-options .radio-option').forEach(opt => opt.classList.remove('selected'));
             el.classList.add('selected');
             compressionLevel = level;
+            estimateFileSizes();
         }
         
         function compressPdf() {
