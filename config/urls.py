@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
+from django.views.generic import RedirectView
 from apps.pdf.views import index, split_page, merge_page, compress_page, organize_page, calendar_page, khqr
 
 urlpatterns = [
@@ -16,6 +17,10 @@ urlpatterns = [
     path('organize/', organize_page, name='organize'),
     path('calendar/', calendar_page, name='calendar'),
     path('khqr/', khqr, name='khqr'),
+    
+    # SEO files
+    path('robots.txt', lambda r: RedirectView.as_view(url='/static/robots.txt', permanent=False)),
+    path('sitemap.xml', lambda r: RedirectView.as_view(url='/static/sitemap.xml', permanent=False)),
 ]
 
 # Serve media files in production
