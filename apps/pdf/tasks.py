@@ -456,11 +456,17 @@ def ocr_pdf(job_id):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
         import subprocess
-        result = subprocess.run(
-            ['ocrmypdf', '--language', tesseract_lang, '--force-ocr', '--skip-text', input_path, output_path],
-            capture_output=True,
-            text=True
-        )
+        
+        cmd = ['ocrmypdf', '--force-ocr', '--skip-text']
+        
+        if tesseract_lang == 'eng+khm':
+            cmd.extend(['--lang', 'eng', '--lang', 'khm'])
+        else:
+            cmd.extend(['--lang', tesseract_lang])
+        
+        cmd.extend([input_path, output_path])
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode != 0 and not os.path.exists(output_path):
             raise Exception(f'OCR failed: {result.stderr}')
