@@ -114,6 +114,21 @@
         }
         .back-btn:hover { background: #e0e0e0; }
         
+        .file-thumb {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            max-width: 200px;
+        }
+        .file-thumb:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .file-thumb img { max-width: 100%; max-height: 180px; border-radius: 4px; margin-bottom: 8px; }
+        .file-thumb .file-name { font-size: 12px; color: #333; word-break: break-all; margin-bottom: 4px; }
+        .file-thumb .page-count { font-size: 11px; color: #666; }
+        
         @media (max-width: 900px) {
             .main-content { flex-direction: column; }
             .left-panel { width: 100%; max-height: none; }
