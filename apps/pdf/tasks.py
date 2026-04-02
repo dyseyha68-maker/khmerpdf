@@ -457,13 +457,16 @@ def ocr_pdf(job_id):
         
         import subprocess
         result = subprocess.run(
-            ['ocrmypdf', '--language', tesseract_lang, '--force-ocr', input_path, output_path],
+            ['ocrmypdf', '--language', tesseract_lang, '--force-ocr', '--skip-text', input_path, output_path],
             capture_output=True,
             text=True
         )
         
-        if result.returncode != 0:
+        if result.returncode != 0 and not os.path.exists(output_path):
             raise Exception(f'OCR failed: {result.stderr}')
+        
+        if not os.path.exists(output_path):
+            raise Exception(f'OCR output not found: {result.stderr}')
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
