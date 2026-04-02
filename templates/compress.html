@@ -708,19 +708,24 @@
             
             const modalInterval = showModal();
             
-            fetch('/api/compress/', { method: 'POST', body: fd })
+            fetch('/api/compress/', { 
+                method: 'POST', 
+                body: fd,
+                signal: AbortSignal.timeout(600000) // 10 minute timeout for large files
+            })
                 .then(r => r.json())
                 .then(d => {
                     if (d.job_id) {
                         checkJobStatus(d.job_id, modalInterval);
                     } else {
-                        alert(d.error || 'Error');
+                        alert(d.error || 'Error: ' + JSON.stringify(d));
                         btn.disabled = false;
                         hideModal();
                     }
                 })
                 .catch(e => {
-                    alert('Error: ' + e.message);
+                    console.error('Compress error:', e);
+                    alert('Error: ' + e.message + '\n\nNote: Large files may take several minutes. Please wait...');
                     btn.disabled = false;
                     hideModal();
                 });

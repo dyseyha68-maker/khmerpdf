@@ -79,6 +79,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Increase timeout for large file uploads
+DATA_UPLOAD_MAX_MEMORY_SIZE = 400 * 1024 * 1024  # 400MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 400 * 1024 * 1024  # 400MB
+
 # File upload settings
 MAX_UPLOAD_SIZE = 350 * 1024 * 1024  # 350MB - allow large PDF files
 ALLOWED_EXTENSIONS = ['pdf']
