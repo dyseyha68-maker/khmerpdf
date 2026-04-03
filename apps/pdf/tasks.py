@@ -512,11 +512,10 @@ def ocr_pdf(job_id):
         import cv2
         from PIL import Image, ImageEnhance
         
-        # Convert PDF to images with high DPI for better quality
         pages = convert_from_path(input_path, dpi=400)
         
         from docx import Document
-        from docx.shared import Pt, Inches, Cm
+        from docx.shared import Pt, Inches
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         
         doc = Document()
@@ -526,58 +525,36 @@ def ocr_pdf(job_id):
         style.font.size = Pt(11)
         
         def preprocess_for_khmer(img_pil):
-            """Enhance image for better Khmer OCR"""
-            # Convert to numpy array
             img = np.array(img_pil)
-            
-            # Convert to grayscale if needed
             if len(img.shape) == 3:
                 gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
             else:
                 gray = img
-            
-            # Apply CLAHE for contrast enhancement
             clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
             enhanced = clahe.apply(gray)
-            
-            # Apply slight blur to reduce noise
             denoised = cv2.bilateralFilter(enhanced, 9, 75, 75)
-            
-            # Convert back to PIL
             result = Image.fromarray(denoised)
-            
-            # Further enhance contrast
             enhancer = ImageEnhance.Contrast(result)
             result = enhancer.enhance(1.3)
-            
-            # Sharpen
             enhancer = ImageEnhance.Sharpness(result)
             result = enhancer.enhance(1.5)
-            
             return result
         
         def extract_text_with_fallback(img_pil, lang):
-            """Try multiple OCR approaches and return best result"""
             results = []
-            
-            # Method 1: Preprocessed image (best for Khmer)
             try:
                 processed = preprocess_for_khmer(img_pil)
                 text1 = pytesseract.image_to_string(processed, lang=lang)
                 if text1.strip():
                     results.append(('enhanced', text1))
-            except Exception as e:
-                logger.warning(f'Enhanced OCR failed: {e}')
-            
-            # Method 2: Original image
+            except:
+                pass
             try:
                 text2 = pytesseract.image_to_string(img_pil, lang=lang)
                 if text2.strip():
                     results.append(('original', text2))
-            except Exception as e:
-                logger.warning(f'Original OCR failed: {e}')
-            
-            # Method 3: Binary threshold (for low contrast)
+            except:
+                pass
             try:
                 img = np.array(img_pil)
                 if len(img.shape) == 3:
@@ -589,10 +566,8 @@ def ocr_pdf(job_id):
                 text3 = pytesseract.image_to_string(binary_pil, lang=lang)
                 if text3.strip():
                     results.append(('binary', text3))
-            except Exception as e:
-                logger.warning(f'Binary OCR failed: {e}')
-            
-            # Return longest result (usually most accurate)
+            except:
+                pass
             if results:
                 best = max(results, key=lambda x: len(x[1]))
                 return best[1]
@@ -601,24 +576,6 @@ def ocr_pdf(job_id):
         for i, page in enumerate(pages):
             logger.info(f'Processing page {i+1}/{len(pages)}')
             
-            # Save page as image for embedding
-            img_byte_arr = io.BytesIO()
-            page.save(img_byte_arr, format='PNG', optimize=False, quality=95)
-            img_byte_arr.seek(0)
-            
-            temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_page_{i}.png')
-            page.save(temp_img_path, format='PNG', optimize=False, quality=95)
-            
-            # Add page number heading
-            doc.add_heading(f'Page {i+1}', level=2)
-            
-            # Add the original page as image (preserving layout)
-            try:
-                doc.add_picture(temp_img_path, width=Inches(6.5))
-            except:
-                pass
-            
-            # OCR the page with multiple methods
             if tesseract_lang == 'khm':
                 lang = 'khm+eng'
             elif tesseract_lang == 'eng+khm':
@@ -628,14 +585,14 @@ def ocr_pdf(job_id):
             
             text = extract_text_with_fallback(page, lang)
             
-            # Add extracted text below the image
-            doc.add_heading('Extracted Text:', level=3)
+            # Add page heading
+            doc.add_heading(f'Page {i+1}', level=1)
             
+            # Add extracted text only
             lines = text.split('\n')
             for line in lines:
                 if line.strip():
                     p = doc.add_paragraph(line)
-                    
                     has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
                     run = p.runs[0] if p.runs else p.add_run()
                     if has_khmer:
@@ -644,9 +601,6 @@ def ocr_pdf(job_id):
                     else:
                         run.font.name = 'Times New Roman'
                         run.font.size = Pt(11)
-            
-            if os.path.exists(temp_img_path):
-                os.remove(temp_img_path)
             
             if i < len(pages) - 1:
                 doc.add_page_break()
