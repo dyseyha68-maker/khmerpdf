@@ -514,12 +514,11 @@ def ocr_pdf(job_id):
         import pytesseract
         from PIL import Image, ImageEnhance, ImageFilter
         
-        pages = convert_from_path(input_path, dpi=300)
+        pages = convert_from_path(input_path, dpi=400)
         max_pages = min(len(pages), 50)
         
         from docx import Document
         from docx.shared import Pt
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
         
         doc = Document()
         style = doc.styles['Normal']
@@ -533,114 +532,155 @@ def ocr_pdf(job_id):
                 line = line.strip()
                 if len(line) < 2:
                     continue
-                noise_chars = ['_', '|', '¦', '©', '®', '™']
+                noise_chars = ['_', '|', '¦', '©', '®', '™', '']
                 for nc in noise_chars:
                     line = line.replace(nc, '')
+                # Fix common OCR misreads for Khmer
+                line = line.replace('׋', '់')
+                line = line.replace('׃', 'ៃ')
                 line = line.strip()
                 if line:
                     cleaned.append(line)
             return '\n'.join(cleaned)
         
         if has_opencv:
-            def preprocess_for_khmer(img_pil):
+            def preprocess_for_khmer_google_lens_style(img_pil):
+                """Google Lens style preprocessing for best Khmer OCR"""
                 try:
                     img = np.array(img_pil)
                     if len(img.shape) == 3:
-                        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     else:
                         gray = img
                     
-                    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                                                   cv2.THRESH_BINARY, 11, 2)
-                    denoised = cv2.fastNlMeansDenoising(thresh, None, 10, 7, 21)
-                    result = Image.fromarray(denoised)
+                    # Step 1: Denoise while preserving edges
+                    denoised = cv2.fastNlMeansDenoising(gray, None, h=10, templateWindowSize=7, searchWindowSize=21)
+                    
+                    # Step 2: Enhance contrast (CLAHE - same as Google Lens)
+                    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+                    contrast = clahe.apply(denoised)
+                    
+                    # Step 3: Sharpen for text clarity
+                    kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+                    sharpened = cv2.filter2D(contrast, -1, kernel)
+                    
+                    # Step 4: Morphological operations to clean up text
+                    kernel_small = np.ones((2,2), np.uint8)
+                    cleaned = cv2.morphologyEx(sharpened, cv2.MORPH_CLOSE, kernel_small)
+                    
+                    result = Image.fromarray(cleaned)
+                    
+                    # Final contrast boost
                     enhancer = ImageEnhance.Contrast(result)
-                    result = enhancer.enhance(1.2)
+                    result = enhancer.enhance(1.4)
+                    
                     return result
                 except:
                     return img_pil
             
-            def preprocess_for_english(img_pil):
+            def preprocess_for_english_google_lens_style(img_pil):
+                """Google Lens style for English"""
                 try:
                     img = np.array(img_pil)
                     if len(img.shape) == 3:
-                        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     else:
                         gray = img
                     
-                    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+                    clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8,8))
                     enhanced = clahe.apply(gray)
                     
                     kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
                     sharpened = cv2.filter2D(enhanced, -1, kernel)
                     
-                    result = Image.fromarray(sharpened)
-                    return result
+                    return Image.fromarray(sharpened)
                 except:
                     return img_pil
         else:
-            def preprocess_for_khmer(img_pil):
+            def preprocess_for_khmer_google_lens_style(img_pil):
                 try:
                     enhancer = ImageEnhance.Contrast(img_pil)
-                    result = enhancer.enhance(1.3)
+                    result = enhancer.enhance(1.5)
                     result = result.filter(ImageFilter.SHARPEN)
                     return result
                 except:
                     return img_pil
             
-            def preprocess_for_english(img_pil):
-                return preprocess_for_khmer(img_pil)
+            def preprocess_for_english_google_lens_style(img_pil):
+                return preprocess_for_khmer_google_lens_style(img_pil)
         
-        def extract_text_multi_lang(img_pil):
+        def extract_text_google_lens_style(img_pil):
+            """Google Lens style - multiple engines and configs for best accuracy"""
             results = []
-            configs = ['--psm 6', '--psm 3', '--psm 4']
+            
+            # Tesseract OCR Engine Mode:
+            # --oem 0 - Legacy only
+            # --oem 1 - LSTM only  
+            # --oem 2 - Legacy + LSTM
+            # --oem 3 - Default (auto select)
+            oem_modes = ['--oem 3', '--oem 2', '--oem 1']
+            
+            # Page segmentation modes
+            psm_modes = ['--psm 6', '--psm 3', '--psm 4', '--psm 11']
             
             if tesseract_lang == 'khm':
-                langs = ['khm+eng', 'khm', 'eng']
+                langs = ['khm+eng', 'khm']
             elif tesseract_lang == 'eng+khm':
                 langs = ['eng+khm', 'eng', 'khm']
             else:
-                langs = ['eng', 'eng+khm']
+                langs = ['eng']
             
             for lang in langs:
+                # Google Lens style preprocessing for Khmer
                 try:
-                    processed = preprocess_for_khmer(img_pil)
-                    for cfg in configs:
-                        try:
-                            text = pytesseract.image_to_string(processed, lang=lang, config=cfg)
-                            if text.strip() and len(text) > 10:
-                                results.append((f'{lang}_{cfg}', text))
-                        except:
-                            pass
+                    processed = preprocess_for_khmer_google_lens_style(img_pil)
+                    for oem in oem_modes:
+                        for psm in psm_modes:
+                            config = f'{oem} {psm}'
+                            try:
+                                text = pytesseract.image_to_string(processed, lang=lang, config=config)
+                                if text.strip() and len(text) > 10:
+                                    results.append((f'{lang}_{config}', text))
+                            except:
+                                pass
                 except:
                     pass
                 
+                # English specific preprocessing
                 if 'eng' in lang:
                     try:
-                        proc_eng = preprocess_for_english(img_pil)
-                        for cfg in configs:
-                            try:
-                                text = pytesseract.image_to_string(proc_eng, lang=lang, config=cfg)
-                                if text.strip() and len(text) > 10:
-                                    results.append((f'{lang}_eng_{cfg}', text))
-                            except:
-                                pass
+                        proc_eng = preprocess_for_english_google_lens_style(img_pil)
+                        for oem in oem_modes:
+                            for psm in psm_modes:
+                                config = f'{oem} {psm}'
+                                try:
+                                    text = pytesseract.image_to_string(proc_eng, lang=lang, config=config)
+                                    if text.strip() and len(text) > 10:
+                                        results.append((f'{lang}_eng_{config}', text))
+                                except:
+                                    pass
                     except:
                         pass
                 
-                for cfg in configs:
-                    try:
-                        text = pytesseract.image_to_string(img_pil, lang=lang, config=cfg)
-                        if text.strip() and len(text) > 10:
-                            results.append((f'{lang}_orig_{cfg}', text))
-                    except:
-                        pass
+                # Try raw image as fallback
+                for oem in oem_modes:
+                    for psm in psm_modes:
+                        config = f'{oem} {psm}'
+                        try:
+                            text = pytesseract.image_to_string(img_pil, lang=lang, config=config)
+                            if text.strip() and len(text) > 10:
+                                results.append((f'{lang}_raw_{config}', text))
+                        except:
+                            pass
             
             if results:
                 def score(text):
                     base = len(text)
-                    special_penalty = text.count('?') + text.count('¡') + text.count('»')
-                    return base - (special_penalty * 2)
+                    # Penalize OCR artifacts
+                    penalty = text.count('?') + text.count('¡') + text.count('»')
+                    # Penalize too many spaces (poor recognition)
+                    space_ratio = text.count('  ') / max(len(text), 1)
+                    return base - (penalty * 5) - (space_ratio * 100)
                 
                 best = max(results, key=lambda x: score(x[1]))
                 return clean_text(best[1])
@@ -650,11 +690,9 @@ def ocr_pdf(job_id):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             
-            # Add page heading
-            doc.add_heading(f'Page {i+1}', level=1)
+            text = extract_text_google_lens_style(page)
             
-            # Extract and add editable text
-            text = extract_text_multi_lang(page)
+            doc.add_heading(f'Page {i+1}', level=1)
             
             lines = text.split('\n')
             for line in lines:
