@@ -484,6 +484,9 @@ def ocr_pdf(job_id):
     import logging
     import subprocess
     import sys
+    import numpy as np
+    from PIL import Image, ImageEnhance
+    import io
     logger = logging.getLogger(__name__)
     
     job = Job.objects.get(id=job_id)
@@ -514,15 +517,27 @@ def ocr_pdf(job_id):
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
         
-        pages = convert_from_path(input_path, dpi=300)
+        pages = convert_from_path(input_path, dpi=350)
         max_pages = min(len(pages), 25)
         
-        # Initialize EasyOCR reader
+        # Initialize EasyOCR reader with better settings
         logger.info('Loading EasyOCR model...')
-        import easyocr
-        
-        # Languages: Khmer (km) + English (en), CPU mode
         reader = easyocr.Reader(['en', 'km'], gpu=False, verbose=False)
+        
+        def enhance_image(img_pil):
+            """Enhance image for better OCR"""
+            # Convert to grayscale
+            img = img_pil.convert('L')
+            
+            # Increase contrast
+            enhancer = ImageEnhance.Contrast(img)
+            img = enhancer.enhance(1.5)
+            
+            # Increase sharpness
+            enhancer = ImageEnhance.Sharpness(img)
+            img = enhancer.enhance(1.5)
+            
+            return img
         
         def clean_text(text):
             if not text:
@@ -546,11 +561,42 @@ def ocr_pdf(job_id):
             temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_ocr_{i}.png')
             page.save(temp_img_path, format='PNG')
             
-            # EasyOCR with Khmer + English
-            results = reader.readtext(temp_img_path, detail=0)
+            # Try multiple passes with different settings
+            all_results = []
             
-            # Combine all text
-            text = '\n'.join(results)
+            # Pass 1: Enhanced image
+            try:
+                enhanced_img = enhance_image(page)
+                enhanced_img.save(temp_img_path)
+                results1 = reader.readtext(temp_img_path, detail=0)
+                if results1:
+                    all_results.append(('\n'.join(results1), len(results1)))
+            except Exception as e:
+                logger.warning(f'Pass 1 failed: {e}')
+            
+            # Pass 2: Original image
+            try:
+                results2 = reader.readtext(temp_img_path, detail=0)
+                if results2:
+                    all_results.append(('\n'.join(results2), len(results2)))
+            except Exception as e:
+                logger.warning(f'Pass 2 failed: {e}')
+            
+            # Pass 3: Try batch mode
+            try:
+                results3 = reader.readtext(temp_img_path, detail=0, batch_size=1)
+                if results3:
+                    all_results.append(('\n'.join(results3), len(results3)))
+            except Exception as e:
+                logger.warning(f'Pass 3 failed: {e}')
+            
+            # Pick the result with most text (usually most accurate)
+            if all_results:
+                best = max(all_results, key=lambda x: x[1])
+                text = best[0]
+            else:
+                text = ""
+            
             text = clean_text(text)
             
             # Clean up temp file
