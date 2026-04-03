@@ -167,6 +167,7 @@ def compress_with_pymupdf(input_path, output_path, compression_level='recommende
     doc.close()
 
 
+@shared_task
 def compress_pdf(job_id):
     from apps.pdf.models import Job
     
