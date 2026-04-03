@@ -456,15 +456,26 @@ def image_to_pdf_api(request):
     try:
         file_ids = []
         for f in files:
-            job = Job.objects.create(file=f, tool='upload')
-            file_ids.append(str(job.id))
+            try:
+                job = Job.objects.create(file=f, tool='upload')
+                file_ids.append(str(job.id))
+            except Exception as e:
+                logger.error(f'Error creating upload job: {e}')
+                raise
         
         job = Job.objects.create(files=file_ids, tool='image_to_pdf')
         
         from .tasks import image_to_pdf_task
         
         if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
-            image_to_pdf_task(str(job.id))
+            try:
+                image_to_pdf_task(str(job.id))
+            except Exception as e:
+                logger.error(f'Task error: {e}')
+                job.status = 'failed'
+                job.error_message = str(e)
+                job.save()
+            
             job.refresh_from_db()
             
             if job.status == 'failed':
