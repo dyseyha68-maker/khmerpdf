@@ -571,7 +571,12 @@
             files.forEach(f => fd.append('files', f));
             
             fetch('/api/image-to-pdf/', { method: 'POST', body: fd })
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) {
+                        return r.text().then(text => { throw new Error(text || 'Server error: ' + r.status); });
+                    }
+                    return r.json();
+                })
                 .then(d => {
                     if (d.job_id) {
                         checkJobStatus(d.job_id, modalInterval, btn);
@@ -582,6 +587,7 @@
                     }
                 })
                 .catch(e => {
+                    console.error('Error:', e);
                     alert('Error: ' + e.message);
                     btn.disabled = false;
                     hideModal();
