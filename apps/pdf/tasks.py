@@ -518,7 +518,8 @@ def ocr_pdf(job_id):
         max_pages = min(len(pages), 50)
         
         from docx import Document
-        from docx.shared import Pt
+        from docx.shared import Pt, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
         
         doc = Document()
         style = doc.styles['Normal']
@@ -567,11 +568,9 @@ def ocr_pdf(job_id):
                     else:
                         gray = img
                     
-                    # Enhance for English - higher contrast
                     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
                     enhanced = clahe.apply(gray)
                     
-                    # Sharpen
                     kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
                     sharpened = cv2.filter2D(enhanced, -1, kernel)
                     
@@ -593,15 +592,9 @@ def ocr_pdf(job_id):
                 return preprocess_for_khmer(img_pil)
         
         def extract_text_multi_lang(img_pil):
-            """Try multiple language configurations"""
             results = []
-            configs = [
-                '--psm 6',
-                '--psm 3',
-                '--psm 4',
-            ]
+            configs = ['--psm 6', '--psm 3', '--psm 4']
             
-            # For Khmer language selection
             if tesseract_lang == 'khm':
                 langs = ['khm+eng', 'khm', 'eng']
             elif tesseract_lang == 'eng+khm':
@@ -609,9 +602,7 @@ def ocr_pdf(job_id):
             else:
                 langs = ['eng', 'eng+khm']
             
-            # Try each language with preprocessing
             for lang in langs:
-                # Try enhanced preprocessing
                 try:
                     processed = preprocess_for_khmer(img_pil)
                     for cfg in configs:
@@ -624,7 +615,6 @@ def ocr_pdf(job_id):
                 except:
                     pass
                 
-                # Try English-specific preprocessing
                 if 'eng' in lang:
                     try:
                         proc_eng = preprocess_for_english(img_pil)
@@ -638,7 +628,6 @@ def ocr_pdf(job_id):
                     except:
                         pass
                 
-                # Try original without preprocessing
                 for cfg in configs:
                     try:
                         text = pytesseract.image_to_string(img_pil, lang=lang, config=cfg)
@@ -648,10 +637,8 @@ def ocr_pdf(job_id):
                         pass
             
             if results:
-                # Score: prefer longer results but also penalize weird chars
                 def score(text):
                     base = len(text)
-                    # Penalize too many special chars
                     special_penalty = text.count('?') + text.count('¡') + text.count('»')
                     return base - (special_penalty * 2)
                 
@@ -663,9 +650,23 @@ def ocr_pdf(job_id):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             
+            # Save page image for reference
+            temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_{i}.png')
+            page.save(temp_img_path, format='PNG', optimize=True, quality=85)
+            
+            # Add page heading
+            doc.add_heading(f'Page {i+1}', level=1)
+            
+            # Add original scanned image (for reference)
+            try:
+                doc.add_picture(temp_img_path, width=Inches(6))
+            except:
+                pass
+            
+            # Add editable text below
             text = extract_text_multi_lang(page)
             
-            doc.add_heading(f'Page {i+1}', level=1)
+            doc.add_heading('Editable Text:', level=2)
             
             lines = text.split('\n')
             for line in lines:
@@ -677,6 +678,10 @@ def ocr_pdf(job_id):
                         run.font.name = 'Kantumruy Pro'
                     else:
                         run.font.name = 'Times New Roman'
+            
+            # Clean up temp image
+            if os.path.exists(temp_img_path):
+                os.remove(temp_img_path)
             
             if i < max_pages - 1:
                 doc.add_page_break()
