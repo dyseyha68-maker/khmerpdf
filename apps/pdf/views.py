@@ -120,7 +120,7 @@ def compress_api(request):
         
         from apps.pdf.tasks import compress_pdf
         
-        # Always run in background to show "upload complete" first
+        # Run in background (with CELERY_TASK_ALWAYS_EAGER it runs synchronously)
         compress_pdf.delay(str(job.id))
         
         return Response({
