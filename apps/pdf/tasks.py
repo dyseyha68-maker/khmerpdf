@@ -481,6 +481,8 @@ def organize_pdf(job_id, replace_files=None):
 
 def ocr_pdf(job_id):
     from apps.pdf.models import Job
+    import logging
+    logger = logging.getLogger(__name__)
     
     job = Job.objects.get(id=job_id)
     job.status = 'processing'
@@ -501,44 +503,23 @@ def ocr_pdf(job_id):
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
-        import pytesseract
-        from PIL import Image
-        from pdf2image import convert_from_path
+        logger.info(f'Starting OCR with language: {tesseract_lang}')
         
-        pages = convert_from_path(input_path, dpi=300)
+        # Use OCRmyPDF - best for creating searchable PDFs from scanned documents
+        import ocrmypdf
         
-        from pypdf import PdfWriter
-        from reportlab.pdfgen import canvas
-        from reportlab.lib.pagesizes import letter
-        import io
+        # Determine deskew and cleanup options
+        ocr_options = {
+            '--language': tesseract_lang,
+            '--deskew': True,  # Correct rotated pages
+            '--clean': True,   # Clean up image artifacts
+            '--pdf-renderer': 'hocr',  # Better text positioning
+            '-q': True,  # Quiet mode
+        }
         
-        writer = PdfWriter()
+        ocrmypdf.ocr(input_path, output_path, **ocr_options)
         
-        for i, page in enumerate(pages):
-            img_byte_arr = io.BytesIO()
-            page.save(img_byte_arr, format='PNG', optimize=True)
-            img_byte_arr.seek(0)
-            
-            img = Image.open(img_byte_arr)
-            text = pytesseract.image_to_string(img, lang=tesseract_lang)
-            
-            packet = io.BytesIO()
-            c = canvas.Canvas(packet, pagesize=letter)
-            c.drawString(50, 750, f"Page {i+1}")
-            text_y = 720
-            for line in text.split('\n')[:50]:
-                if text_y > 50:
-                    c.drawString(50, text_y, line[:100])
-                    text_y -= 15
-            c.save()
-            packet.seek(0)
-            
-            from pypdf import PdfReader
-            text_pdf = PdfReader(packet)
-            writer.add_page(text_pdf.pages[0])
-        
-        with open(output_path, 'wb') as f:
-            writer.write(f)
+        logger.info(f'OCR completed, saving result')
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
@@ -549,7 +530,58 @@ def ocr_pdf(job_id):
         return {'status': 'done', 'job_id': str(job_id)}
         
     except Exception as e:
-        job.status = 'failed'
-        job.error_message = str(e)
-        job.save()
-        raise
+        logger.error(f'OCR error: {e}', exc_info=True)
+        
+        # Fallback: try with simpler options if OCRmyPDF fails
+        try:
+            logger.info('Trying fallback OCR method...')
+            
+            from pdf2image import convert_from_path
+            from PIL import Image
+            import pytesseract
+            from pypdf import PdfWriter
+            import io
+            
+            pages = convert_from_path(input_path, dpi=300)
+            writer = PdfWriter()
+            
+            for i, page in enumerate(pages):
+                img_byte_arr = io.BytesIO()
+                page.save(img_byte_arr, format='PNG', optimize=True)
+                img_byte_arr.seek(0)
+                
+                img = Image.open(img_byte_arr)
+                text = pytesseract.image_to_string(img, lang=tesseract_lang)
+                
+                packet = io.BytesIO()
+                from reportlab.pdfgen import canvas
+                from reportlab.lib.pagesizes import letter
+                c = canvas.Canvas(packet, pagesize=letter)
+                c.drawString(50, 750, f"Page {i+1}")
+                text_y = 720
+                for line in text.split('\n')[:50]:
+                    if text_y > 50:
+                        c.drawString(50, text_y, line[:100])
+                        text_y -= 15
+                c.save()
+                packet.seek(0)
+                
+                from pypdf import PdfReader
+                text_pdf = PdfReader(packet)
+                writer.add_page(text_pdf.pages[0])
+            
+            with open(output_path, 'wb') as f:
+                writer.write(f)
+            
+            job.result.save(output_filename, open(output_path, 'rb'))
+            os.remove(output_path)
+            job.status = 'done'
+            job.save()
+            return {'status': 'done', 'job_id': str(job_id)}
+            
+        except Exception as fallback_error:
+            logger.error(f'Fallback also failed: {fallback_error}')
+            job.status = 'failed'
+            job.error_message = str(e)
+            job.save()
+            raise
