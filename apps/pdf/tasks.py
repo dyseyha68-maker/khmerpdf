@@ -499,82 +499,61 @@ def ocr_pdf(job_id):
     
     try:
         input_path = job.file.path
-        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
-        output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
+        logger.info(f'Starting OCR with language: {tesseract_lang}, file size: {file_size_mb:.1f}MB')
         
-        logger.info(f'Starting OCR with language: {tesseract_lang}')
+        # Try importing opencv - if it fails, use simpler method
+        try:
+            import numpy as np
+            import cv2
+            has_opencv = True
+        except:
+            has_opencv = False
+            logger.warning('OpenCV not available, using basic OCR')
         
         from pdf2image import convert_from_path
         import pytesseract
         import io
-        import numpy as np
-        import cv2
-        from PIL import Image, ImageEnhance
+        from PIL import Image
         
-        pages = convert_from_path(input_path, dpi=400)
+        # Limit pages to prevent memory issues
+        pages = convert_from_path(input_path, dpi=300)
+        max_pages = min(len(pages), 50)  # Max 50 pages
+        logger.info(f'Converting {len(pages)} pages, processing {max_pages}')
         
         from docx import Document
-        from docx.shared import Pt, Inches
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.shared import Pt
         
         doc = Document()
-        
         style = doc.styles['Normal']
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
         
-        def preprocess_for_khmer(img_pil):
-            img = np.array(img_pil)
-            if len(img.shape) == 3:
-                gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-            else:
-                gray = img
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-            enhanced = clahe.apply(gray)
-            denoised = cv2.bilateralFilter(enhanced, 9, 75, 75)
-            result = Image.fromarray(denoised)
-            enhancer = ImageEnhance.Contrast(result)
-            result = enhancer.enhance(1.3)
-            enhancer = ImageEnhance.Sharpness(result)
-            result = enhancer.enhance(1.5)
-            return result
+        if has_opencv:
+            from PIL import ImageEnhance
+            
+            def preprocess_for_khmer(img_pil):
+                try:
+                    img = np.array(img_pil)
+                    if len(img.shape) == 3:
+                        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                    else:
+                        gray = img
+                    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+                    enhanced = clahe.apply(gray)
+                    denoised = cv2.bilateralFilter(enhanced, 9, 75, 75)
+                    result = Image.fromarray(denoised)
+                    enhancer = ImageEnhance.Contrast(result)
+                    result = enhancer.enhance(1.3)
+                    return result
+                except:
+                    return img_pil
+        else:
+            preprocess_for_khmer = lambda x: x
         
-        def extract_text_with_fallback(img_pil, lang):
-            results = []
-            try:
-                processed = preprocess_for_khmer(img_pil)
-                text1 = pytesseract.image_to_string(processed, lang=lang)
-                if text1.strip():
-                    results.append(('enhanced', text1))
-            except:
-                pass
-            try:
-                text2 = pytesseract.image_to_string(img_pil, lang=lang)
-                if text2.strip():
-                    results.append(('original', text2))
-            except:
-                pass
-            try:
-                img = np.array(img_pil)
-                if len(img.shape) == 3:
-                    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-                else:
-                    gray = img
-                _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                binary_pil = Image.fromarray(binary)
-                text3 = pytesseract.image_to_string(binary_pil, lang=lang)
-                if text3.strip():
-                    results.append(('binary', text3))
-            except:
-                pass
-            if results:
-                best = max(results, key=lambda x: len(x[1]))
-                return best[1]
-            return ""
-        
-        for i, page in enumerate(pages):
-            logger.info(f'Processing page {i+1}/{len(pages)}')
+        for i in range(max_pages):
+            logger.info(f'Processing page {i+1}/{max_pages}')
+            page = pages[i]
             
             if tesseract_lang == 'khm':
                 lang = 'khm+eng'
@@ -583,12 +562,15 @@ def ocr_pdf(job_id):
             else:
                 lang = 'eng'
             
-            text = extract_text_with_fallback(page, lang)
+            # Try enhanced first, then fallback
+            try:
+                processed = preprocess_for_khmer(page)
+                text = pytesseract.image_to_string(processed, lang=lang)
+            except:
+                text = pytesseract.image_to_string(page, lang=lang)
             
-            # Add page heading
             doc.add_heading(f'Page {i+1}', level=1)
             
-            # Add extracted text only
             lines = text.split('\n')
             for line in lines:
                 if line.strip():
@@ -597,17 +579,17 @@ def ocr_pdf(job_id):
                     run = p.runs[0] if p.runs else p.add_run()
                     if has_khmer:
                         run.font.name = 'Kantumruy Pro'
-                        run.font.size = Pt(11)
                     else:
                         run.font.name = 'Times New Roman'
-                        run.font.size = Pt(11)
             
-            if i < len(pages) - 1:
+            if i < max_pages - 1:
                 doc.add_page_break()
         
-        doc.save(output_path)
+        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
+        output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
-        logger.info(f'OCR completed')
+        doc.save(output_path)
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
