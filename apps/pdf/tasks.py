@@ -502,24 +502,20 @@ def ocr_pdf(job_id):
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
         logger.info(f'Starting OCR with language: {tesseract_lang}, file size: {file_size_mb:.1f}MB')
         
-        # Try importing opencv - if it fails, use simpler method
+        has_opencv = False
         try:
             import numpy as np
             import cv2
             has_opencv = True
         except:
-            has_opencv = False
-            logger.warning('OpenCV not available, using basic OCR')
+            logger.warning('OpenCV not available')
         
         from pdf2image import convert_from_path
         import pytesseract
-        import io
-        from PIL import Image
+        from PIL import Image, ImageEnhance, ImageFilter
         
-        # Limit pages to prevent memory issues
         pages = convert_from_path(input_path, dpi=300)
-        max_pages = min(len(pages), 50)  # Max 50 pages
-        logger.info(f'Converting {len(pages)} pages, processing {max_pages}')
+        max_pages = min(len(pages), 50)
         
         from docx import Document
         from docx.shared import Pt
@@ -529,9 +525,25 @@ def ocr_pdf(job_id):
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
         
+        def clean_text(text):
+            """Clean up OCR noise"""
+            lines = text.split('\n')
+            cleaned = []
+            for line in lines:
+                # Remove lines that are just noise (too short or special chars only)
+                line = line.strip()
+                if len(line) < 2:
+                    continue
+                # Remove common OCR noise characters
+                noise_chars = ['_', '|', '¦', '©', '®', '™']
+                for nc in noise_chars:
+                    line = line.replace(nc, '')
+                line = line.strip()
+                if line:
+                    cleaned.append(line)
+            return '\n'.join(cleaned)
+        
         if has_opencv:
-            from PIL import ImageEnhance
-            
             def preprocess_for_khmer(img_pil):
                 try:
                     img = np.array(img_pil)
@@ -539,17 +551,75 @@ def ocr_pdf(job_id):
                         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
                     else:
                         gray = img
-                    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-                    enhanced = clahe.apply(gray)
-                    denoised = cv2.bilateralFilter(enhanced, 9, 75, 75)
+                    
+                    # Adaptive threshold for better text extraction
+                    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                                   cv2.THRESH_BINARY, 11, 2)
+                    
+                    # Denoise
+                    denoised = cv2.fastNlMeansDenoising(thresh, None, 10, 7, 21)
+                    
                     result = Image.fromarray(denoised)
+                    
+                    # Slight contrast boost
                     enhancer = ImageEnhance.Contrast(result)
-                    result = enhancer.enhance(1.3)
+                    result = enhancer.enhance(1.2)
+                    
                     return result
                 except:
                     return img_pil
         else:
-            preprocess_for_khmer = lambda x: x
+            def preprocess_for_khmer(img_pil):
+                try:
+                    # Basic preprocessing without OpenCV
+                    enhancer = ImageEnhance.Contrast(img_pil)
+                    result = enhancer.enhance(1.3)
+                    result = result.filter(ImageFilter.SHARPEN)
+                    return result
+                except:
+                    return img_pil
+        
+        def extract_text_better(img_pil, lang):
+            """Try multiple Tesseract configurations for best results"""
+            results = []
+            
+            # PSM 3 = Fully automatic page segmentation, but no OSD (Default)
+            # PSM 6 = Assume a single uniform block of text
+            # PSM 11 = Sparse text - find as much text as possible in no particular order
+            
+            configs = [
+                ('--psm 6', 'Single block'),
+                ('--psm 3', 'Auto'),
+                ('--psm 4', 'Columns'),
+            ]
+            
+            # Try enhanced image with different PSM
+            try:
+                processed = preprocess_for_khmer(img_pil)
+                for cfg, name in configs:
+                    try:
+                        text = pytesseract.image_to_string(processed, lang=lang, config=cfg)
+                        if text.strip():
+                            results.append((name, text))
+                    except:
+                        pass
+            except:
+                pass
+            
+            # Try original with different PSM
+            for cfg, name in configs:
+                try:
+                    text = pytesseract.image_to_string(img_pil, lang=lang, config=cfg)
+                    if text.strip():
+                        results.append((name + '_orig', text))
+                except:
+                    pass
+            
+            # Return longest/best result
+            if results:
+                best = max(results, key=lambda x: len(x[1]))
+                return clean_text(best[1])
+            return ""
         
         for i in range(max_pages):
             logger.info(f'Processing page {i+1}/{max_pages}')
@@ -562,12 +632,7 @@ def ocr_pdf(job_id):
             else:
                 lang = 'eng'
             
-            # Try enhanced first, then fallback
-            try:
-                processed = preprocess_for_khmer(page)
-                text = pytesseract.image_to_string(processed, lang=lang)
-            except:
-                text = pytesseract.image_to_string(page, lang=lang)
+            text = extract_text_better(page, lang)
             
             doc.add_heading(f'Page {i+1}', level=1)
             
