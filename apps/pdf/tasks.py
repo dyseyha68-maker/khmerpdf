@@ -526,13 +526,22 @@ def ocr_pdf(job_id):
             return '\n'.join(cleaned)
         
         if use_google_cloud:
-            # Use Google Cloud Vision API
+            # Use Google Cloud Vision API with API key
             logger.info('Using Google Cloud Vision API for OCR')
+            
             from google.cloud import vision
-            from PIL import Image
+            from google.api_core.client_options import ClientOptions
             import io
             
-            client = vision.ImageAnnotatorClient()
+            api_key = getattr(settings, 'GOOGLE_CLOUD_API_KEY', '')
+            
+            # Create client with API key
+            client = vision.ImageAnnotatorClient(
+                client_options=ClientOptions(
+                    api_endpoint="vision.googleapis.com",
+                    api_key=api_key
+                )
+            )
             
             for i in range(max_pages):
                 logger.info(f'Processing page {i+1}/{max_pages} with Google Cloud')
