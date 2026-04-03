@@ -99,13 +99,15 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
         
         try:
             result = subprocess.run(more_aggressive_cmd, capture_output=True, text=True, timeout=timeout)
-        except:
-            pass
+        except Exception as e:
+            logger.error(f'Aggressive compression failed: {e}')
         
         if os.path.exists(output_path):
             output_size = os.path.getsize(output_path)
             output_size_mb = output_size / (1024 * 1024)
             logger.info(f'Aggressive Ghostscript result: {output_size_mb:.2f} MB')
+        else:
+            raise Exception('Both Ghostscript and aggressive compression failed to produce output')
     
     return output_path
 
@@ -243,8 +245,14 @@ def compress_pdf(job_id):
                 logger.info(f'Used Ghostscript for single file')
             except Exception as gs_err:
                 logger.warning(f'Ghostscript failed, falling back to PyMuPDF: {gs_err}')
-                # Fallback to PyMuPDF if Ghostscript fails
-                compress_with_pymupdf(input_path, output_path, compression_level)
+                try:
+                    compress_with_pymupdf(input_path, output_path, compression_level)
+                except Exception as pymupdf_err:
+                    logger.error(f'Both compression methods failed: GS={gs_err}, PyMuPDF={pymupdf_err}')
+                    raise Exception(f'Compression failed: {pymupdf_err}')
+            
+            if not os.path.exists(output_path):
+                raise Exception(f'Compression failed: output file not created')
             
             compressed_size = os.path.getsize(output_path)
             
