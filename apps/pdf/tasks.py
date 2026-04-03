@@ -506,26 +506,97 @@ def ocr_pdf(job_id):
         logger.info(f'Starting OCR with language: {tesseract_lang}')
         
         from pdf2image import convert_from_path
-        from PIL import Image
         import pytesseract
         import io
+        import numpy as np
+        import cv2
+        from PIL import Image, ImageEnhance
         
-        # Convert PDF to images with original DPI for quality
-        pages = convert_from_path(input_path, dpi=300)
+        # Convert PDF to images with high DPI for better quality
+        pages = convert_from_path(input_path, dpi=400)
         
-        # Create Word document
         from docx import Document
         from docx.shared import Pt, Inches, Cm
         from docx.enum.text import WD_ALIGN_PARAGRAPH
-        from docx.oxml.ns import qn
-        from docx.oxml import OxmlElement
         
         doc = Document()
         
-        # Set default font for the whole document
         style = doc.styles['Normal']
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
+        
+        def preprocess_for_khmer(img_pil):
+            """Enhance image for better Khmer OCR"""
+            # Convert to numpy array
+            img = np.array(img_pil)
+            
+            # Convert to grayscale if needed
+            if len(img.shape) == 3:
+                gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+            else:
+                gray = img
+            
+            # Apply CLAHE for contrast enhancement
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+            enhanced = clahe.apply(gray)
+            
+            # Apply slight blur to reduce noise
+            denoised = cv2.bilateralFilter(enhanced, 9, 75, 75)
+            
+            # Convert back to PIL
+            result = Image.fromarray(denoised)
+            
+            # Further enhance contrast
+            enhancer = ImageEnhance.Contrast(result)
+            result = enhancer.enhance(1.3)
+            
+            # Sharpen
+            enhancer = ImageEnhance.Sharpness(result)
+            result = enhancer.enhance(1.5)
+            
+            return result
+        
+        def extract_text_with_fallback(img_pil, lang):
+            """Try multiple OCR approaches and return best result"""
+            results = []
+            
+            # Method 1: Preprocessed image (best for Khmer)
+            try:
+                processed = preprocess_for_khmer(img_pil)
+                text1 = pytesseract.image_to_string(processed, lang=lang)
+                if text1.strip():
+                    results.append(('enhanced', text1))
+            except Exception as e:
+                logger.warning(f'Enhanced OCR failed: {e}')
+            
+            # Method 2: Original image
+            try:
+                text2 = pytesseract.image_to_string(img_pil, lang=lang)
+                if text2.strip():
+                    results.append(('original', text2))
+            except Exception as e:
+                logger.warning(f'Original OCR failed: {e}')
+            
+            # Method 3: Binary threshold (for low contrast)
+            try:
+                img = np.array(img_pil)
+                if len(img.shape) == 3:
+                    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                else:
+                    gray = img
+                _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                binary_pil = Image.fromarray(binary)
+                text3 = pytesseract.image_to_string(binary_pil, lang=lang)
+                if text3.strip():
+                    results.append(('binary', text3))
+            except Exception as e:
+                logger.warning(f'Binary OCR failed: {e}')
+            
+            # Return longest result (usually most accurate)
+            if results:
+                best = max(results, key=lambda x: len(x[1]))
+                return best[1]
+            return ""
         
         for i, page in enumerate(pages):
             logger.info(f'Processing page {i+1}/{len(pages)}')
@@ -535,7 +606,6 @@ def ocr_pdf(job_id):
             page.save(img_byte_arr, format='PNG', optimize=False, quality=95)
             img_byte_arr.seek(0)
             
-            # Save temporary image file
             temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_page_{i}.png')
             page.save(temp_img_path, format='PNG', optimize=False, quality=95)
             
@@ -544,18 +614,19 @@ def ocr_pdf(job_id):
             
             # Add the original page as image (preserving layout)
             try:
-                doc.add_picture(temp_img_path, width=Inches(6.5))  # Fit to page width
+                doc.add_picture(temp_img_path, width=Inches(6.5))
             except:
                 pass
             
-            # OCR the page
-            img = Image.open(img_byte_arr)
+            # OCR the page with multiple methods
             if tesseract_lang == 'khm':
-                text = pytesseract.image_to_string(img, lang='khm+eng')
+                lang = 'khm+eng'
             elif tesseract_lang == 'eng+khm':
-                text = pytesseract.image_to_string(img, lang='eng+khm')
+                lang = 'eng+khm'
             else:
-                text = pytesseract.image_to_string(img, lang='eng')
+                lang = 'eng'
+            
+            text = extract_text_with_fallback(page, lang)
             
             # Add extracted text below the image
             doc.add_heading('Extracted Text:', level=3)
@@ -574,18 +645,15 @@ def ocr_pdf(job_id):
                         run.font.name = 'Times New Roman'
                         run.font.size = Pt(11)
             
-            # Clean up temp image
             if os.path.exists(temp_img_path):
                 os.remove(temp_img_path)
             
-            # Add page break (except last page)
             if i < len(pages) - 1:
                 doc.add_page_break()
         
-        # Save document
         doc.save(output_path)
         
-        logger.info(f'OCR completed, saving result as Word document')
+        logger.info(f'OCR completed')
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)

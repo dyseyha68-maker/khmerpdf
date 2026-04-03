@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install Ghostscript, Tesseract OCR, Poppler, and language packs + dependencies
+# Install Ghostscript, Tesseract OCR, Poppler, OpenCV dependencies and language packs
 RUN apt-get update && apt-get install -y \
     ghostscript \
     tesseract-ocr \
@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     libomp-dev \
     libgcc-s1 \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
