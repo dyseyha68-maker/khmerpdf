@@ -481,7 +481,6 @@ def organize_pdf(job_id, replace_files=None):
 
 def ocr_pdf(job_id):
     from apps.pdf.models import Job
-    from django.conf import settings
     import logging
     logger = logging.getLogger(__name__)
     
@@ -491,12 +490,10 @@ def ocr_pdf(job_id):
     
     ocr_lang = job.compression_level or 'eng'
     
-    use_google_cloud = getattr(settings, 'GOOGLE_CLOUD_API_KEY', '') and len(getattr(settings, 'GOOGLE_CLOUD_API_KEY', '')) > 0
-    
     try:
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting OCR, file size: {file_size_mb:.1f}MB, using Google Cloud: {use_google_cloud}')
+        logger.info(f'Starting EasyOCR, file size: {file_size_mb:.1f}MB')
         
         from pdf2image import convert_from_path
         from docx import Document
@@ -507,9 +504,15 @@ def ocr_pdf(job_id):
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
         
-        # Convert PDF to images
         pages = convert_from_path(input_path, dpi=300)
-        max_pages = min(len(pages), 40)
+        max_pages = min(len(pages), 30)
+        
+        # Initialize EasyOCR reader
+        logger.info('Loading EasyOCR model...')
+        import easyocr
+        
+        # Languages: Khmer (km) + English (en)
+        reader = easyocr.Reader(['en', 'km'], gpu=False, verbose=False)
         
         def clean_text(text):
             if not text:
@@ -525,117 +528,40 @@ def ocr_pdf(job_id):
                     cleaned.append(line)
             return '\n'.join(cleaned)
         
-        if use_google_cloud:
-            # Use Google Cloud Vision API with API key
-            logger.info('Using Google Cloud Vision API for OCR')
+        for i in range(max_pages):
+            logger.info(f'Processing page {i+1}/{max_pages}')
+            page = pages[i]
             
-            from google.cloud import vision
-            from google.api_core.client_options import ClientOptions
-            import io
+            # Save page as image
+            temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_ocr_{i}.png')
+            page.save(temp_img_path, format='PNG')
             
-            api_key = getattr(settings, 'GOOGLE_CLOUD_API_KEY', '')
+            # EasyOCR with Khmer + English
+            results = reader.readtext(temp_img_path, detail=0)
             
-            # Create client with API key
-            client = vision.ImageAnnotatorClient(
-                client_options=ClientOptions(
-                    api_endpoint="vision.googleapis.com",
-                    api_key=api_key
-                )
-            )
+            # Combine all text
+            text = '\n'.join(results)
+            text = clean_text(text)
             
-            for i in range(max_pages):
-                logger.info(f'Processing page {i+1}/{max_pages} with Google Cloud')
-                page = pages[i]
-                
-                # Convert page to image bytes
-                img_byte_arr = io.BytesIO()
-                page.save(img_byte_arr, format='PNG')
-                img_byte_arr.seek(0)
-                image_content = img_byte_arr.getvalue()
-                
-                # Call Google Cloud Vision
-                image = vision.Image(content=image_content)
-                response = client.text_detection(image=image, 
-                    image_context={'language_hints': ['km', 'en']})
-                
-                texts = response.text_annotations
-                
-                doc.add_heading(f'Page {i+1}', level=1)
-                
-                if texts and texts[0].description:
-                    text = texts[0].description
-                    text = clean_text(text)
-                    
-                    lines = text.split('\n')
-                    for line in lines:
-                        if line.strip():
-                            p = doc.add_paragraph(line)
-                            has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
-                            run = p.runs[0] if p.runs else p.add_run()
-                            if has_khmer:
-                                run.font.name = 'Kantumruy Pro'
-                            else:
-                                run.font.name = 'Times New Roman'
-                
-                if i < max_pages - 1:
-                    doc.add_page_break()
-        
-        else:
-            # Fallback to Tesseract
-            logger.info('Using Tesseract for OCR')
+            # Clean up temp file
+            if os.path.exists(temp_img_path):
+                os.remove(temp_img_path)
             
-            has_opencv = False
-            try:
-                import numpy as np
-                import cv2
-                has_opencv = True
-            except:
-                pass
+            doc.add_heading(f'Page {i+1}', level=1)
             
-            import pytesseract
-            from PIL import Image, ImageEnhance
-            
-            def preprocess_for_khmer(img_pil):
-                if not has_opencv:
-                    return ImageEnhance.Contrast(img_pil).enhance(1.4)
-                try:
-                    img = np.array(img_pil)
-                    if len(img.shape) == 3:
-                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            lines = text.split('\n')
+            for line in lines:
+                if line.strip():
+                    p = doc.add_paragraph(line)
+                    has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
+                    run = p.runs[0] if p.runs else p.add_run()
+                    if has_khmer:
+                        run.font.name = 'Kantumruy Pro'
                     else:
-                        gray = img
-                    denoised = cv2.fastNlMeansDenoising(gray, None, h=10, templateWindowSize=7, searchWindowSize=21)
-                    clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8,8))
-                    return Image.fromarray(clahe.apply(denoised))
-                except:
-                    return img_pil
+                        run.font.name = 'Times New Roman'
             
-            lang_map = {'eng': 'eng', 'khm': 'khm', 'eng+khm': 'eng+khm'}
-            tesseract_lang = lang_map.get(ocr_lang, 'eng')
-            
-            for i in range(max_pages):
-                logger.info(f'Processing page {i+1}/{max_pages} with Tesseract')
-                page = pages[i]
-                
-                processed = preprocess_for_khmer(page)
-                text = pytesseract.image_to_string(processed, lang=tesseract_lang, config='--oem 3 --psm 6')
-                text = clean_text(text)
-                
-                doc.add_heading(f'Page {i+1}', level=1)
-                
-                lines = text.split('\n')
-                for line in lines:
-                    if line.strip():
-                        p = doc.add_paragraph(line)
-                        has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
-                        run = p.runs[0] if p.runs else p.add_run()
-                        if has_khmer:
-                            run.font.name = 'Kantumruy Pro'
-                        else:
-                            run.font.name = 'Times New Roman'
-                
-                if i < max_pages - 1:
-                    doc.add_page_break()
+            if i < max_pages - 1:
+                doc.add_page_break()
         
         output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)

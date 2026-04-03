@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install Ghostscript, Tesseract OCR, Poppler, OpenCV dependencies and language packs
+# Install Ghostscript, Tesseract OCR, Poppler, PyTorch and dependencies
 RUN apt-get update && apt-get install -y \
     ghostscript \
     tesseract-ocr \
@@ -12,7 +12,11 @@ RUN apt-get update && apt-get install -y \
     libomp-dev \
     libgcc-s1 \
     libglib2.0-0 \
+    libgl1-mesa-glx \
     && rm -rf /var/lib/apt/lists/*
+
+# Install PyTorch for EasyOCR (CPU version)
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
