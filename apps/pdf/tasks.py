@@ -499,27 +499,77 @@ def ocr_pdf(job_id):
     
     try:
         input_path = job.file.path
-        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.pdf'
+        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
         logger.info(f'Starting OCR with language: {tesseract_lang}')
         
-        # Use OCRmyPDF - best for creating searchable PDFs from scanned documents
-        import ocrmypdf
+        from pdf2image import convert_from_path
+        from PIL import Image
+        import pytesseract
+        import io
         
-        # Determine deskew and cleanup options
-        ocr_options = {
-            '--language': tesseract_lang,
-            '--deskew': True,  # Correct rotated pages
-            '--clean': True,   # Clean up image artifacts
-            '--pdf-renderer': 'hocr',  # Better text positioning
-            '-q': True,  # Quiet mode
-        }
+        # Convert PDF to images
+        pages = convert_from_path(input_path, dpi=300)
         
-        ocrmypdf.ocr(input_path, output_path, **ocr_options)
+        # Create Word document
+        from docx import Document
+        from docx.shared import Pt, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
         
-        logger.info(f'OCR completed, saving result')
+        doc = Document()
+        doc.add_heading('OCR Document', 0)
+        
+        for i, page in enumerate(pages):
+            logger.info(f'Processing page {i+1}/{len(pages)}')
+            
+            # Save page to image
+            img_byte_arr = io.BytesIO()
+            page.save(img_byte_arr, format='PNG', optimize=True)
+            img_byte_arr.seek(0)
+            
+            img = Image.open(img_byte_arr)
+            
+            # OCR with Tesseract
+            if tesseract_lang == 'khm':
+                # For Khmer, use experimental Khmer support
+                text = pytesseract.image_to_string(img, lang='khm+eng')
+            elif tesseract_lang == 'eng+khm':
+                text = pytesseract.image_to_string(img, lang='eng+khm')
+            else:
+                text = pytesseract.image_to_string(img, lang='eng')
+            
+            # Add page heading
+            doc.add_heading(f'Page {i+1}', level=1)
+            
+            # Add text paragraphs with appropriate font
+            lines = text.split('\n')
+            for line in lines:
+                if line.strip():
+                    p = doc.add_paragraph(line)
+                    
+                    # Determine if line contains Khmer characters
+                    has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
+                    
+                    # Set font based on language
+                    run = p.runs[0] if p.runs else p.add_run()
+                    if has_khmer:
+                        # Use Kantumruy Pro for Khmer (will need to embed or use fallback)
+                        run.font.name = 'Kantumruy Pro'
+                        run.font.size = Pt(12)
+                    else:
+                        run.font.name = 'Times New Roman'
+                        run.font.size = Pt(11)
+            
+            # Add page break between pages (except last)
+            if i < len(pages) - 1:
+                doc.add_page_break()
+        
+        # Save document
+        doc.save(output_path)
+        
+        logger.info(f'OCR completed, saving result as Word document')
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
@@ -531,57 +581,7 @@ def ocr_pdf(job_id):
         
     except Exception as e:
         logger.error(f'OCR error: {e}', exc_info=True)
-        
-        # Fallback: try with simpler options if OCRmyPDF fails
-        try:
-            logger.info('Trying fallback OCR method...')
-            
-            from pdf2image import convert_from_path
-            from PIL import Image
-            import pytesseract
-            from pypdf import PdfWriter
-            import io
-            
-            pages = convert_from_path(input_path, dpi=300)
-            writer = PdfWriter()
-            
-            for i, page in enumerate(pages):
-                img_byte_arr = io.BytesIO()
-                page.save(img_byte_arr, format='PNG', optimize=True)
-                img_byte_arr.seek(0)
-                
-                img = Image.open(img_byte_arr)
-                text = pytesseract.image_to_string(img, lang=tesseract_lang)
-                
-                packet = io.BytesIO()
-                from reportlab.pdfgen import canvas
-                from reportlab.lib.pagesizes import letter
-                c = canvas.Canvas(packet, pagesize=letter)
-                c.drawString(50, 750, f"Page {i+1}")
-                text_y = 720
-                for line in text.split('\n')[:50]:
-                    if text_y > 50:
-                        c.drawString(50, text_y, line[:100])
-                        text_y -= 15
-                c.save()
-                packet.seek(0)
-                
-                from pypdf import PdfReader
-                text_pdf = PdfReader(packet)
-                writer.add_page(text_pdf.pages[0])
-            
-            with open(output_path, 'wb') as f:
-                writer.write(f)
-            
-            job.result.save(output_filename, open(output_path, 'rb'))
-            os.remove(output_path)
-            job.status = 'done'
-            job.save()
-            return {'status': 'done', 'job_id': str(job_id)}
-            
-        except Exception as fallback_error:
-            logger.error(f'Fallback also failed: {fallback_error}')
-            job.status = 'failed'
-            job.error_message = str(e)
-            job.save()
-            raise
+        job.status = 'failed'
+        job.error_message = str(e)
+        job.save()
+        raise
