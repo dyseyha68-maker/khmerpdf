@@ -120,9 +120,22 @@ def compress_api(request):
         
         # Run synchronously (CELERY_TASK_ALWAYS_EAGER=True)
         from apps.pdf.tasks import compress_pdf
-        compress_pdf(str(job.id))
+        try:
+            compress_pdf(str(job.id))
+        except Exception as task_err:
+            logger.error(f'Task error: {task_err}')
+            job.status = 'failed'
+            job.error_message = str(task_err)
+            job.save()
         
         job.refresh_from_db()
+        
+        if job.status == 'failed':
+            return Response({
+                'error': job.error_message or 'Compression failed',
+                'job_id': str(job.id),
+                'status': job.status
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response({
             'job_id': str(job.id),
