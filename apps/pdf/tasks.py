@@ -484,7 +484,6 @@ def ocr_pdf(job_id):
     import logging
     import subprocess
     import sys
-    import numpy as np
     from PIL import Image, ImageEnhance
     import io
     logger = logging.getLogger(__name__)
@@ -496,12 +495,11 @@ def ocr_pdf(job_id):
     ocr_lang = job.compression_level or 'eng'
     
     try:
-        # Install EasyOCR if not installed
         try:
             import easyocr
         except ImportError:
             logger.info('Installing EasyOCR...')
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--quiet', 'easyocr', 'torch', 'torchvision'])
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--quiet', 'easyocr'])
             import easyocr
         
         input_path = job.file.path
