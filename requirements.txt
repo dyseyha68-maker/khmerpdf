@@ -14,4 +14,6 @@ pytesseract>=0.3.10
 pdf2image>=1.17
 python-docx>=0.8.11
 opencv-python-headless>=4.8
-easyocr>=1.7
+torch==2.1.0
+torchvision==0.16.0
+easyocr==1.7.0

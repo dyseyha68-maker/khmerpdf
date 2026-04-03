@@ -511,8 +511,8 @@ def ocr_pdf(job_id):
         logger.info('Loading EasyOCR model...')
         import easyocr
         
-        # Languages: Khmer (km) + English (en)
-        reader = easyocr.Reader(['en', 'km'], gpu=False, verbose=False)
+        # Languages: Khmer (km) + English (en), CPU mode
+        reader = easyocr.Reader(['en', 'km'], gpu=False, verbose=False, model_storage_directory='/tmp/easyocr')
         
         def clean_text(text):
             if not text:
