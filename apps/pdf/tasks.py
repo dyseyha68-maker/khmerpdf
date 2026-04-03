@@ -512,10 +512,11 @@ def ocr_pdf(job_id):
         
         from pdf2image import convert_from_path
         import pytesseract
-        from PIL import Image, ImageEnhance, ImageFilter
+        from PIL import Image, ImageEnhance
         
-        pages = convert_from_path(input_path, dpi=400)
-        max_pages = min(len(pages), 50)
+        # Use lower DPI for faster processing
+        pages = convert_from_path(input_path, dpi=300)
+        max_pages = min(len(pages), 30)
         
         from docx import Document
         from docx.shared import Pt
@@ -525,197 +526,53 @@ def ocr_pdf(job_id):
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
         
-        def fix_khmer_ocr_errors(text):
-            """Fix common Khmer OCR misreads"""
+        def clean_text(text):
             if not text:
                 return text
-            
-            # Common substitutions (what OCR reads -> what it should be)
-            fixes = {
-                '׋': '់', '׃': 'ៃ', 'ׅ': 'ៅ',
-                '៝': '់', '៚': 'ៃ', '៞': 'ំ',
-                '​​': '', '​​​': '',  # Remove zero-width spaces
-                '  ': ' ',  # Fix double spaces
-            }
-            
-            for wrong, correct in fixes.items():
-                text = text.replace(wrong, correct)
-            
-            # Remove OCR artifacts at line ends
-            lines = text.split('\n')
-            cleaned = []
-            for line in lines:
-                # Remove trailing special chars
-                line = line.rstrip('|_»¿¡')
-                if line.strip():
-                    cleaned.append(line)
-            
-            return '\n'.join(cleaned)
-        
-        def clean_text(text):
             lines = text.split('\n')
             cleaned = []
             for line in lines:
                 line = line.strip()
                 if len(line) < 2:
                     continue
-                line = line.strip()
+                line = line.rstrip('|_»¿¡')
                 if line:
                     cleaned.append(line)
             return '\n'.join(cleaned)
         
-        if has_opencv:
-            def preprocess_khmer_v1(img_pil):
-                """Method 1: Denoise + CLAHE + Sharpen"""
-                try:
-                    img = np.array(img_pil)
-                    if len(img.shape) == 3:
-                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    else:
-                        gray = img
-                    
-                    denoised = cv2.fastNlMeansDenoising(gray, None, h=10, templateWindowSize=7, searchWindowSize=21)
-                    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
-                    enhanced = clahe.apply(denoised)
-                    kernel = np.array([[0,-1,0],[-1,5,-1],[0,-1,0]])
-                    sharp = cv2.filter2D(enhanced, -1, kernel)
-                    result = Image.fromarray(sharp)
-                    return ImageEnhance.Contrast(result).enhance(1.4)
-                except:
-                    return img_pil
+        def preprocess(img_pil):
+            if not has_opencv:
+                return ImageEnhance.Contrast(img_pil).enhance(1.3)
             
-            def preprocess_khmer_v2(img_pil):
-                """Method 2: Invert + threshold for dark text on light background"""
-                try:
-                    img = np.array(img_pil)
-                    if len(img.shape) == 3:
-                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    else:
-                        gray = img
-                    
-                    # Invert and threshold
-                    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                    result = Image.fromarray(255 - binary)  # Invert back
-                    return result
-                except:
-                    return img_pil
-            
-            def preprocess_khmer_v3(img_pil):
-                """Method 3: Adaptive threshold"""
-                try:
-                    img = np.array(img_pil)
-                    if len(img.shape) == 3:
-                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    else:
-                        gray = img
-                    
-                    adaptive = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                                                     cv2.THRESH_BINARY, 15, 5)
-                    return Image.fromarray(adaptive)
-                except:
-                    return img_pil
-            
-            def preprocess_english(img_pil):
-                try:
-                    img = np.array(img_pil)
-                    if len(img.shape) == 3:
-                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    else:
-                        gray = img
-                    
-                    clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8,8))
-                    enhanced = clahe.apply(gray)
-                    kernel = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
-                    sharp = cv2.filter2D(enhanced, -1, kernel)
-                    return Image.fromarray(sharp)
-                except:
-                    return img_pil
-        else:
-            preprocess_khmer_v1 = lambda x: ImageEnhance.Contrast(x).enhance(1.5)
-            preprocess_khmer_v2 = lambda x: x
-            preprocess_khmer_v3 = lambda x: x
-            preprocess_english = preprocess_khmer_v1
-        
-        def extract_text_all_methods(img_pil):
-            results = []
-            
-            oem_modes = ['--oem 3', '--oem 2', '--oem 1']
-            psm_modes = ['--psm 6', '--psm 3', '--psm 4', '--psm 11']
-            
-            if tesseract_lang == 'khm':
-                langs = ['khm', 'khm+eng']
-            elif tesseract_lang == 'eng+khm':
-                langs = ['eng+khm', 'eng', 'khm']
-            else:
-                langs = ['eng']
-            
-            preprocessors = [preprocess_khmer_v1, preprocess_khmer_v2, preprocess_khmer_v3]
-            
-            for lang in langs:
-                # Try all preprocessing methods for Khmer
-                if 'khm' in lang:
-                    for preproc in preprocessors:
-                        try:
-                            processed = preproc(img_pil)
-                            for oem in oem_modes:
-                                for psm in psm_modes:
-                                    config = f'{oem} {psm}'
-                                    try:
-                                        text = pytesseract.image_to_string(processed, lang=lang, config=config)
-                                        text = fix_khmer_ocr_errors(text)
-                                        if text.strip() and len(text) > 10:
-                                            results.append((f'{lang}_{config}', text))
-                                    except:
-                                        pass
-                        except:
-                            pass
+            try:
+                img = np.array(img_pil)
+                if len(img.shape) == 3:
+                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                else:
+                    gray = img
                 
-                # English preprocessing
-                if 'eng' in lang:
-                    try:
-                        proc = preprocess_english(img_pil)
-                        for oem in oem_modes:
-                            for psm in psm_modes:
-                                config = f'{oem} {psm}'
-                                try:
-                                    text = pytesseract.image_to_string(proc, lang=lang, config=config)
-                                    if text.strip() and len(text) > 10:
-                                        results.append((f'{lang}_eng_{config}', text))
-                                except:
-                                    pass
-                    except:
-                        pass
-                
-                # Raw fallback
-                for oem in oem_modes:
-                    for psm in psm_modes:
-                        config = f'{oem} {psm}'
-                        try:
-                            text = pytesseract.image_to_string(img_pil, lang=lang, config=config)
-                            if text.strip() and len(text) > 10:
-                                results.append((f'{lang}_raw_{config}', text))
-                        except:
-                            pass
-            
-            if results:
-                # Better scoring - prefer text with more complete Khmer chars
-                def score(text):
-                    base = len(text)
-                    # Count valid Khmer characters (U+1780 to U+17FF)
-                    khmer_chars = sum(1 for c in text if '\u1780' <= c <= '\u17FF')
-                    penalty = text.count('?') * 3
-                    # Extra score for having Khmer content
-                    return base + (khmer_chars * 0.5) - penalty
-                
-                best = max(results, key=lambda x: score(x[1]))
-                return clean_text(best[1])
-            return ""
+                clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8,8))
+                enhanced = clahe.apply(gray)
+                return Image.fromarray(enhanced)
+            except:
+                return img_pil
         
         for i in range(max_pages):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             
-            text = extract_text_all_methods(page)
+            processed = preprocess(page)
+            
+            if tesseract_lang == 'khm':
+                lang = 'khm'
+            elif tesseract_lang == 'eng+khm':
+                lang = 'eng+khm'
+            else:
+                lang = 'eng'
+            
+            # Single pass with best settings
+            text = pytesseract.image_to_string(processed, lang=lang, config='--oem 3 --psm 6')
+            text = clean_text(text)
             
             doc.add_heading(f'Page {i+1}', level=1)
             
