@@ -481,6 +481,7 @@ def organize_pdf(job_id, replace_files=None):
 
 def ocr_pdf(job_id):
     from apps.pdf.models import Job
+    from django.conf import settings
     import logging
     logger = logging.getLogger(__name__)
     
@@ -490,33 +491,14 @@ def ocr_pdf(job_id):
     
     ocr_lang = job.compression_level or 'eng'
     
-    lang_map = {
-        'eng': 'eng',
-        'khm': 'khm',
-        'eng+khm': 'eng+khm'
-    }
-    tesseract_lang = lang_map.get(ocr_lang, 'eng')
+    use_google_cloud = getattr(settings, 'GOOGLE_CLOUD_API_KEY', '') and len(getattr(settings, 'GOOGLE_CLOUD_API_KEY', '')) > 0
     
     try:
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting OCR with language: {tesseract_lang}, file size: {file_size_mb:.1f}MB')
-        
-        has_opencv = False
-        try:
-            import numpy as np
-            import cv2
-            has_opencv = True
-        except:
-            logger.warning('OpenCV not available')
+        logger.info(f'Starting OCR, file size: {file_size_mb:.1f}MB, using Google Cloud: {use_google_cloud}')
         
         from pdf2image import convert_from_path
-        import pytesseract
-        from PIL import Image, ImageEnhance
-        
-        pages = convert_from_path(input_path, dpi=350)
-        max_pages = min(len(pages), 40)
-        
         from docx import Document
         from docx.shared import Pt
         
@@ -524,6 +506,10 @@ def ocr_pdf(job_id):
         style = doc.styles['Normal']
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
+        
+        # Convert PDF to images
+        pages = convert_from_path(input_path, dpi=300)
+        max_pages = min(len(pages), 40)
         
         def clean_text(text):
             if not text:
@@ -539,126 +525,108 @@ def ocr_pdf(job_id):
                     cleaned.append(line)
             return '\n'.join(cleaned)
         
-        def preprocess_for_khmer(img_pil):
-            """Best preprocessing for Khmer - similar to Google Lens"""
-            if not has_opencv:
-                return ImageEnhance.Contrast(img_pil).enhance(1.4)
+        if use_google_cloud:
+            # Use Google Cloud Vision API
+            logger.info('Using Google Cloud Vision API for OCR')
+            from google.cloud import vision
+            from PIL import Image
+            import io
             
+            client = vision.ImageAnnotatorClient()
+            
+            for i in range(max_pages):
+                logger.info(f'Processing page {i+1}/{max_pages} with Google Cloud')
+                page = pages[i]
+                
+                # Convert page to image bytes
+                img_byte_arr = io.BytesIO()
+                page.save(img_byte_arr, format='PNG')
+                img_byte_arr.seek(0)
+                image_content = img_byte_arr.getvalue()
+                
+                # Call Google Cloud Vision
+                image = vision.Image(content=image_content)
+                response = client.text_detection(image=image, 
+                    image_context={'language_hints': ['km', 'en']})
+                
+                texts = response.text_annotations
+                
+                doc.add_heading(f'Page {i+1}', level=1)
+                
+                if texts and texts[0].description:
+                    text = texts[0].description
+                    text = clean_text(text)
+                    
+                    lines = text.split('\n')
+                    for line in lines:
+                        if line.strip():
+                            p = doc.add_paragraph(line)
+                            has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
+                            run = p.runs[0] if p.runs else p.add_run()
+                            if has_khmer:
+                                run.font.name = 'Kantumruy Pro'
+                            else:
+                                run.font.name = 'Times New Roman'
+                
+                if i < max_pages - 1:
+                    doc.add_page_break()
+        
+        else:
+            # Fallback to Tesseract
+            logger.info('Using Tesseract for OCR')
+            
+            has_opencv = False
             try:
-                img = np.array(img_pil)
-                if len(img.shape) == 3:
-                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                else:
-                    gray = img
-                
-                # Denoise
-                denoised = cv2.fastNlMeansDenoising(gray, None, h=10, templateWindowSize=7, searchWindowSize=21)
-                
-                # CLAHE for contrast
-                clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8,8))
-                enhanced = clahe.apply(denoised)
-                
-                return Image.fromarray(enhanced)
+                import numpy as np
+                import cv2
+                has_opencv = True
             except:
-                return img_pil
-        
-        def preprocess_for_english(img_pil):
-            if not has_opencv:
-                return ImageEnhance.Contrast(img_pil).enhance(1.3)
+                pass
             
-            try:
-                img = np.array(img_pil)
-                if len(img.shape) == 3:
-                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                else:
-                    gray = img
-                
-                clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
-                return Image.fromarray(clahe.apply(gray))
-            except:
-                return img_pil
-        
-        def extract_text_best(img_pil, lang):
-            """Try multiple configurations and pick best"""
-            results = []
+            import pytesseract
+            from PIL import Image, ImageEnhance
             
-            configs = [
-                '--oem 3 --psm 6',
-                '--oem 3 --psm 3', 
-                '--oem 3 --psm 4',
-            ]
-            
-            # Try with Khmer preprocessing
-            if 'khm' in lang:
+            def preprocess_for_khmer(img_pil):
+                if not has_opencv:
+                    return ImageEnhance.Contrast(img_pil).enhance(1.4)
                 try:
-                    proc = preprocess_for_khmer(img_pil)
-                    for cfg in configs:
-                        try:
-                            text = pytesseract.image_to_string(proc, lang=lang, config=cfg)
-                            if text.strip() and len(text) > 5:
-                                results.append(text)
-                        except:
-                            pass
-                except:
-                    pass
-            
-            # Try English preprocessing if relevant
-            if 'eng' in lang:
-                try:
-                    proc = preprocess_for_english(img_pil)
-                    for cfg in configs:
-                        try:
-                            text = pytesseract.image_to_string(proc, lang=lang, config=cfg)
-                            if text.strip() and len(text) > 5:
-                                results.append(text)
-                        except:
-                            pass
-                except:
-                    pass
-            
-            # Try raw image
-            for cfg in configs:
-                try:
-                    text = pytesseract.image_to_string(img_pil, lang=lang, config=cfg)
-                    if text.strip() and len(text) > 5:
-                        results.append(text)
-                except:
-                    pass
-            
-            # Return longest result (usually most accurate)
-            if results:
-                return max(results, key=len)
-            return ""
-        
-        for i in range(max_pages):
-            logger.info(f'Processing page {i+1}/{max_pages}')
-            page = pages[i]
-            
-            if tesseract_lang == 'khm':
-                lang = 'khm'
-            elif tesseract_lang == 'eng+khm':
-                lang = 'eng+khm'
-            else:
-                lang = 'eng'
-            
-            text = extract_text_best(page, lang)
-            text = clean_text(text)
-            
-            doc.add_heading(f'Page {i+1}', level=1)
-            
-            lines = text.split('\n')
-            for line in lines:
-                if line.strip():
-                    p = doc.add_paragraph(line)
-                    has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
-                    run = p.runs[0] if p.runs else p.add_run()
-                    if has_khmer:
-                        run.font.name = 'Kantumruy Pro'
+                    img = np.array(img_pil)
+                    if len(img.shape) == 3:
+                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     else:
-                        run.font.name = 'Times New Roman'
+                        gray = img
+                    denoised = cv2.fastNlMeansDenoising(gray, None, h=10, templateWindowSize=7, searchWindowSize=21)
+                    clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8,8))
+                    return Image.fromarray(clahe.apply(denoised))
+                except:
+                    return img_pil
             
-            if i < max_pages - 1:
-                doc.add_page_break()
+            lang_map = {'eng': 'eng', 'khm': 'khm', 'eng+khm': 'eng+khm'}
+            tesseract_lang = lang_map.get(ocr_lang, 'eng')
+            
+            for i in range(max_pages):
+                logger.info(f'Processing page {i+1}/{max_pages} with Tesseract')
+                page = pages[i]
+                
+                processed = preprocess_for_khmer(page)
+                text = pytesseract.image_to_string(processed, lang=tesseract_lang, config='--oem 3 --psm 6')
+                text = clean_text(text)
+                
+                doc.add_heading(f'Page {i+1}', level=1)
+                
+                lines = text.split('\n')
+                for line in lines:
+                    if line.strip():
+                        p = doc.add_paragraph(line)
+                        has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
+                        run = p.runs[0] if p.runs else p.add_run()
+                        if has_khmer:
+                            run.font.name = 'Kantumruy Pro'
+                        else:
+                            run.font.name = 'Times New Roman'
+                
+                if i < max_pages - 1:
+                    doc.add_page_break()
         
         output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)

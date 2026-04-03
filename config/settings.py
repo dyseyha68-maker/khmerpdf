@@ -124,3 +124,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Create media directories if they don't exist
 os.makedirs(os.path.join(BASE_DIR, 'media', 'uploads'), exist_ok=True)
 os.makedirs(os.path.join(BASE_DIR, 'media', 'processed'), exist_ok=True)
+
+# Google Cloud Vision API (for OCR)
+GOOGLE_CLOUD_API_KEY = os.environ.get('GOOGLE_CLOUD_API_KEY', '')
