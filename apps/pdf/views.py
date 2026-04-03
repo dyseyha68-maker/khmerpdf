@@ -453,30 +453,38 @@ def image_to_pdf_api(request):
         if f.size > settings.MAX_UPLOAD_SIZE:
             return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
-    file_ids = []
-    for f in files:
-        job = Job.objects.create(file=f, tool='upload')
-        file_ids.append(str(job.id))
-    
-    job = Job.objects.create(files=file_ids, tool='image_to_pdf')
-    
-    from .tasks import image_to_pdf_task
-    
-    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
-        image_to_pdf_task(str(job.id))
-        job.refresh_from_db()
+    try:
+        file_ids = []
+        for f in files:
+            job = Job.objects.create(file=f, tool='upload')
+            file_ids.append(str(job.id))
         
-        return Response({
-            'job_id': str(job.id),
-            'status': job.status,
-            'result_url': job.result.url if job.result else None,
-            'message': 'Images converted to PDF successfully'
-        }, status=status.HTTP_201_CREATED)
-    else:
-        image_to_pdf_task.delay(str(job.id))
+        job = Job.objects.create(files=file_ids, tool='image_to_pdf')
         
-        return Response({
-            'job_id': str(job.id),
-            'status': 'pending',
-            'message': 'Job created successfully'
-        }, status=status.HTTP_201_CREATED)
+        from .tasks import image_to_pdf_task
+        
+        if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+            image_to_pdf_task(str(job.id))
+            job.refresh_from_db()
+            
+            if job.status == 'failed':
+                return Response({'error': job.error_message or 'Processing failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            return Response({
+                'job_id': str(job.id),
+                'status': job.status,
+                'result_url': job.result.url if job.result else None,
+                'message': 'Images converted to PDF successfully'
+            }, status=status.HTTP_201_CREATED)
+        else:
+            image_to_pdf_task.delay(str(job.id))
+            
+            return Response({
+                'job_id': str(job.id),
+                'status': 'pending',
+                'message': 'Job created successfully'
+            }, status=status.HTTP_201_CREATED)
+            
+    except Exception as e:
+        logger.error(f'Image to PDF API error: {e}', exc_info=True)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

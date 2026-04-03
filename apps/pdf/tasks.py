@@ -689,6 +689,7 @@ def pdf_to_image_task(job_id):
 
 def image_to_pdf_task(job_id):
     from apps.pdf.models import Job
+    import logging
     
     job = Job.objects.get(id=job_id)
     job.status = 'processing'
@@ -718,6 +719,8 @@ def image_to_pdf_task(job_id):
             try:
                 job_file = Job.objects.get(id=file_id)
                 if job_file.file and os.path.exists(job_file.file.path):
+                    logger.info(f'Processing image: {job_file.file.name}')
+                    
                     img = Image.open(job_file.file.path)
                     
                     if img.mode == 'RGBA':
@@ -728,23 +731,23 @@ def image_to_pdf_task(job_id):
                         img = img.convert('RGB')
                     
                     img_width, img_height = img.size
+                    logger.info(f'Image size: {img_width}x{img_height}')
                     
-                    from reportlab.lib.pagesizes import letter
+                    from reportlab.lib.pagesizes import landscape
                     from reportlab.pdfgen import canvas
+                    from reportlab.lib.units import inch
                     
-                    pdf_width_pt = img_width * 0.75
-                    pdf_height_pt = img_height * 0.75
+                    pdf_width = img_width / 72 * inch
+                    pdf_height = img_height / 72 * inch
                     
                     temp_pdf_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_{uuid.uuid4().hex[:8]}.pdf')
-                    c = canvas.Canvas(temp_pdf_path, pagesize=(pdf_width_pt, pdf_height_pt))
-                    c.set_fill_color(255, 255, 255)
-                    c.rect(0, 0, pdf_width_pt, pdf_height_pt, fill=1)
+                    c = canvas.Canvas(temp_pdf_path, pagesize=(pdf_width, pdf_height))
                     
                     img_buffer = io.BytesIO()
-                    img.save(img_buffer, format='JPEG', quality=95)
+                    img.save(img_buffer, format='PNG')
                     img_buffer.seek(0)
                     
-                    c.drawImage(img_buffer, 0, 0, width=pdf_width_pt, height=pdf_height_pt)
+                    c.drawImage(img_buffer, 0, 0, width=pdf_width, height=pdf_height)
                     c.showPage()
                     c.save()
                     
@@ -753,8 +756,10 @@ def image_to_pdf_task(job_id):
                         writer.add_page(page)
                     os.remove(temp_pdf_path)
                     
+                    logger.info(f'Added page from {job_file.file.name}')
+                    
             except Exception as e:
-                logger.warning(f'Error processing image {file_id}: {e}')
+                logger.error(f'Error processing image {file_id}: {e}')
                 continue
         
         with open(output_path, 'wb') as f:
@@ -765,6 +770,8 @@ def image_to_pdf_task(job_id):
         
         job.status = 'done'
         job.save()
+        
+        logger.info(f'Image to PDF completed: {job.id}')
         
         return {'status': 'done', 'job_id': str(job_id)}
         
