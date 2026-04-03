@@ -437,9 +437,6 @@ def image_to_pdf_api(request):
     import logging
     logger = logging.getLogger(__name__)
     
-    # Cleanup old files every time a job is created
-    cleanup_old_files()
-    
     files = request.FILES.getlist('files')
     
     logger.info(f'image_to_pdf_api called, files count: {len(files)}')
@@ -453,32 +450,27 @@ def image_to_pdf_api(request):
         if f.size > settings.MAX_UPLOAD_SIZE:
             return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Cleanup old files
     try:
-        cleanup_old_files()
-    except Exception as e:
-        logger.error(f'Cleanup error: {e}')
-    
-    try:
-        file_ids = []
+        # Save all images to temp storage
+        file_paths = []
         for f in files:
-            try:
-                job = Job.objects.create(file=f, tool='upload')
-                file_ids.append(str(job.id))
-            except Exception as e:
-                logger.error(f'Error creating upload job: {e}')
-                raise
+            temp_path = os.path.join(settings.MEDIA_ROOT, 'uploads', f'{uuid.uuid4().hex}_{f.name}')
+            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+            with open(temp_path, 'wb+') as dest:
+                for chunk in f.chunks():
+                    dest.write(chunk)
+            file_paths.append(temp_path)
         
-        logger.info(f'Created {len(file_ids)} upload jobs')
+        logger.info(f'Saved {len(file_paths)} files')
         
-        job = Job.objects.create(files=file_ids, tool='image_to_pdf')
-        logger.info(f'Created main job: {job.id}')
+        # Create job
+        job = Job.objects.create(tool='image_to_pdf')
         
         from .tasks import image_to_pdf_task
         
         if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
             try:
-                image_to_pdf_task(str(job.id))
+                result = image_to_pdf_task(file_paths, str(job.id))
             except Exception as e:
                 logger.error(f'Task error: {e}')
                 job.status = 'failed'
@@ -497,7 +489,7 @@ def image_to_pdf_api(request):
                 'message': 'Images converted to PDF successfully'
             }, status=status.HTTP_201_CREATED)
         else:
-            image_to_pdf_task.delay(str(job.id))
+            image_to_pdf_task.delay(file_paths, str(job.id))
             
             return Response({
                 'job_id': str(job.id),

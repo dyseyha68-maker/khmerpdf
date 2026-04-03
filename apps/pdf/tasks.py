@@ -689,7 +689,7 @@ def pdf_to_image_task(job_id):
         raise
 
 
-def image_to_pdf_task(job_id):
+def image_to_pdf_task(file_paths, job_id):
     from apps.pdf.models import Job
     
     job = Job.objects.get(id=job_id)
@@ -697,18 +697,9 @@ def image_to_pdf_task(job_id):
     job.save()
     
     try:
-        file_ids = job.files if job.files else []
-        
         first_base_name = ''
-        for idx, file_id in enumerate(file_ids):
-            try:
-                job_file = Job.objects.get(id=file_id)
-                if job_file.file and os.path.exists(job_file.file.path):
-                    if idx == 0:
-                        first_base_name = os.path.splitext(os.path.basename(job_file.file.name))[0]
-                    break
-            except:
-                continue
+        if file_paths:
+            first_base_name = os.path.splitext(os.path.basename(file_paths[0]))[0]
         
         output_filename = f'{first_base_name}.pdf' if first_base_name else f'images_{uuid.uuid4().hex[:8]}.pdf'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
@@ -716,11 +707,10 @@ def image_to_pdf_task(job_id):
         
         writer = PdfWriter()
         
-        for file_id in file_ids:
+        for img_path in file_paths:
             try:
-                job_file = Job.objects.get(id=file_id)
-                if job_file.file and os.path.exists(job_file.file.path):
-                    img = Image.open(job_file.file.path)
+                if os.path.exists(img_path):
+                    img = Image.open(img_path)
                     
                     if img.mode == 'RGBA':
                         background = Image.new('RGB', img.size, (255, 255, 255))
@@ -750,7 +740,7 @@ def image_to_pdf_task(job_id):
                     os.remove(temp_pdf_path)
                     
             except Exception as e:
-                logger.error(f'Error processing image {file_id}: {e}')
+                logger.error(f'Error processing image {img_path}: {e}')
                 continue
         
         with open(output_path, 'wb') as f:
