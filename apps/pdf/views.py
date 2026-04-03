@@ -37,13 +37,16 @@ def calendar_page(request):
     return render(request, 'calendar.html')
 
 
-def khqr(request):
-    download_url = request.GET.get('download', '')
-    return render(request, 'khqr.html', {'download_url': download_url})
-
-
 def ocr_page(request):
     return render(request, 'ocr.html')
+
+
+def pdf_to_image_page(request):
+    return render(request, 'pdftoimage.html')
+
+
+def image_to_pdf_page(request):
+    return render(request, 'imagetopdf.html')
 
 
 @api_view(['POST'])
@@ -325,3 +328,101 @@ def ocr_api(request):
         'status': 'processing',
         'message': 'OCR started'
     }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def pdf_to_image_api(request):
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    file = request.FILES.get('file')
+    image_format = request.data.get('format', 'png')
+    dpi = request.data.get('dpi', '300')
+    
+    logger.info(f'pdf_to_image_api called, file: {file}, format: {image_format}, dpi: {dpi}')
+    
+    if not file:
+        return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not file.name.lower().endswith('.pdf'):
+        return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if file.size > settings.MAX_UPLOAD_SIZE:
+        return Response({'error': 'File too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    job = Job.objects.create(
+        file=file,
+        tool='pdf_to_image',
+        page_range=image_format,
+        compression_level=dpi
+    )
+    
+    from .tasks import pdf_to_image_task
+    
+    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+        pdf_to_image_task(str(job.id))
+        job.refresh_from_db()
+        
+        return Response({
+            'job_id': str(job.id),
+            'status': job.status,
+            'result_url': job.result.url if job.result else None,
+            'message': 'PDF converted to images successfully'
+        }, status=status.HTTP_201_CREATED)
+    else:
+        pdf_to_image_task.delay(str(job.id))
+        
+        return Response({
+            'job_id': str(job.id),
+            'status': 'pending',
+            'message': 'Job created successfully'
+        }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def image_to_pdf_api(request):
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    files = request.FILES.getlist('files')
+    
+    logger.info(f'image_to_pdf_api called, files count: {len(files)}')
+    
+    if not files:
+        return Response({'error': 'No files provided'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    for f in files:
+        if not f.type.startswith('image/'):
+            return Response({'error': 'Only image files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
+        if f.size > settings.MAX_UPLOAD_SIZE:
+            return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    file_ids = []
+    for f in files:
+        job = Job.objects.create(file=f, tool='upload')
+        file_ids.append(str(job.id))
+    
+    job = Job.objects.create(files=file_ids, tool='image_to_pdf')
+    
+    from .tasks import image_to_pdf_task
+    
+    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+        image_to_pdf_task(str(job.id))
+        job.refresh_from_db()
+        
+        return Response({
+            'job_id': str(job.id),
+            'status': job.status,
+            'result_url': job.result.url if job.result else None,
+            'message': 'Images converted to PDF successfully'
+        }, status=status.HTTP_201_CREATED)
+    else:
+        image_to_pdf_task.delay(str(job.id))
+        
+        return Response({
+            'job_id': str(job.id),
+            'status': 'pending',
+            'message': 'Job created successfully'
+        }, status=status.HTTP_201_CREATED)

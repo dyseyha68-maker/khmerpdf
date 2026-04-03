@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Image - Convert PDF to Images</title>
+    <meta name="description" content="Convert PDF files to images. Extract pages as JPG or PNG.">
+    <meta property="og:title" content="PDF to Image - Convert PDF to Images">
+    <meta property="og:description" content="Convert PDF files to images online for free.">
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: rgba(255,255,255,0.95);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .logo { text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .logo-icon { font-size: 24px; }
+        .logo-text { font-size: 20px; font-weight: 700; color: #667eea; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a {
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #333;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover { background: #f0f0f0; }
+        .header-actions { display: flex; gap: 8px; }
+        .lang-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .lang-btn.active { background: #667eea; color: white; }
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            padding: 32px;
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 { color: #333; margin-bottom: 8px; font-size: 28px; }
+        .subtitle { color: #666; margin-bottom: 24px; font-size: 14px; }
+        .drop-zone {
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .drop-zone:hover { border-color: #667eea; background: #f8f9ff; }
+        .drop-zone-icon { font-size: 48px; margin-bottom: 16px; }
+        .file-input { display: none; }
+        .file-list { margin-bottom: 20px; }
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .file-icon { font-size: 24px; margin-right: 12px; }
+        .file-name { flex: 1; font-size: 14px; color: #333; }
+        .options { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+        .option-group { flex: 1; min-width: 150px; }
+        .option-group label { display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .option-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Kantumruy Pro', sans-serif;
+            font-size: 14px;
+        }
+        .convert-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        .convert-btn:hover { transform: translateY(-2px); }
+        .convert-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .text-en, .text-kh { display: none; }
+        body.lang-en .text-en { display: block; }
+        body.lang-kh .text-kh { display: block; }
+    </style>
+</head>
+<body class="lang-kh">
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">PDF Tools</span>
+            </a>
+            <div class="nav-links">
+                <a href="/compress/"><span class="text-en">Compress</span><span class="text-kh">បង្រួម</span></a>
+                <a href="/merge/"><span class="text-en">Merge</span><span class="text-kh">បញ្ជូល</span></a>
+                <a href="/pdf-split/"><span class="text-en">Split</span><span class="text-kh">បែងចែក</span></a>
+                <a href="/ocr/"><span class="text-en">OCR</span><span class="text-kh">OCR</span></a>
+                <a href="/pdf-to-image/"><span class="text-en">PDF to Image</span><span class="text-kh">PDF ទៅរូបភាព</span></a>
+                <a href="/image-to-pdf/"><span class="text-en">Image to PDF</span><span class="text-kh">រូបភាពទៅPDF</span></a>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+            <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <h1>
+                <span class="text-en">PDF to Image</span>
+                <span class="text-kh">PDF ទៅរូបភាព</span>
+            </h1>
+            <p class="subtitle">
+                <span class="text-en">Convert PDF pages to images</span>
+                <span class="text-kh">បម្លែងទំព័រ PDF ទៅជារូបភាព</span>
+            </p>
+            
+            <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                <div class="drop-zone-icon">📄</div>
+                <p>
+                    <span class="text-en">Select PDF file or drop here</span>
+                    <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
+                </p>
+                <input type="file" id="fileInput" accept=".pdf" class="file-input" onchange="handleFiles()">
+            </div>
+            
+            <div class="file-list" id="fileList"></div>
+            
+            <div class="options">
+                <div class="option-group">
+                    <label>
+                        <span class="text-en">Format</span>
+                        <span class="text-kh">ទម្រង់</span>
+                    </label>
+                    <select id="format">
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPG</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>
+                        <span class="text-en">Quality (DPI)</span>
+                        <span class="text-kh">គុណភាព (DPI)</span>
+                    </label>
+                    <select id="dpi">
+                        <option value="72">72 - Low</option>
+                        <option value="150">150 - Medium</option>
+                        <option value="300" selected>300 - High</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="convert-btn" id="convertBtn" onclick="convertPdfToImage()" disabled>
+                <span class="text-en">Convert to Images</span>
+                <span class="text-kh">បម្លែងទៅរូបភាព</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>
+                <span class="text-en">Converting...</span>
+                <span class="text-kh">កំពុងបម្លែង...</span>
+            </h2>
+            <div class="progress-container">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent" id="percent">0</span>%
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function setLang(lang) {
+            if (lang === 'kh') {
+                document.body.className = 'lang-kh';
+                document.getElementById('langKh').classList.add('active');
+                document.getElementById('langEn').classList.remove('active');
+            } else {
+                document.body.className = 'lang-en';
+                document.getElementById('langEn').classList.add('active');
+                document.getElementById('langKh').classList.remove('active');
+            }
+            localStorage.setItem('pdf_lang', lang);
+        }
+        
+        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
+        setLang(savedLang);
+        
+        let currentFile = null;
+        
+        function handleFiles() {
+            const input = document.getElementById('fileInput');
+            if (input.files.length > 0) {
+                currentFile = input.files[0];
+                document.getElementById('fileList').innerHTML = `
+                    <div class="file-item">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name">${currentFile.name} (${(currentFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    </div>
+                `;
+                document.getElementById('convertBtn').disabled = false;
+            }
+        }
+        
+        function showModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+            let progress = 0;
+            const progressBar = document.getElementById('progressBar');
+            const percentEl = document.getElementById('percent');
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 10 + 5;
+                if (progress > 95) progress = 95;
+                progressBar.style.width = progress + '%';
+                percentEl.textContent = Math.round(progress);
+            }, 300);
+            
+            return interval;
+        }
+        
+        function hideModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('percent').textContent = '0';
+        }
+        
+        function convertPdfToImage() {
+            if (!currentFile) return;
+            
+            const format = document.getElementById('format').value;
+            const dpi = document.getElementById('dpi').value;
+            
+            const btn = document.getElementById('convertBtn');
+            btn.disabled = true;
+            
+            const modalInterval = showModal();
+            
+            const fd = new FormData();
+            fd.append('file', currentFile);
+            fd.append('format', format);
+            fd.append('dpi', dpi);
+            
+            fetch('/api/pdf-to-image/', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.job_id) {
+                        checkJobStatus(d.job_id, modalInterval);
+                    } else {
+                        alert(d.error || 'Error');
+                        btn.disabled = false;
+                        hideModal();
+                    }
+                })
+                .catch(e => {
+                    alert('Error: ' + e.message);
+                    btn.disabled = false;
+                    hideModal();
+                });
+        }
+        
+        function checkJobStatus(jobId, modalInterval) {
+            const interval = setInterval(() => {
+                fetch('/api/job/' + jobId + '/')
+                    .then(r => r.json())
+                    .then(job => {
+                        if (job.status === 'done') {
+                            clearInterval(interval);
+                            clearInterval(modalInterval);
+                            hideModal();
+                            window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
+                        } else if (job.status === 'failed') {
+                            clearInterval(interval);
+                            clearInterval(modalInterval);
+                            hideModal();
+                            alert('Error: ' + (job.error || 'Processing failed'));
+                            document.getElementById('convertBtn').disabled = false;
+                        }
+                    });
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

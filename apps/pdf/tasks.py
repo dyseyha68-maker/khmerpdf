@@ -639,3 +639,141 @@ def ocr_pdf(job_id):
         job.error_message = str(e)
         job.save()
         raise
+
+
+def pdf_to_image_task(job_id):
+    from apps.pdf.models import Job
+    import zipfile
+    
+    job = Job.objects.get(id=job_id)
+    job.status = 'processing'
+    job.save()
+    
+    try:
+        input_path = job.file.path
+        image_format = job.page_range or 'png'
+        dpi = int(job.compression_level or '300')
+        
+        from pdf2image import convert_from_path
+        
+        logger.info(f'Converting PDF to images, format: {image_format}, DPI: {dpi}')
+        
+        pages = convert_from_path(input_path, dpi=dpi)
+        
+        base_name = os.path.splitext(os.path.basename(job.file.name))[0]
+        zip_filename = f'{base_name}_images.zip'
+        zip_path = os.path.join(settings.MEDIA_ROOT, 'processed', zip_filename)
+        os.makedirs(os.path.dirname(zip_path), exist_ok=True)
+        
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for i, page in enumerate(pages):
+                img_bytes = io.BytesIO()
+                ext = 'jpg' if image_format == 'jpg' else 'png'
+                page.save(img_bytes, format=ext.upper())
+                img_bytes.seek(0)
+                zip_file.writestr(f'page_{i+1:03d}.{ext}', img_bytes.read())
+        
+        job.result.save(zip_filename, open(zip_path, 'rb'))
+        os.remove(zip_path)
+        
+        job.status = 'done'
+        job.save()
+        
+        return {'status': 'done', 'job_id': str(job_id)}
+        
+    except Exception as e:
+        logger.error(f'PDF to Image error: {e}', exc_info=True)
+        job.status = 'failed'
+        job.error_message = str(e)
+        job.save()
+        raise
+
+
+def image_to_pdf_task(job_id):
+    from apps.pdf.models import Job
+    
+    job = Job.objects.get(id=job_id)
+    job.status = 'processing'
+    job.save()
+    
+    try:
+        file_ids = job.files if job.files else []
+        
+        first_base_name = ''
+        for idx, file_id in enumerate(file_ids):
+            try:
+                job_file = Job.objects.get(id=file_id)
+                if job_file.file and os.path.exists(job_file.file.path):
+                    if idx == 0:
+                        first_base_name = os.path.splitext(os.path.basename(job_file.file.name))[0]
+                    break
+            except:
+                continue
+        
+        output_filename = f'{first_base_name}.pdf' if first_base_name else f'images_{uuid.uuid4().hex[:8]}.pdf'
+        output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        writer = PdfWriter()
+        
+        for file_id in file_ids:
+            try:
+                job_file = Job.objects.get(id=file_id)
+                if job_file.file and os.path.exists(job_file.file.path):
+                    img = Image.open(job_file.file.path)
+                    
+                    if img.mode == 'RGBA':
+                        background = Image.new('RGB', img.size, (255, 255, 255))
+                        background.paste(img, mask=img.split()[3])
+                        img = background
+                    elif img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    
+                    img_width, img_height = img.size
+                    
+                    dpi = 72
+                    pdf_width_pt = img_width * 72 / dpi
+                    pdf_height_pt = img_height * 72 / dpi
+                    
+                    from reportlab.pdfgen import canvas
+                    from reportlab.lib.pagesizes import letter
+                    
+                    temp_pdf_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_{uuid.uuid4().hex[:8]}.pdf')
+                    c = canvas.Canvas(temp_pdf_path, pagesize=(pdf_width_pt, pdf_height_pt))
+                    c.set_fill_color(255, 255, 255)
+                    c.rect(0, 0, pdf_width_pt, pdf_height_pt, fill=1)
+                    
+                    img_buffer = io.BytesIO()
+                    img.save(img_buffer, format='JPEG', quality=95)
+                    img_buffer.seek(0)
+                    
+                    c.drawImage(img_buffer, 0, 0, width=pdf_width_pt, height=pdf_height_pt)
+                    c.showPage()
+                    c.save()
+                    
+                    temp_reader = PdfReader(temp_pdf_path)
+                    for page in temp_reader.pages:
+                        writer.add_page(page)
+                    os.remove(temp_pdf_path)
+                    
+            except Exception as e:
+                logger.warning(f'Error processing image {file_id}: {e}')
+                continue
+        
+        with open(output_path, 'wb') as f:
+            writer.write(f)
+        
+        job.result.save(output_filename, open(output_path, 'rb'))
+        os.remove(output_path)
+        
+        job.status = 'done'
+        job.save()
+        
+        return {'status': 'done', 'job_id': str(job_id)}
+        
+    except Exception as e:
+        logger.error(f'Image to PDF error: {e}', exc_info=True)
+        job.status = 'failed'
+        job.error_message = str(e)
+        job.save()
+        raise

@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
 from django.views.generic import RedirectView
-from apps.pdf.views import index, split_page, merge_page, compress_page, organize_page, calendar_page, khqr, ocr_page
+from apps.pdf.views import index, split_page, merge_page, compress_page, organize_page, calendar_page, khqr, ocr_page, pdf_to_image_page, image_to_pdf_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -18,6 +18,8 @@ urlpatterns = [
     path('calendar/', calendar_page, name='calendar'),
     path('khqr/', khqr, name='khqr'),
     path('ocr/', ocr_page, name='ocr'),
+    path('pdf-to-image/', pdf_to_image_page, name='pdf_to_image'),
+    path('image-to-pdf/', image_to_pdf_page, name='image_to_pdf'),
     
     # SEO files
     path('robots.txt', lambda r: RedirectView.as_view(url='/static/robots.txt', permanent=False)),
