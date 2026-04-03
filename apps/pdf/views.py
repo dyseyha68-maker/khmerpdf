@@ -1,5 +1,6 @@
 import os
 import threading
+import time
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
@@ -11,6 +12,33 @@ from rest_framework import status
 
 from .models import Job
 from .tasks import compress_pdf, merge_pdf, split_pdf, organize_pdf
+
+
+def cleanup_old_files():
+    """Delete files older than 24 hours - runs automatically when any job is created"""
+    try:
+        cutoff = time.time() - (24 * 3600)
+        deleted_count = 0
+        
+        for folder in ['uploads', 'processed']:
+            folder_path = os.path.join(settings.MEDIA_ROOT, folder)
+            if not os.path.exists(folder_path):
+                continue
+            
+            for root, dirs, files in os.walk(folder_path):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    try:
+                        if os.path.getmtime(file_path) < cutoff:
+                            os.remove(file_path)
+                            deleted_count += 1
+                    except:
+                        pass
+        
+        if deleted_count > 0:
+            print(f'Cleaned up {deleted_count} old files')
+    except Exception as e:
+        print(f'Cleanup error: {e}')
 
 
 def index(request):
@@ -59,6 +87,9 @@ def khqr(request):
 def compress_api(request):
     import logging
     logger = logging.getLogger(__name__)
+    
+    # Cleanup old files every time a job is created
+    cleanup_old_files()
     
     files = request.FILES.getlist('files')
     compression_level = request.data.get('compression_level', 'extreme')
@@ -117,6 +148,9 @@ def compress_api(request):
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def merge_api(request):
+    # Cleanup old files every time a job is created
+    cleanup_old_files()
+    
     files = request.FILES.getlist('files')
     
     if not files:
@@ -158,6 +192,9 @@ def merge_api(request):
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def split_api(request):
+    # Cleanup old files every time a job is created
+    cleanup_old_files()
+    
     file = request.FILES.get('file')
     page_range = request.data.get('page_range', '1')
     split_mode = request.data.get('split_mode', 'range')
@@ -219,6 +256,9 @@ def job_status(request, job_id):
 def organize_api(request):
     import logging
     logger = logging.getLogger(__name__)
+    
+    # Cleanup old files every time a job is created
+    cleanup_old_files()
     
     file = request.FILES.get('file')
     page_order_json = request.data.get('page_order', '[]')
@@ -286,6 +326,9 @@ def ocr_api(request):
     import logging
     logger = logging.getLogger(__name__)
     
+    # Cleanup old files every time a job is created
+    cleanup_old_files()
+    
     file = request.FILES.get('file')
     ocr_lang = request.data.get('ocr_lang', 'eng')
     
@@ -341,6 +384,9 @@ def pdf_to_image_api(request):
     import logging
     logger = logging.getLogger(__name__)
     
+    # Cleanup old files every time a job is created
+    cleanup_old_files()
+    
     file = request.FILES.get('file')
     image_format = request.data.get('format', 'png')
     dpi = request.data.get('dpi', '300')
@@ -390,6 +436,9 @@ def pdf_to_image_api(request):
 def image_to_pdf_api(request):
     import logging
     logger = logging.getLogger(__name__)
+    
+    # Cleanup old files every time a job is created
+    cleanup_old_files()
     
     files = request.FILES.getlist('files')
     
