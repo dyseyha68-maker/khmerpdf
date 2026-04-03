@@ -1,4 +1,5 @@
 import os
+import threading
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
@@ -299,12 +300,28 @@ def ocr_api(request):
     
     logger.info(f'Created job {job.id}')
     
-    # Always use async for OCR (it takes long time)
+    # Start OCR in background - don't wait for completion
     from .tasks import ocr_pdf
-    ocr_pdf.delay(str(job.id))
+    
+    def run_ocr():
+        try:
+            ocr_pdf(str(job.id))
+        except Exception as e:
+            logger.error(f'OCR background error: {e}')
+            try:
+                job.refresh_from_db()
+                job.status = 'failed'
+                job.error_message = str(e)
+                job.save()
+            except:
+                pass
+    
+    # Start background thread - don't wait
+    background_thread = threading.Thread(target=run_ocr, daemon=True)
+    background_thread.start()
     
     return Response({
         'job_id': str(job.id),
-        'status': 'pending',
-        'message': 'OCR job created'
+        'status': 'processing',
+        'message': 'OCR started'
     }, status=status.HTTP_201_CREATED)
