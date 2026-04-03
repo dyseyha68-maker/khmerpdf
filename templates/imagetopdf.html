@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image to PDF - Convert Images to PDF</title>
-    <meta name="description" content="Convert images to PDF files. Merge JPG, PNG to PDF.">
-    <meta property="og:title" content="Image to PDF - Convert Images to PDF">
-    <meta property="og:description" content="Convert images to PDF files online for free.">
+    <title>Image to PDF - Khmer PDF Tools</title>
+    <meta name="description" content="Convert images to PDF. Merge JPG, PNG to PDF online.">
+    <meta property="og:title" content="Image to PDF - Khmer PDF Tools">
+    <meta property="og:description" content="Convert images to PDF online for free.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://khmerpdf-production.up.railway.app/image-to-pdf/">
+    <meta property="og:image" content="/static/preview.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://khmerpdf-production.up.railway.app/image-to-pdf/">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     {% load static %}
     <style>
@@ -14,10 +20,12 @@
         body {
             font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
+        
         .header {
             background: rgba(255,255,255,0.95);
             padding: 12px 24px;
@@ -26,22 +34,52 @@
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .header-left { display: flex; align-items: center; gap: 20px; }
-        .logo { text-decoration: none; display: flex; align-items: center; gap: 8px; }
-        .logo-icon { font-size: 24px; }
-        .logo-text { font-size: 20px; font-weight: 700; color: #667eea; }
-        .nav-links { display: flex; gap: 8px; }
-        .nav-links a {
-            padding: 8px 16px;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             text-decoration: none;
             color: #333;
+        }
+        .logo-icon { font-size: 28px; }
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            padding: 8px 16px;
             border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s;
         }
-        .nav-links a:hover { background: #f0f0f0; }
-        .header-actions { display: flex; gap: 8px; }
+        .nav-links a:hover {
+            background: #f5f5f5;
+            color: #667eea;
+        }
+        .nav-links a.active {
+            background: #667eea;
+            color: white;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .lang-btns { display: flex; gap: 8px; }
         .lang-btn {
             font-family: 'Kantumruy Pro', sans-serif;
             background: white;
@@ -54,74 +92,77 @@
             font-weight: 600;
         }
         .lang-btn.active { background: #667eea; color: white; }
+        
         .main-content {
             flex: 1;
-            padding: 40px;
+            padding: 24px;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            gap: 24px;
         }
-        .container {
+        
+        .left-panel {
+            width: 320px;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            padding: 32px;
-            max-width: 800px;
-            width: 100%;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
         }
-        h1 { color: #333; margin-bottom: 8px; font-size: 28px; }
-        .subtitle { color: #666; margin-bottom: 24px; font-size: 14px; }
+        
+        .left-panel::-webkit-scrollbar { width: 8px; }
+        .left-panel::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .left-panel::-webkit-scrollbar-thumb { background: #667eea; border-radius: 4px; }
+        
         .drop-zone {
             border: 3px dashed #ddd;
             border-radius: 12px;
-            padding: 40px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
-        .drop-zone:hover { border-color: #667eea; background: #f8f9ff; }
-        .drop-zone-icon { font-size: 48px; margin-bottom: 16px; }
-        .file-input { display: none; }
-        .file-list { margin-bottom: 20px; max-height: 200px; overflow-y: auto; }
+        .drop-zone:hover { border-color: #667eea; background: #f0f0ff; }
+        .drop-zone-icon { font-size: 32px; margin-bottom: 8px; }
+        
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            max-height: 300px;
+        }
+        
         .file-item {
             display: flex;
             align-items: center;
-            padding: 12px;
+            padding: 10px;
             background: #f5f5f5;
-            border-radius: 8px;
+            border-radius: 6px;
             margin-bottom: 8px;
             cursor: move;
+            transition: all 0.2s;
         }
         .file-item:hover { background: #e8e8f0; }
-        .file-icon { font-size: 24px; margin-right: 12px; }
-        .file-name { flex: 1; font-size: 14px; color: #333; }
-        .remove-btn {
+        .file-item.dragging { opacity: 0.5; }
+        .file-item .file-icon { font-size: 24px; margin-right: 10px; }
+        .file-item .file-name {
+            flex: 1;
+            font-size: 13px;
+            color: #333;
+            word-break: break-all;
+        }
+        .file-item .remove-btn {
+            padding: 4px 8px;
             background: none;
             border: none;
             color: #d32f2f;
             cursor: pointer;
-            font-size: 18px;
-            padding: 4px 8px;
-        }
-        .convert-btn {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 8px;
             font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: transform 0.2s;
         }
-        .convert-btn:hover { transform: translateY(-2px); }
-        .convert-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-        .text-en, .text-kh { display: none; }
-        body.lang-en .text-en { display: block; }
-        body.lang-kh .text-kh { display: block; }
+        
         .instructions {
             padding: 12px;
             background: #e3f2fd;
@@ -130,82 +171,93 @@
             font-size: 13px;
             color: #1565c0;
         }
-    </style>
-</head>
-<body class="lang-kh">
-    <div class="header">
-        <div class="header-left">
-            <a href="/" class="logo">
-                <span class="logo-icon">📄</span>
-                <span class="logo-text">PDF Tools</span>
-            </a>
-            <div class="nav-links">
-                <a href="/compress/"><span class="text-en">Compress</span><span class="text-kh">បង្រួម</span></a>
-                <a href="/merge/"><span class="text-en">Merge</span><span class="text-kh">បញ្ជូល</span></a>
-                <a href="/pdf-split/"><span class="text-en">Split</span><span class="text-kh">បែងចែក</span></a>
-                <a href="/ocr/"><span class="text-en">OCR</span><span class="text-kh">OCR</span></a>
-                <a href="/pdf-to-image/"><span class="text-en">PDF to Image</span><span class="text-kh">PDF ទៅរូបភាព</span></a>
-                <a href="/image-to-pdf/"><span class="text-en">Image to PDF</span><span class="text-kh">រូបភាពទៅPDF</span></a>
-            </div>
-        </div>
-        <div class="header-actions">
-            <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
-            <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
-        </div>
-    </div>
-    
-    <div class="main-content">
-        <div class="container">
-            <h1>
-                <span class="text-en">Image to PDF</span>
-                <span class="text-kh">រូបភាពទៅ PDF</span>
-            </h1>
-            <p class="subtitle">
-                <span class="text-en">Convert images to PDF file</span>
-                <span class="text-kh">បម្លែងរូបភាពទៅជាឯកសារ PDF</span>
-            </p>
-            
-            <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
-                <div class="drop-zone-icon">🖼️</div>
-                <p>
-                    <span class="text-en">Select images or drop here (JPG, PNG, WEBP)</span>
-                    <span class="text-kh">ជ្រើសរើសរូបភាព ឬទំលាក់នៅទីនេះ (JPG, PNG, WEBP)</span>
-                </p>
-                <input type="file" id="fileInput" accept="image/*" multiple class="file-input" onchange="handleFiles()">
-            </div>
-            
-            <div class="instructions">
-                <span class="text-en">👆 Drag images to reorder. They will appear in PDF in this order.</span>
-                <span class="text-kh">👆 អូសរូបភាពដើម្បីតម្រៀប វានឹងលេចឡើងតាមលំដាប់នេះ។</span>
-            </div>
-            
-            <div class="file-list" id="fileList"></div>
-            
-            <button class="convert-btn" id="convertBtn" onclick="convertToPdf()" disabled>
-                <span class="text-en">Convert to PDF</span>
-                <span class="text-kh">បម្លែងទៅ PDF</span>
-            </button>
-        </div>
-    </div>
-    
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h2>
-                <span class="text-en">Converting...</span>
-                <span class="text-kh">កំពុងបម្លែង...</span>
-            </h2>
-            <div class="progress-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                <div class="progress-text">
-                    <span class="progress-percent" id="percent">0</span>%
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <style>
+        
+        .convert-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        .convert-btn:hover { transform: translateY(-2px); }
+        .convert-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        
+        .right-panel {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: calc(100vh - 140px);
+            overflow: hidden;
+        }
+        
+        .right-panel-inner {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .right-panel-inner::-webkit-scrollbar {
+            width: 10px;
+        }
+        .right-panel-inner::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        .right-panel-inner::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+        
+        .image-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: flex-start;
+            align-content: flex-start;
+            padding: 10px;
+        }
+        
+        .image-item {
+            width: 180px;
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            position: relative;
+        }
+        .image-item:hover {
+            border-color: #667eea;
+        }
+        .image-item img {
+            max-width: 150px;
+            max-height: 180px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .image-item .image-num {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .text-en, .text-kh { display: none; }
+        body.lang-en .text-en { display: block; }
+        body.lang-kh .text-kh { display: block; }
+        
         .modal-overlay {
             display: none;
             position: fixed;
@@ -219,6 +271,7 @@
             align-items: center;
         }
         .modal-overlay.active { display: flex; }
+        
         .modal {
             background: white;
             border-radius: 16px;
@@ -226,11 +279,153 @@
             text-align: center;
             max-width: 400px;
             width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .progress-container { width: 100%; margin: 20px 0; }
-        .progress-bar-bg { width: 100%; height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; }
+        
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            margin-top: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .progress-percent {
+            font-size: 28px;
+            color: #667eea;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; }
+            .left-panel { width: 100%; }
+        }
     </style>
+</head>
+<body class="lang-kh">
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">PDF Tools</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/compress/">
+                    <span class="text-en">Compress</span>
+                    <span class="text-kh">បង្រួម</span>
+                </a>
+                <a href="/merge/">
+                    <span class="text-en">Merge</span>
+                    <span class="text-kh">បញ្ជូល</span>
+                </a>
+                <a href="/pdf-split/">
+                    <span class="text-en">Split</span>
+                    <span class="text-kh">បំបែក</span>
+                </a>
+                <a href="/organize/">
+                    <span class="text-en">Organize</span>
+                    <span class="text-kh">រៀបចំ</span>
+                </a>
+                <a href="/calendar/">
+                    <span class="text-en">Calendar</span>
+                    <span class="text-kh">ប្រតិទិក</span>
+                </a>
+                <a href="/ocr/">
+                    <span class="text-en">OCR</span>
+                    <span class="text-kh">OCR</span>
+                </a>
+                <a href="/pdf-to-image/">
+                    <span class="text-en">PDF to Image</span>
+                    <span class="text-kh">PDF ទៅ រូបភាព</span>
+                </a>
+                <a href="/image-to-pdf/" class="active">
+                    <span class="text-en">Image to PDF</span>
+                    <span class="text-kh">រូបភាព ទៅ PDF</span>
+                </a>
+            </nav>
+        </div>
+        <div class="header-actions">
+            <div class="lang-btns">
+                <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+                <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="left-panel">
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <div class="drop-zone-icon">🖼️</div>
+                <p>
+                    <span class="text-en">Select images or drop here</span>
+                    <span class="text-kh">ជ្រើសរើសរូបភាព ឬទំលាក់នៅទីនេះ</span>
+                </p>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="addFiles()">
+            </div>
+            
+            <div class="file-list" id="fileList"></div>
+            
+            <div class="instructions">
+                <span class="text-en">👆 Drag images to reorder. They will appear in PDF in this order.</span>
+                <span class="text-kh">👆 អូសរូបភាពដើម្បីតម្រៀប វានឹងលេចឡើងតាមលំដាប់</span>
+            </div>
+            
+            <button class="convert-btn" id="convertBtn" disabled onclick="convertToPdf()">
+                <span class="text-en">Convert to PDF</span>
+                <span class="text-kh">បម្លែងទៅ PDF</span>
+            </button>
+        </div>
+        
+        <div class="right-panel">
+            <div class="instructions" id="instructions">
+                <span class="text-en">👆 Add images to preview. Drag to reorder.</span>
+                <span class="text-kh">👆 បន្ថែមរូបភាពដើម្បីមើល អូសដើម្បីតម្រៀប</span>
+            </div>
+            
+            <div class="right-panel-inner">
+                <div class="image-grid" id="imageGrid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>
+                <span class="text-en">Converting images to PDF...</span>
+                <span class="text-kh">កំពុងបម្លែងរូបភាពទៅ PDF...</span>
+            </h2>
+            
+            <div class="progress-container">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="modalProgressBar"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent" id="modalPercent">0</span>%
+                </div>
+            </div>
+        </div>
+    </div>
     
     <script>
         function setLang(lang) {
@@ -251,7 +446,7 @@
         
         let files = [];
         
-        function handleFiles() {
+        function addFiles() {
             const input = document.getElementById('fileInput');
             for (let i = 0; i < input.files.length; i++) {
                 const file = input.files[i];
@@ -260,6 +455,7 @@
                 }
             }
             renderFileList();
+            renderImageGrid();
         }
         
         function renderFileList() {
@@ -298,6 +494,7 @@
                         const [removed] = files.splice(fromIndex, 1);
                         files.splice(toIndex, 0, removed);
                         renderFileList();
+                        renderImageGrid();
                     }
                 });
                 
@@ -307,19 +504,46 @@
             document.getElementById('convertBtn').disabled = files.length === 0;
         }
         
+        function renderImageGrid() {
+            const imageGrid = document.getElementById('imageGrid');
+            imageGrid.innerHTML = '';
+            
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'image-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}">
+                        <span class="image-num">Image ${index + 1}</span>
+                    `;
+                    imageGrid.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            if (files.length > 0) {
+                document.getElementById('instructions').innerHTML = `
+                    <span class="text-en">📷 ${files.length} images added. Drag to reorder, then click "Convert to PDF".</span>
+                    <span class="text-kh">📷 ${files.length} រូបភាព បានបន្ថែម អូសដើម្បីតម្រៀប រួចចុច "បម្លែងទៅ PDF"</span>
+                `;
+            }
+        }
+        
         function removeFile(index) {
             files.splice(index, 1);
             renderFileList();
+            renderImageGrid();
         }
         
         function showModal() {
             document.getElementById('modalOverlay').classList.add('active');
             let progress = 0;
-            const progressBar = document.getElementById('progressBar');
-            const percentEl = document.getElementById('percent');
+            const progressBar = document.getElementById('modalProgressBar');
+            const percentEl = document.getElementById('modalPercent');
             
             const interval = setInterval(() => {
-                progress += Math.random() * 10 + 5;
+                progress += Math.random() * 15 + 5;
                 if (progress > 95) progress = 95;
                 progressBar.style.width = progress + '%';
                 percentEl.textContent = Math.round(progress);
@@ -330,8 +554,8 @@
         
         function hideModal() {
             document.getElementById('modalOverlay').classList.remove('active');
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('percent').textContent = '0';
+            document.getElementById('modalProgressBar').style.width = '0%';
+            document.getElementById('modalPercent').textContent = '0';
         }
         
         function convertToPdf() {
@@ -349,7 +573,7 @@
                 .then(r => r.json())
                 .then(d => {
                     if (d.job_id) {
-                        checkJobStatus(d.job_id, modalInterval);
+                        checkJobStatus(d.job_id, modalInterval, btn);
                     } else {
                         alert(d.error || 'Error');
                         btn.disabled = false;
@@ -363,7 +587,7 @@
                 });
         }
         
-        function checkJobStatus(jobId, modalInterval) {
+        function checkJobStatus(jobId, modalInterval, btn) {
             const interval = setInterval(() => {
                 fetch('/api/job/' + jobId + '/')
                     .then(r => r.json())
@@ -378,7 +602,7 @@
                             clearInterval(modalInterval);
                             hideModal();
                             alert('Error: ' + (job.error || 'Processing failed'));
-                            document.getElementById('convertBtn').disabled = false;
+                            btn.disabled = false;
                         }
                     });
             }, 2000);

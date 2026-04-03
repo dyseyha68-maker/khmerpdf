@@ -3,21 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF to Image - Convert PDF to Images</title>
-    <meta name="description" content="Convert PDF files to images. Extract pages as JPG or PNG.">
-    <meta property="og:title" content="PDF to Image - Convert PDF to Images">
-    <meta property="og:description" content="Convert PDF files to images online for free.">
+    <title>PDF to Image - Khmer PDF Tools</title>
+    <meta name="description" content="Convert PDF to images. Extract PDF pages as PNG or JPG images.">
+    <meta property="og:title" content="PDF to Image - Khmer PDF Tools">
+    <meta property="og:description" content="Convert PDF to images online for free.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://khmerpdf-production.up.railway.app/pdf-to-image/">
+    <meta property="og:image" content="/static/preview.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://khmerpdf-production.up.railway.app/pdf-to-image/">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
     {% load static %}
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
+        
         .header {
             background: rgba(255,255,255,0.95);
             padding: 12px 24px;
@@ -26,22 +36,52 @@
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .header-left { display: flex; align-items: center; gap: 20px; }
-        .logo { text-decoration: none; display: flex; align-items: center; gap: 8px; }
-        .logo-icon { font-size: 24px; }
-        .logo-text { font-size: 20px; font-weight: 700; color: #667eea; }
-        .nav-links { display: flex; gap: 8px; }
-        .nav-links a {
-            padding: 8px 16px;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             text-decoration: none;
             color: #333;
+        }
+        .logo-icon { font-size: 28px; }
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            padding: 8px 16px;
             border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s;
         }
-        .nav-links a:hover { background: #f0f0f0; }
-        .header-actions { display: flex; gap: 8px; }
+        .nav-links a:hover {
+            background: #f5f5f5;
+            color: #667eea;
+        }
+        .nav-links a.active {
+            background: #667eea;
+            color: white;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .lang-btns { display: flex; gap: 8px; }
         .lang-btn {
             font-family: 'Kantumruy Pro', sans-serif;
             background: white;
@@ -54,75 +94,251 @@
             font-weight: 600;
         }
         .lang-btn.active { background: #667eea; color: white; }
+        
         .main-content {
             flex: 1;
-            padding: 40px;
+            padding: 24px;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            gap: 24px;
         }
-        .container {
+        
+        .left-panel {
+            width: 320px;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            padding: 32px;
-            max-width: 800px;
-            width: 100%;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
         }
-        h1 { color: #333; margin-bottom: 8px; font-size: 28px; }
-        .subtitle { color: #666; margin-bottom: 24px; font-size: 14px; }
+        
+        .left-panel::-webkit-scrollbar { width: 8px; }
+        .left-panel::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .left-panel::-webkit-scrollbar-thumb { background: #667eea; border-radius: 4px; }
+        
         .drop-zone {
             border: 3px dashed #ddd;
             border-radius: 12px;
-            padding: 40px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
-        .drop-zone:hover { border-color: #667eea; background: #f8f9ff; }
-        .drop-zone-icon { font-size: 48px; margin-bottom: 16px; }
-        .file-input { display: none; }
-        .file-list { margin-bottom: 20px; }
+        .drop-zone:hover { border-color: #667eea; background: #f0f0ff; }
+        .drop-zone-icon { font-size: 32px; margin-bottom: 8px; }
+        
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+        
         .file-item {
             display: flex;
             align-items: center;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .file-item .file-icon { font-size: 24px; margin-right: 10px; }
+        .file-item .file-name {
+            flex: 1;
+            font-size: 13px;
+            color: #333;
+            word-break: break-all;
+        }
+        
+        .options-section {
+            margin-bottom: 16px;
             padding: 12px;
             background: #f5f5f5;
             border-radius: 8px;
+        }
+        .options-section label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
             margin-bottom: 8px;
         }
-        .file-icon { font-size: 24px; margin-right: 12px; }
-        .file-name { flex: 1; font-size: 14px; color: #333; }
-        .options { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-        .option-group { flex: 1; min-width: 150px; }
-        .option-group label { display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; }
-        .option-group select {
+        .options-section select {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 2px solid #ddd;
-            border-radius: 8px;
+            border-radius: 6px;
             font-family: 'Kantumruy Pro', sans-serif;
             font-size: 14px;
+            cursor: pointer;
         }
+        .options-section select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
         .convert-btn {
             font-family: 'Kantumruy Pro', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 16px 32px;
+            padding: 16px;
             border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
-            transition: transform 0.2s;
         }
         .convert-btn:hover { transform: translateY(-2px); }
         .convert-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        
+        .right-panel {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: calc(100vh - 140px);
+            overflow: hidden;
+        }
+        
+        .right-panel-inner {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .right-panel-inner::-webkit-scrollbar {
+            width: 10px;
+        }
+        .right-panel-inner::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        .right-panel-inner::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+        
+        .instructions {
+            padding: 12px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+        
+        .page-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: flex-start;
+            align-content: flex-start;
+            padding: 10px;
+        }
+        
+        .page-item {
+            width: 180px;
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 12px;
+        }
+        .page-item:hover {
+            border-color: #667eea;
+            transform: scale(1.02);
+        }
+        .page-item img {
+            max-width: 150px;
+            max-height: 180px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .page-item .page-num {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        
         .text-en, .text-kh { display: none; }
         body.lang-en .text-en { display: block; }
         body.lang-kh .text-kh { display: block; }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            margin-top: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .progress-percent {
+            font-size: 28px;
+            color: #667eea;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; }
+            .left-panel { width: 100%; }
+        }
     </style>
 </head>
 <body class="lang-kh">
@@ -132,86 +348,116 @@
                 <span class="logo-icon">📄</span>
                 <span class="logo-text">PDF Tools</span>
             </a>
-            <div class="nav-links">
-                <a href="/compress/"><span class="text-en">Compress</span><span class="text-kh">បង្រួម</span></a>
-                <a href="/merge/"><span class="text-en">Merge</span><span class="text-kh">បញ្ជូល</span></a>
-                <a href="/pdf-split/"><span class="text-en">Split</span><span class="text-kh">បែងចែក</span></a>
-                <a href="/ocr/"><span class="text-en">OCR</span><span class="text-kh">OCR</span></a>
-                <a href="/pdf-to-image/"><span class="text-en">PDF to Image</span><span class="text-kh">PDF ទៅរូបភាព</span></a>
-                <a href="/image-to-pdf/"><span class="text-en">Image to PDF</span><span class="text-kh">រូបភាពទៅPDF</span></a>
-            </div>
+            <nav class="nav-links">
+                <a href="/compress/">
+                    <span class="text-en">Compress</span>
+                    <span class="text-kh">បង្រួម</span>
+                </a>
+                <a href="/merge/">
+                    <span class="text-en">Merge</span>
+                    <span class="text-kh">បញ្ជូល</span>
+                </a>
+                <a href="/pdf-split/">
+                    <span class="text-en">Split</span>
+                    <span class="text-kh">បំបែក</span>
+                </a>
+                <a href="/organize/">
+                    <span class="text-en">Organize</span>
+                    <span class="text-kh">រៀបចំ</span>
+                </a>
+                <a href="/calendar/">
+                    <span class="text-en">Calendar</span>
+                    <span class="text-kh">ប្រតិទិក</span>
+                </a>
+                <a href="/ocr/">
+                    <span class="text-en">OCR</span>
+                    <span class="text-kh">OCR</span>
+                </a>
+                <a href="/pdf-to-image/" class="active">
+                    <span class="text-en">PDF to Image</span>
+                    <span class="text-kh">PDF ទៅ រូបភាព</span>
+                </a>
+                <a href="/image-to-pdf/">
+                    <span class="text-en">Image to PDF</span>
+                    <span class="text-kh">រូបភាព ទៅ PDF</span>
+                </a>
+            </nav>
         </div>
         <div class="header-actions">
-            <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
-            <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
+            <div class="lang-btns">
+                <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+                <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
+            </div>
         </div>
     </div>
     
     <div class="main-content">
-        <div class="container">
-            <h1>
-                <span class="text-en">PDF to Image</span>
-                <span class="text-kh">PDF ទៅរូបភាព</span>
-            </h1>
-            <p class="subtitle">
-                <span class="text-en">Convert PDF pages to images</span>
-                <span class="text-kh">បម្លែងទំព័រ PDF ទៅជារូបភាព</span>
-            </p>
-            
-            <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+        <div class="left-panel">
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
                 <div class="drop-zone-icon">📄</div>
                 <p>
                     <span class="text-en">Select PDF file or drop here</span>
                     <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
                 </p>
-                <input type="file" id="fileInput" accept=".pdf" class="file-input" onchange="handleFiles()">
+                <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="addFiles()">
             </div>
             
             <div class="file-list" id="fileList"></div>
             
-            <div class="options">
-                <div class="option-group">
-                    <label>
-                        <span class="text-en">Format</span>
-                        <span class="text-kh">ទម្រង់</span>
-                    </label>
-                    <select id="format">
-                        <option value="png">PNG</option>
-                        <option value="jpg">JPG</option>
-                    </select>
-                </div>
-                <div class="option-group">
-                    <label>
-                        <span class="text-en">Quality (DPI)</span>
-                        <span class="text-kh">គុណភាព (DPI)</span>
-                    </label>
-                    <select id="dpi">
-                        <option value="72">72 - Low</option>
-                        <option value="150">150 - Medium</option>
-                        <option value="300" selected>300 - High</option>
-                    </select>
-                </div>
+            <div class="options-section">
+                <label>
+                    <span class="text-en">Format</span>
+                    <span class="text-kh">ទម្រង់</span>
+                </label>
+                <select id="format">
+                    <option value="png">PNG</option>
+                    <option value="jpg">JPG</option>
+                </select>
             </div>
             
-            <button class="convert-btn" id="convertBtn" onclick="convertPdfToImage()" disabled>
+            <div class="options-section">
+                <label>
+                    <span class="text-en">Quality (DPI)</span>
+                    <span class="text-kh">គុណភាព (DPI)</span>
+                </label>
+                <select id="dpi">
+                    <option value="72">72 - Low</option>
+                    <option value="150">150 - Medium</option>
+                    <option value="300" selected>300 - High</option>
+                </select>
+            </div>
+            
+            <button class="convert-btn" id="convertBtn" disabled onclick="convertPdfToImage()">
                 <span class="text-en">Convert to Images</span>
                 <span class="text-kh">បម្លែងទៅរូបភាព</span>
             </button>
+        </div>
+        
+        <div class="right-panel">
+            <div class="instructions" id="instructions">
+                <span class="text-en">👆 Add a PDF file to preview pages and convert to images.</span>
+                <span class="text-kh">👆 បន្ថែមឯកសារ PDF ដើម្បីមើលទំព័រ និងបម្លែងទៅរូបភាព</span>
+            </div>
+            
+            <div class="right-panel-inner">
+                <div class="page-grid" id="pageGrid"></div>
+            </div>
         </div>
     </div>
     
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <h2>
-                <span class="text-en">Converting...</span>
-                <span class="text-kh">កំពុងបម្លែង...</span>
+                <span class="text-en">Converting PDF to images...</span>
+                <span class="text-kh">កំពុងបម្លែង PDF ទៅរូបភាព...</span>
             </h2>
+            
             <div class="progress-container">
                 <div class="progress-bar-bg">
-                    <div class="progress-bar" id="progressBar"></div>
+                    <div class="progress-bar" id="modalProgressBar"></div>
                 </div>
                 <div class="progress-text">
-                    <span class="progress-percent" id="percent">0</span>%
+                    <span class="progress-percent" id="modalPercent">0</span>%
                 </div>
             </div>
         </div>
@@ -235,8 +481,10 @@
         setLang(savedLang);
         
         let currentFile = null;
+        let pdfDoc = null;
+        let pdfData = null;
         
-        function handleFiles() {
+        function addFiles() {
             const input = document.getElementById('fileInput');
             if (input.files.length > 0) {
                 currentFile = input.files[0];
@@ -247,17 +495,56 @@
                     </div>
                 `;
                 document.getElementById('convertBtn').disabled = false;
+                loadPdfPreview();
+            }
+        }
+        
+        async function loadPdfPreview() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return;
+            
+            const arrayBuffer = await file.arrayBuffer();
+            pdfData = arrayBuffer;
+            pdfDoc = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+            
+            const pageGrid = document.getElementById('pageGrid');
+            pageGrid.innerHTML = '';
+            
+            const totalPages = pdfDoc.numPages;
+            document.getElementById('instructions').innerHTML = `
+                <span class="text-en">📄 ${currentFile.name} - ${totalPages} pages. Click "Convert to Images" to download.</span>
+                <span class="text-kh">📄 ${currentFile.name} - ${totalPages} ទំព័រ។ ចុច "បម្លែងទៅរូបភាព" ដើម្បីទាញយក</span>
+            `;
+            
+            for (let i = 1; i <= Math.min(totalPages, 50); i++) {
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({scale: 0.5});
+                
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                await page.render({canvasContext: context, viewport: viewport}).promise;
+                
+                const div = document.createElement('div');
+                div.className = 'page-item';
+                div.innerHTML = `
+                    <img src="${canvas.toDataURL()}">
+                    <span class="page-num">Page ${i}</span>
+                `;
+                pageGrid.appendChild(div);
             }
         }
         
         function showModal() {
             document.getElementById('modalOverlay').classList.add('active');
             let progress = 0;
-            const progressBar = document.getElementById('progressBar');
-            const percentEl = document.getElementById('percent');
+            const progressBar = document.getElementById('modalProgressBar');
+            const percentEl = document.getElementById('modalPercent');
             
             const interval = setInterval(() => {
-                progress += Math.random() * 10 + 5;
+                progress += Math.random() * 15 + 5;
                 if (progress > 95) progress = 95;
                 progressBar.style.width = progress + '%';
                 percentEl.textContent = Math.round(progress);
@@ -268,8 +555,8 @@
         
         function hideModal() {
             document.getElementById('modalOverlay').classList.remove('active');
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('percent').textContent = '0';
+            document.getElementById('modalProgressBar').style.width = '0%';
+            document.getElementById('modalPercent').textContent = '0';
         }
         
         function convertPdfToImage() {
@@ -292,7 +579,7 @@
                 .then(r => r.json())
                 .then(d => {
                     if (d.job_id) {
-                        checkJobStatus(d.job_id, modalInterval);
+                        checkJobStatus(d.job_id, modalInterval, btn);
                     } else {
                         alert(d.error || 'Error');
                         btn.disabled = false;
@@ -306,7 +593,7 @@
                 });
         }
         
-        function checkJobStatus(jobId, modalInterval) {
+        function checkJobStatus(jobId, modalInterval, btn) {
             const interval = setInterval(() => {
                 fetch('/api/job/' + jobId + '/')
                     .then(r => r.json())
@@ -321,7 +608,7 @@
                             clearInterval(modalInterval);
                             hideModal();
                             alert('Error: ' + (job.error || 'Processing failed'));
-                            document.getElementById('convertBtn').disabled = false;
+                            btn.disabled = false;
                         }
                     });
             }, 2000);
