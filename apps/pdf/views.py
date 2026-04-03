@@ -49,6 +49,11 @@ def image_to_pdf_page(request):
     return render(request, 'imagetopdf.html')
 
 
+def khqr(request):
+    download_url = request.GET.get('download', '')
+    return render(request, 'khqr.html', {'download_url': download_url})
+
+
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def compress_api(request):
