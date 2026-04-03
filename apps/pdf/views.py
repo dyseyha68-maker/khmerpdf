@@ -118,15 +118,17 @@ def compress_api(request):
         
         logger.info(f'Job created: {job.id}')
         
+        # Run synchronously (CELERY_TASK_ALWAYS_EAGER=True)
         from apps.pdf.tasks import compress_pdf
+        compress_pdf(str(job.id))
         
-        # Run in background (with CELERY_TASK_ALWAYS_EAGER it runs synchronously)
-        compress_pdf.delay(str(job.id))
+        job.refresh_from_db()
         
         return Response({
             'job_id': str(job.id),
-            'status': 'pending',
-            'message': 'Upload complete, processing started'
+            'status': job.status,
+            'result_url': job.result.url if job.result else None,
+            'message': 'File compressed successfully'
         }, status=status.HTTP_201_CREATED)
             
     except Exception as e:
