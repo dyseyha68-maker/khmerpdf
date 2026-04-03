@@ -453,6 +453,12 @@ def image_to_pdf_api(request):
         if f.size > settings.MAX_UPLOAD_SIZE:
             return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
+    # Cleanup old files
+    try:
+        cleanup_old_files()
+    except Exception as e:
+        logger.error(f'Cleanup error: {e}')
+    
     try:
         file_ids = []
         for f in files:
@@ -463,7 +469,10 @@ def image_to_pdf_api(request):
                 logger.error(f'Error creating upload job: {e}')
                 raise
         
+        logger.info(f'Created {len(file_ids)} upload jobs')
+        
         job = Job.objects.create(files=file_ids, tool='image_to_pdf')
+        logger.info(f'Created main job: {job.id}')
         
         from .tasks import image_to_pdf_task
         
