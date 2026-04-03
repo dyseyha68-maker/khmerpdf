@@ -493,13 +493,9 @@ def ocr_pdf(job_id):
     try:
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting OCR, file size: {file_size_mb:.1f}MB')
+        logger.info(f'Starting EasyOCR, file size: {file_size_mb:.1f}MB')
         
         from pdf2image import convert_from_path
-        import pytesseract
-        from PIL import Image, ImageEnhance
-        import numpy as np
-        import cv2
         from docx import Document
         from docx.shared import Pt
         
@@ -509,22 +505,14 @@ def ocr_pdf(job_id):
         style.font.size = Pt(11)
         
         pages = convert_from_path(input_path, dpi=300)
-        max_pages = min(len(pages), 30)
+        max_pages = min(len(pages), 25)
         
-        lang_map = {'eng': 'eng', 'khm': 'khm', 'eng+khm': 'eng+khm'}
-        tesseract_lang = lang_map.get(ocr_lang, 'eng')
+        # Initialize EasyOCR reader
+        logger.info('Loading EasyOCR model...')
+        import easyocr
         
-        def preprocess(img_pil):
-            try:
-                img = np.array(img_pil)
-                if len(img.shape) == 3:
-                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                else:
-                    gray = img
-                clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8,8))
-                return Image.fromarray(clahe.apply(gray))
-            except:
-                return img_pil
+        # Languages: Khmer (km) + English (en), CPU mode
+        reader = easyocr.Reader(['en', 'km'], gpu=False, verbose=False)
         
         def clean_text(text):
             if not text:
@@ -544,9 +532,20 @@ def ocr_pdf(job_id):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             
-            processed = preprocess(page)
-            text = pytesseract.image_to_string(processed, lang=tesseract_lang, config='--oem 3 --psm 6')
+            # Save page as image
+            temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_ocr_{i}.png')
+            page.save(temp_img_path, format='PNG')
+            
+            # EasyOCR with Khmer + English
+            results = reader.readtext(temp_img_path, detail=0)
+            
+            # Combine all text
+            text = '\n'.join(results)
             text = clean_text(text)
+            
+            # Clean up temp file
+            if os.path.exists(temp_img_path):
+                os.remove(temp_img_path)
             
             doc.add_heading(f'Page {i+1}', level=1)
             
