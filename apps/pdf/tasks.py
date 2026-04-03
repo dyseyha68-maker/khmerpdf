@@ -518,7 +518,7 @@ def ocr_pdf(job_id):
         max_pages = min(len(pages), 50)
         
         from docx import Document
-        from docx.shared import Pt, Inches
+        from docx.shared import Pt
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         
         doc = Document()
@@ -650,23 +650,11 @@ def ocr_pdf(job_id):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             
-            # Save page image for reference
-            temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_{i}.png')
-            page.save(temp_img_path, format='PNG', optimize=True, quality=85)
-            
             # Add page heading
             doc.add_heading(f'Page {i+1}', level=1)
             
-            # Add original scanned image (for reference)
-            try:
-                doc.add_picture(temp_img_path, width=Inches(6))
-            except:
-                pass
-            
-            # Add editable text below
+            # Extract and add editable text
             text = extract_text_multi_lang(page)
-            
-            doc.add_heading('Editable Text:', level=2)
             
             lines = text.split('\n')
             for line in lines:
@@ -678,10 +666,6 @@ def ocr_pdf(job_id):
                         run.font.name = 'Kantumruy Pro'
                     else:
                         run.font.name = 'Times New Roman'
-            
-            # Clean up temp image
-            if os.path.exists(temp_img_path):
-                os.remove(temp_img_path)
             
             if i < max_pages - 1:
                 doc.add_page_break()
