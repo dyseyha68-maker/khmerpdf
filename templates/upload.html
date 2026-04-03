@@ -125,16 +125,18 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
-            max-width: 1200px;
-            justify-items: center;
+            max-width: 1400px;
+            width: 100%;
             margin: 0 auto;
+            justify-content: center;
         }
         
         .tool-card {
             background: white;
             border-radius: 16px;
-            width: 320px;
-            padding: 40px 32px;
+            width: 100%;
+            max-width: 300px;
+            padding: 30px 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
@@ -143,9 +145,9 @@
         .tool-card:hover { transform: translateY(-8px); box-shadow: 0 15px 50px rgba(0,0,0,0.4); }
         .tool-card.active { background: #d32f2f; color: white; }
         
-        .tool-icon { font-size: 80px; margin-bottom: 20px; }
-        .tool-card h2 { font-size: 26px; margin-bottom: 10px; }
-        .tool-card p { font-size: 16px; opacity: 0.8; }
+        .tool-icon { font-size: 60px; margin-bottom: 16px; }
+        .tool-card h2 { font-size: 20px; margin-bottom: 8px; }
+        .tool-card p { font-size: 14px; opacity: 0.8; }
         
         .calendar-date {
             width: 80px;
