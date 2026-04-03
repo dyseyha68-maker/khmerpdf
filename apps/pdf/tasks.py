@@ -482,6 +482,8 @@ def organize_pdf(job_id, replace_files=None):
 def ocr_pdf(job_id):
     from apps.pdf.models import Job
     import logging
+    import subprocess
+    import sys
     logger = logging.getLogger(__name__)
     
     job = Job.objects.get(id=job_id)
@@ -491,6 +493,14 @@ def ocr_pdf(job_id):
     ocr_lang = job.compression_level or 'eng'
     
     try:
+        # Install EasyOCR if not installed
+        try:
+            import easyocr
+        except ImportError:
+            logger.info('Installing EasyOCR...')
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--quiet', 'easyocr', 'torch', 'torchvision'])
+            import easyocr
+        
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
         logger.info(f'Starting EasyOCR, file size: {file_size_mb:.1f}MB')
