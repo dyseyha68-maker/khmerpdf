@@ -297,32 +297,14 @@ def ocr_api(request):
         compression_level=ocr_lang
     )
     
-    logger.info(f'Created job {job.id}, CELERY_TASK_ALWAYS_EAGER={getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False)}')
+    logger.info(f'Created job {job.id}')
     
-    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
-        try:
-            from .tasks import ocr_pdf
-            ocr_pdf(str(job.id))
-            job.refresh_from_db()
-            logger.info(f'Job {job.id} completed with status {job.status}, result={job.result}')
-        except Exception as e:
-            logger.error(f'Error in ocr_pdf: {e}', exc_info=True)
-            job.status = 'failed'
-            job.error_message = str(e)
-            job.save()
-        
-        return Response({
-            'job_id': str(job.id),
-            'status': job.status,
-            'result_url': job.result.url if job.result else None,
-            'message': 'OCR completed successfully'
-        }, status=status.HTTP_201_CREATED)
-    else:
-        from .tasks import ocr_pdf
-        ocr_pdf.delay(str(job.id))
-        
-        return Response({
-            'job_id': str(job.id),
-            'status': 'pending',
-            'message': 'Job created successfully'
-        }, status=status.HTTP_201_CREATED)
+    # Always use async for OCR (it takes long time)
+    from .tasks import ocr_pdf
+    ocr_pdf.delay(str(job.id))
+    
+    return Response({
+        'job_id': str(job.id),
+        'status': 'pending',
+        'message': 'OCR job created'
+    }, status=status.HTTP_201_CREATED)

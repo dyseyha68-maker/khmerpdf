@@ -21,5 +21,5 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput || true
 
-# Increase timeout for large PDF processing (15 minutes)
-CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout=900", "--workers=2"]
+# Increase timeout and workers for large file processing
+CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout=1200", "--workers=4", "--graceful-timeout=30"]
