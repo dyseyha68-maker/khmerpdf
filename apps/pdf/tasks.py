@@ -526,15 +526,12 @@ def ocr_pdf(job_id):
         style.font.size = Pt(11)
         
         def clean_text(text):
-            """Clean up OCR noise"""
             lines = text.split('\n')
             cleaned = []
             for line in lines:
-                # Remove lines that are just noise (too short or special chars only)
                 line = line.strip()
                 if len(line) < 2:
                     continue
-                # Remove common OCR noise characters
                 noise_chars = ['_', '|', '¦', '©', '®', '™']
                 for nc in noise_chars:
                     line = line.replace(nc, '')
@@ -552,72 +549,113 @@ def ocr_pdf(job_id):
                     else:
                         gray = img
                     
-                    # Adaptive threshold for better text extraction
                     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
                                                    cv2.THRESH_BINARY, 11, 2)
-                    
-                    # Denoise
                     denoised = cv2.fastNlMeansDenoising(thresh, None, 10, 7, 21)
-                    
                     result = Image.fromarray(denoised)
-                    
-                    # Slight contrast boost
                     enhancer = ImageEnhance.Contrast(result)
                     result = enhancer.enhance(1.2)
+                    return result
+                except:
+                    return img_pil
+            
+            def preprocess_for_english(img_pil):
+                try:
+                    img = np.array(img_pil)
+                    if len(img.shape) == 3:
+                        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                    else:
+                        gray = img
                     
+                    # Enhance for English - higher contrast
+                    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+                    enhanced = clahe.apply(gray)
+                    
+                    # Sharpen
+                    kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+                    sharpened = cv2.filter2D(enhanced, -1, kernel)
+                    
+                    result = Image.fromarray(sharpened)
                     return result
                 except:
                     return img_pil
         else:
             def preprocess_for_khmer(img_pil):
                 try:
-                    # Basic preprocessing without OpenCV
                     enhancer = ImageEnhance.Contrast(img_pil)
                     result = enhancer.enhance(1.3)
                     result = result.filter(ImageFilter.SHARPEN)
                     return result
                 except:
                     return img_pil
+            
+            def preprocess_for_english(img_pil):
+                return preprocess_for_khmer(img_pil)
         
-        def extract_text_better(img_pil, lang):
-            """Try multiple Tesseract configurations for best results"""
+        def extract_text_multi_lang(img_pil):
+            """Try multiple language configurations"""
             results = []
-            
-            # PSM 3 = Fully automatic page segmentation, but no OSD (Default)
-            # PSM 6 = Assume a single uniform block of text
-            # PSM 11 = Sparse text - find as much text as possible in no particular order
-            
             configs = [
-                ('--psm 6', 'Single block'),
-                ('--psm 3', 'Auto'),
-                ('--psm 4', 'Columns'),
+                '--psm 6',
+                '--psm 3',
+                '--psm 4',
             ]
             
-            # Try enhanced image with different PSM
-            try:
-                processed = preprocess_for_khmer(img_pil)
-                for cfg, name in configs:
-                    try:
-                        text = pytesseract.image_to_string(processed, lang=lang, config=cfg)
-                        if text.strip():
-                            results.append((name, text))
-                    except:
-                        pass
-            except:
-                pass
+            # For Khmer language selection
+            if tesseract_lang == 'khm':
+                langs = ['khm+eng', 'khm', 'eng']
+            elif tesseract_lang == 'eng+khm':
+                langs = ['eng+khm', 'eng', 'khm']
+            else:
+                langs = ['eng', 'eng+khm']
             
-            # Try original with different PSM
-            for cfg, name in configs:
+            # Try each language with preprocessing
+            for lang in langs:
+                # Try enhanced preprocessing
                 try:
-                    text = pytesseract.image_to_string(img_pil, lang=lang, config=cfg)
-                    if text.strip():
-                        results.append((name + '_orig', text))
+                    processed = preprocess_for_khmer(img_pil)
+                    for cfg in configs:
+                        try:
+                            text = pytesseract.image_to_string(processed, lang=lang, config=cfg)
+                            if text.strip() and len(text) > 10:
+                                results.append((f'{lang}_{cfg}', text))
+                        except:
+                            pass
                 except:
                     pass
+                
+                # Try English-specific preprocessing
+                if 'eng' in lang:
+                    try:
+                        proc_eng = preprocess_for_english(img_pil)
+                        for cfg in configs:
+                            try:
+                                text = pytesseract.image_to_string(proc_eng, lang=lang, config=cfg)
+                                if text.strip() and len(text) > 10:
+                                    results.append((f'{lang}_eng_{cfg}', text))
+                            except:
+                                pass
+                    except:
+                        pass
+                
+                # Try original without preprocessing
+                for cfg in configs:
+                    try:
+                        text = pytesseract.image_to_string(img_pil, lang=lang, config=cfg)
+                        if text.strip() and len(text) > 10:
+                            results.append((f'{lang}_orig_{cfg}', text))
+                    except:
+                        pass
             
-            # Return longest/best result
             if results:
-                best = max(results, key=lambda x: len(x[1]))
+                # Score: prefer longer results but also penalize weird chars
+                def score(text):
+                    base = len(text)
+                    # Penalize too many special chars
+                    special_penalty = text.count('?') + text.count('¡') + text.count('»')
+                    return base - (special_penalty * 2)
+                
+                best = max(results, key=lambda x: score(x[1]))
                 return clean_text(best[1])
             return ""
         
@@ -625,14 +663,7 @@ def ocr_pdf(job_id):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             
-            if tesseract_lang == 'khm':
-                lang = 'khm+eng'
-            elif tesseract_lang == 'eng+khm':
-                lang = 'eng+khm'
-            else:
-                lang = 'eng'
-            
-            text = extract_text_better(page, lang)
+            text = extract_text_multi_lang(page)
             
             doc.add_heading(f'Page {i+1}', level=1)
             
