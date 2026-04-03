@@ -705,49 +705,27 @@ def image_to_pdf_task(file_paths, job_id):
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
-        writer = PdfWriter()
-        
+        # Use PIL to create PDF directly
+        images = []
         for img_path in file_paths:
             try:
                 if os.path.exists(img_path):
                     img = Image.open(img_path)
-                    
                     if img.mode == 'RGBA':
                         background = Image.new('RGB', img.size, (255, 255, 255))
                         background.paste(img, mask=img.split()[3])
                         img = background
                     elif img.mode != 'RGB':
                         img = img.convert('RGB')
-                    
-                    img_width, img_height = img.size
-                    
-                    pdf_width = img_width / 100 * inch
-                    pdf_height = img_height / 100 * inch
-                    
-                    temp_pdf_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_{uuid.uuid4().hex[:8]}.pdf')
-                    c = canvas.Canvas(temp_pdf_path, pagesize=(pdf_width, pdf_height))
-                    
-                    img_buffer = io.BytesIO()
-                    img.save(img_buffer, format='PNG')
-                    img_buffer.seek(0)
-                    
-                    c.drawImage(img_buffer, 0, 0, width=pdf_width, height=pdf_height)
-                    c.save()
-                    
-                    temp_reader = PdfReader(temp_pdf_path)
-                    for page in temp_reader.pages:
-                        writer.add_page(page)
-                    os.remove(temp_pdf_path)
-                    
+                    images.append(img)
             except Exception as e:
-                logger.error(f'Error processing image {img_path}: {e}')
+                logger.error(f'Error loading image {img_path}: {e}')
                 continue
         
-        with open(output_path, 'wb') as f:
-            writer.write(f)
-        
-        job.result.save(output_filename, open(output_path, 'rb'))
-        os.remove(output_path)
+        if images:
+            images[0].save(output_path, save_all=True, append_images=images[1:])
+            job.result.save(output_filename, open(output_path, 'rb'))
+            os.remove(output_path)
         
         job.status = 'done'
         job.save()
