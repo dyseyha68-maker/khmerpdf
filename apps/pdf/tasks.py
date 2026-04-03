@@ -729,12 +729,11 @@ def image_to_pdf_task(job_id):
                     
                     img_width, img_height = img.size
                     
-                    dpi = 72
-                    pdf_width_pt = img_width * 72 / dpi
-                    pdf_height_pt = img_height * 72 / dpi
-                    
-                    from reportlab.pdfgen import canvas
                     from reportlab.lib.pagesizes import letter
+                    from reportlab.pdfgen import canvas
+                    
+                    pdf_width_pt = img_width * 0.75
+                    pdf_height_pt = img_height * 0.75
                     
                     temp_pdf_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_{uuid.uuid4().hex[:8]}.pdf')
                     c = canvas.Canvas(temp_pdf_path, pagesize=(pdf_width_pt, pdf_height_pt))
