@@ -510,59 +510,75 @@ def ocr_pdf(job_id):
         import pytesseract
         import io
         
-        # Convert PDF to images
+        # Convert PDF to images with original DPI for quality
         pages = convert_from_path(input_path, dpi=300)
         
         # Create Word document
         from docx import Document
-        from docx.shared import Pt, Inches
+        from docx.shared import Pt, Inches, Cm
         from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml.ns import qn
+        from docx.oxml import OxmlElement
         
         doc = Document()
-        doc.add_heading('OCR Document', 0)
+        
+        # Set default font for the whole document
+        style = doc.styles['Normal']
+        style.font.name = 'Times New Roman'
+        style.font.size = Pt(11)
         
         for i, page in enumerate(pages):
             logger.info(f'Processing page {i+1}/{len(pages)}')
             
-            # Save page to image
+            # Save page as image for embedding
             img_byte_arr = io.BytesIO()
-            page.save(img_byte_arr, format='PNG', optimize=True)
+            page.save(img_byte_arr, format='PNG', optimize=False, quality=95)
             img_byte_arr.seek(0)
             
-            img = Image.open(img_byte_arr)
+            # Save temporary image file
+            temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_page_{i}.png')
+            page.save(temp_img_path, format='PNG', optimize=False, quality=95)
             
-            # OCR with Tesseract
+            # Add page number heading
+            doc.add_heading(f'Page {i+1}', level=2)
+            
+            # Add the original page as image (preserving layout)
+            try:
+                doc.add_picture(temp_img_path, width=Inches(6.5))  # Fit to page width
+            except:
+                pass
+            
+            # OCR the page
+            img = Image.open(img_byte_arr)
             if tesseract_lang == 'khm':
-                # For Khmer, use experimental Khmer support
                 text = pytesseract.image_to_string(img, lang='khm+eng')
             elif tesseract_lang == 'eng+khm':
                 text = pytesseract.image_to_string(img, lang='eng+khm')
             else:
                 text = pytesseract.image_to_string(img, lang='eng')
             
-            # Add page heading
-            doc.add_heading(f'Page {i+1}', level=1)
+            # Add extracted text below the image
+            doc.add_heading('Extracted Text:', level=3)
             
-            # Add text paragraphs with appropriate font
             lines = text.split('\n')
             for line in lines:
                 if line.strip():
                     p = doc.add_paragraph(line)
                     
-                    # Determine if line contains Khmer characters
                     has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
-                    
-                    # Set font based on language
                     run = p.runs[0] if p.runs else p.add_run()
                     if has_khmer:
-                        # Use Kantumruy Pro for Khmer (will need to embed or use fallback)
                         run.font.name = 'Kantumruy Pro'
-                        run.font.size = Pt(12)
+                        run.font.size = Pt(11)
                     else:
                         run.font.name = 'Times New Roman'
                         run.font.size = Pt(11)
             
-            # Add page break between pages (except last)
+            # Clean up temp image
+            if os.path.exists(temp_img_path):
+                os.remove(temp_img_path)
+            
+            # Add page break (except last page)
             if i < len(pages) - 1:
                 doc.add_page_break()
         
