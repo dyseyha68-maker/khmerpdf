@@ -514,9 +514,8 @@ def ocr_pdf(job_id):
         import pytesseract
         from PIL import Image, ImageEnhance
         
-        # Use lower DPI for faster processing
-        pages = convert_from_path(input_path, dpi=300)
-        max_pages = min(len(pages), 30)
+        pages = convert_from_path(input_path, dpi=350)
+        max_pages = min(len(pages), 40)
         
         from docx import Document
         from docx.shared import Pt
@@ -540,7 +539,30 @@ def ocr_pdf(job_id):
                     cleaned.append(line)
             return '\n'.join(cleaned)
         
-        def preprocess(img_pil):
+        def preprocess_for_khmer(img_pil):
+            """Best preprocessing for Khmer - similar to Google Lens"""
+            if not has_opencv:
+                return ImageEnhance.Contrast(img_pil).enhance(1.4)
+            
+            try:
+                img = np.array(img_pil)
+                if len(img.shape) == 3:
+                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                else:
+                    gray = img
+                
+                # Denoise
+                denoised = cv2.fastNlMeansDenoising(gray, None, h=10, templateWindowSize=7, searchWindowSize=21)
+                
+                # CLAHE for contrast
+                clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8,8))
+                enhanced = clahe.apply(denoised)
+                
+                return Image.fromarray(enhanced)
+            except:
+                return img_pil
+        
+        def preprocess_for_english(img_pil):
             if not has_opencv:
                 return ImageEnhance.Contrast(img_pil).enhance(1.3)
             
@@ -551,17 +573,66 @@ def ocr_pdf(job_id):
                 else:
                     gray = img
                 
-                clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8,8))
-                enhanced = clahe.apply(gray)
-                return Image.fromarray(enhanced)
+                clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+                return Image.fromarray(clahe.apply(gray))
             except:
                 return img_pil
+        
+        def extract_text_best(img_pil, lang):
+            """Try multiple configurations and pick best"""
+            results = []
+            
+            configs = [
+                '--oem 3 --psm 6',
+                '--oem 3 --psm 3', 
+                '--oem 3 --psm 4',
+            ]
+            
+            # Try with Khmer preprocessing
+            if 'khm' in lang:
+                try:
+                    proc = preprocess_for_khmer(img_pil)
+                    for cfg in configs:
+                        try:
+                            text = pytesseract.image_to_string(proc, lang=lang, config=cfg)
+                            if text.strip() and len(text) > 5:
+                                results.append(text)
+                        except:
+                            pass
+                except:
+                    pass
+            
+            # Try English preprocessing if relevant
+            if 'eng' in lang:
+                try:
+                    proc = preprocess_for_english(img_pil)
+                    for cfg in configs:
+                        try:
+                            text = pytesseract.image_to_string(proc, lang=lang, config=cfg)
+                            if text.strip() and len(text) > 5:
+                                results.append(text)
+                        except:
+                            pass
+                except:
+                    pass
+            
+            # Try raw image
+            for cfg in configs:
+                try:
+                    text = pytesseract.image_to_string(img_pil, lang=lang, config=cfg)
+                    if text.strip() and len(text) > 5:
+                        results.append(text)
+                except:
+                    pass
+            
+            # Return longest result (usually most accurate)
+            if results:
+                return max(results, key=len)
+            return ""
         
         for i in range(max_pages):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
-            
-            processed = preprocess(page)
             
             if tesseract_lang == 'khm':
                 lang = 'khm'
@@ -570,8 +641,7 @@ def ocr_pdf(job_id):
             else:
                 lang = 'eng'
             
-            # Single pass with best settings
-            text = pytesseract.image_to_string(processed, lang=lang, config='--oem 3 --psm 6')
+            text = extract_text_best(page, lang)
             text = clean_text(text)
             
             doc.add_heading(f'Page {i+1}', level=1)
