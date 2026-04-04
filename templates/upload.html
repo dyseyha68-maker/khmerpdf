@@ -4,26 +4,11 @@
 
 {% block extra_css %}
 <style>
-    body {
+    .main-content {
+        flex-direction: column;
         align-items: center;
-        padding: 20px;
+        padding-top: 40px;
     }
-    .header {
-        width: 100%;
-        max-width: 1200px;
-        border-radius: 12px;
-        margin: 20px auto 40px auto;
-    }
-    .logo-page { 
-        color: white; 
-        font-size: 48px; 
-        font-weight: 700; 
-        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        text-align: center;
-        margin-bottom: 40px;
-        width: 100%;
-    }
-    .logo-page span { font-size: 18px; display: block; opacity: 0.8; }
     
     .cards-container {
         display: grid;
@@ -31,7 +16,6 @@
         gap: 24px;
         max-width: 1400px;
         width: 100%;
-        margin: 60px auto 40px auto;
         justify-content: center;
     }
     
@@ -39,7 +23,7 @@
         background: white;
         border-radius: 16px;
         width: 100%;
-        max-width: 300px;
+        max-width: 280px;
         padding: 30px 20px;
         text-align: center;
         cursor: pointer;
@@ -49,13 +33,13 @@
     .tool-card:hover { transform: translateY(-8px); box-shadow: 0 15px 50px rgba(0,0,0,0.4); }
     .tool-card.active { background: #d32f2f; color: white; }
     
-    .tool-icon { font-size: 60px; margin-bottom: 16px; }
-    .tool-card h2 { font-size: 20px; margin-bottom: 8px; }
-    .tool-card p { font-size: 14px; opacity: 0.8; }
+    .tool-icon { font-size: 56px; margin-bottom: 16px; }
+    .tool-card h2 { font-size: 18px; margin-bottom: 8px; }
+    .tool-card p { font-size: 13px; opacity: 0.8; }
     
     .calendar-date {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
         background: #d32f2f;
         border-radius: 12px;
         display: flex;
@@ -66,415 +50,86 @@
         color: white;
     }
     .calendar-date .cal-month {
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
     }
     .calendar-date .cal-day {
-        font-size: 36px;
+        font-size: 32px;
         font-weight: 700;
         line-height: 1;
     }
     
-    .tool-panel {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.85);
-        z-index: 100;
-        justify-content: center;
-        align-items: center;
+    @media (max-width: 1100px) {
+        .cards-container { grid-template-columns: repeat(3, 1fr); }
     }
-    .tool-panel.active { display: flex; }
-    
-    .panel-content {
-        background: white;
-        border-radius: 16px;
-        width: 90%;
-        max-width: 700px;
-        padding: 40px;
-        position: relative;
-        text-align: center;
+    @media (max-width: 800px) {
+        .cards-container { grid-template-columns: repeat(2, 1fr); }
     }
-    .close-btn {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        background: none;
-        border: none;
-        font-size: 28px;
-        cursor: pointer;
-        color: #666;
-    }
-    
-    .panel-title { font-size: 28px; margin-bottom: 8px; color: #333; }
-    .panel-subtitle { color: #666; margin-bottom: 32px; }
-    
-    .drop-zone {
-        border: 3px dashed #ddd;
-        border-radius: 12px;
-        padding: 50px 30px;
-        margin-bottom: 24px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    .drop-zone:hover { border-color: #d32f2f; background: #fff5f5; }
-    .drop-zone-icon { font-size: 48px; margin-bottom: 12px; }
-    
-    .select-btn {
-        background: #d32f2f;
-        color: white;
-        border: none;
-        padding: 16px 40px;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: 'Kantumruy Pro', sans-serif;
-    }
-    .select-btn:hover { background: #b71c1c; }
-    
-    .file-info {
-        margin: 16px 0;
-        padding: 16px;
-        background: #f5f5f5;
-        border-radius: 8px;
-        display: none;
-    }
-    .file-info.show { display: block; }
-    
-    .compression-level {
-        margin: 20px 0;
-        text-align: left;
-    }
-    .compression-options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .compression-option {
-        display: flex;
-        align-items: flex-start;
-        padding: 16px;
-        border: 2px solid #e0e0e0;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .compression-option:hover { border-color: #d32f2f; }
-    .compression-option.selected {
-        border-color: #d32f2f;
-        background: #fff5f5;
-    }
-    .compression-option input { display: none; }
-    .compression-option .radio {
-        min-width: 20px;
-        height: 20px;
-        border: 2px solid #ccc;
-        border-radius: 50%;
-        margin-right: 14px;
-        margin-top: 2px;
-        position: relative;
-    }
-    .compression-option.selected .radio {
-        border-color: #d32f2f;
-    }
-    .compression-option.selected .radio::after {
-        content: '';
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        width: 8px;
-        height: 8px;
-        background: #d32f2f;
-        border-radius: 50%;
-    }
-    .compression-option .opt-text {
-        display: block;
-        font-weight: 600;
-        font-size: 16px;
-        color: #333;
-        margin-bottom: 4px;
-    }
-    .compression-option .opt-desc {
-        display: block;
-        font-size: 13px;
-        color: #666;
-    }
-    
-    .selected-files {
-        margin: 16px 0;
-    }
-    .selected-file {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 14px;
-        background: #f5f5f5;
-        border-radius: 6px;
-        margin-bottom: 8px;
-        align-items: center;
-    }
-    .selected-file .remove { color: #d32f2f; cursor: pointer; font-weight: bold; }
-    
-    .action-btn {
-        background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
-        color: white;
-        border: none;
-        padding: 16px 40px;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: 'Kantumruy Pro', sans-serif;
-        box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
-    }
-    .action-btn:hover { transform: translateY(-2px); }
-    
-    .page-input {
-        width: 100%;
-        padding: 14px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        font-size: 14px;
-        margin: 16px 0;
-        font-family: 'Kantumruy Pro', sans-serif;
-    }
-    .page-input:focus { outline: none; border-color: #d32f2f; }
-    
-    .split-options { margin: 20px 0; }
-    .split-mode-tabs {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 16px;
-    }
-    .split-tab {
-        font-family: 'Kantumruy Pro', sans-serif;
-        padding: 10px 20px;
-        background: white;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    .split-tab:hover { border-color: #d32f2f; }
-    .split-tab.active {
-        background: #d32f2f;
-        color: white;
-        border-color: #d32f2f;
-    }
-    
-    .page-thumbnails {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: center;
-        max-height: 400px;
-        overflow-y: auto;
-        padding: 10px;
-        background: #f9f9f9;
-        border-radius: 8px;
-        width: 100%;
-    }
-    
-    .page-thumb {
-        width: 150px;
-        height: 200px;
-        background: white;
-        border: 2px solid #ddd;
-        border-radius: 6px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        position: relative;
-        padding: 8px;
-    }
-    .page-thumb:hover { border-color: #d32f2f; transform: scale(1.05); }
-    .page-thumb.selected {
-        border-color: #d32f2f;
-        background: #fff5f5;
-        box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
-    }
-    .page-thumb.selected::after {
-        content: '✓';
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: #d32f2f;
-        color: white;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .page-thumb .page-num {
-        font-size: 14px;
-        color: #333;
-        font-weight: 600;
-        margin-top: 8px;
-    }
-    
-    .loading { display: none; text-align: center; padding: 40px; }
-    .loading.active { display: block; }
-    .spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #d32f2f;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 16px;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    
-    .merge-files { margin-bottom: 16px; }
-    .merge-file {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 14px;
-        background: #f5f5f5;
-        border-radius: 6px;
-        margin-bottom: 8px;
-        align-items: center;
-        cursor: move;
-        transition: background 0.2s;
-    }
-    .merge-file:hover { background: #e0e0e0; }
-    .merge-file.dragging { opacity: 0.5; }
-    .merge-file .remove { color: #d32f2f; cursor: pointer; font-weight: bold; margin-left: 10px; }
-    
-    @media (max-width: 900px) {
-        .cards-container { grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 100%; }
-        .tool-card { width: 100%; padding: 20px; }
-        .tool-icon { font-size: 40px; }
-        .tool-card h2 { font-size: 18px; }
-    }
-    
-    @media (max-width: 600px) {
+    @media (max-width: 500px) {
         .cards-container { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-
 <div class="cards-container">
     <div class="tool-card" onclick="window.location.href='/compress/'">
         <div class="tool-icon">🗜️</div>
-        <h2>
-            <span class="text-en">Compress PDF</span>
-            <span class="text-kh">បង្រួមទំហំ PDF</span>
-        </h2>
-        <p>
-            <span class="text-en">Reduce file size</span>
-            <span class="text-kh">បង្រួមទំហំឯកសារ</span>
-        </p>
+        <h2><span class="text-en">Compress PDF</span><span class="text-kh">បង្រួម PDF</span></h2>
+        <p><span class="text-en">Reduce file size</span><span class="text-kh">បង្រួមទំហំ</span></p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/merge/'">
         <div class="tool-icon">📑</div>
-        <h2>
-            <span class="text-en">Merge PDF</span>
-            <span class="text-kh">បញ្ជូលឯកសារ PDF</span>
-        </h2>
-        <p>
-            <span class="text-en">Combine PDF files</span>
-            <span class="text-kh">រួមបញ្ចូលឯកសារ PDF</span>
-        </p>
+        <h2><span class="text-en">Merge PDF</span><span class="text-kh">បញ្ជូល PDF</span></h2>
+        <p><span class="text-en">Combine PDF files</span><span class="text-kh">រួមបញ្ចូល</span></p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-split/'">
         <div class="tool-icon">✂️</div>
-        <h2>
-            <span class="text-en">Split PDF</span>
-            <span class="text-kh">បំបែកឯកសារ PDF</span>
-        </h2>
-        <p>
-            <span class="text-en">Extract pages</span>
-            <span class="text-kh">ចម្លងយកទំព័រ</span>
-        </p>
+        <h2><span class="text-en">Split PDF</span><span class="text-kh">បំបែក PDF</span></h2>
+        <p><span class="text-en">Extract pages</span><span class="text-kh">ចម្លងទំព័រ</span></p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/organize/'">
         <div class="tool-icon">📋</div>
-        <h2>
-            <span class="text-en">Organize PDF</span>
-            <span class="text-kh">រៀបចំឯកសារ PDF</span>
-        </h2>
-        <p>
-            <span class="text-en">Reorder pages</span>
-            <span class="text-kh">ផ្លាស់ទីទំព័រ</span>
-        </p>
+        <h2><span class="text-en">Organize PDF</span><span class="text-kh">រៀបចំ PDF</span></h2>
+        <p><span class="text-en">Reorder pages</span><span class="text-kh">ផ្លាស់ទី</span></p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/calendar/'">
-        <div class="tool-icon calendar-date">
+        <div class="calendar-date">
             <span class="cal-month" id="calMonth"></span>
             <span class="cal-day" id="calDay"></span>
         </div>
-        <h2>
-            <span class="text-en">Calendar</span>
-            <span class="text-kh">ប្រតិទិក</span>
-        </h2>
-        <p>
-            <span class="text-en">View Khmer calendar</span>
-            <span class="text-kh">មើលប្រតិទិកខ្មែរ</span>
-        </p>
+        <h2><span class="text-en">Calendar</span><span class="text-kh">ប្រតិទិក</span></h2>
+        <p><span class="text-en">Khmer calendar</span><span class="text-kh">ប្រតិទិកខ្មែរ</span></p>
     </div>
-    
-    <script>
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const today = new Date();
-        document.getElementById('calMonth').textContent = months[today.getMonth()];
-        document.getElementById('calDay').textContent = today.getDate();
-    </script>
     
     <div class="tool-card" onclick="window.location.href='/ocr/'">
         <div class="tool-icon">📝</div>
-        <h2>
-            <span class="text-en">OCR PDF</span>
-            <span class="text-kh">OCR PDF</span>
-        </h2>
-        <p>
-            <span class="text-en">Make scanned PDFs searchable</span>
-            <span class="text-kh">ធ្វើឱ្យ PDF ស្កេនអាចស្វែងរកបាន</span>
-        </p>
+        <h2><span class="text-en">OCR PDF</span><span class="text-kh">OCR PDF</span></h2>
+        <p><span class="text-en">Extract text</span><span class="text-kh">ទាញយកអត្ថបទ</span></p>
     </div>
-
+    
     <div class="tool-card" onclick="window.location.href='/pdf-to-image/'">
         <div class="tool-icon">🖼️</div>
-        <h2>
-            <span class="text-en">PDF to Image</span>
-            <span class="text-kh">PDF ទៅរូបភាព</span>
-        </h2>
-        <p>
-            <span class="text-en">Convert PDF to images</span>
-            <span class="text-kh">បម្លែង PDF ទៅជារូបភាព</span>
-        </p>
+        <h2><span class="text-en">PDF to Image</span><span class="text-kh">PDF ទៅ រូបភាព</span></h2>
+        <p><span class="text-en">Convert to images</span><span class="text-kh">បម្លែងទៅរូប</span></p>
     </div>
-
+    
     <div class="tool-card" onclick="window.location.href='/image-to-pdf/'">
         <div class="tool-icon">📷</div>
-        <h2>
-            <span class="text-en">Image to PDF</span>
-            <span class="text-kh">រូបភាពទៅ PDF</span>
-        </h2>
-        <p>
-            <span class="text-en">Convert images to PDF</span>
-            <span class="text-kh">បម្លែងរូបភាពទៅ PDF</span>
-        </p>
+        <h2><span class="text-en">Image to PDF</span><span class="text-kh">រូបភាព ទៅ PDF</span></h2>
+        <p><span class="text-en">Convert to PDF</span><span class="text-kh">បម្លែងទៅ PDF</span></p>
     </div>
 </div>
+
+<script>
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const today = new Date();
+    document.getElementById('calMonth').textContent = months[today.getMonth()];
+    document.getElementById('calDay').textContent = today.getDate();
+</script>
 {% endblock %}
