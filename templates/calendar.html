@@ -21,6 +21,29 @@
             margin: 0 auto;
         }
         
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .lang-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+        
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
         h1 {
             text-align: center;
             color: white;
@@ -187,6 +210,14 @@
 </head>
 <body>
     <div class="container">
+        <div class="header">
+            <a href="/" style="color: white; text-decoration: none; font-size: 18px;">📄 PDF Tools</a>
+            <div>
+                <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+                <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
+            </div>
+        </div>
+        
         <h1>
             <span class="text-en">Cambodia Calendar</span>
             <span class="text-kh">ប្រតិទិកកម្ពុជា</span>
