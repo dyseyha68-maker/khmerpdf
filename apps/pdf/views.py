@@ -72,9 +72,9 @@ def calendar_page(request):
     else:
         year = int(year)
     
-    holidays = Holiday.objects.all().order_by('month', 'day')
+    holidays = list(Holiday.objects.all().order_by('month', 'day').values('day', 'month', 'name_en', 'name_kh'))
     years = list(range(2020, 2031))
-    return render(request, 'calendar.html', {'holidays': list(holidays.values()), 'current_year': year, 'years': years})
+    return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year, 'years': years})
 
 
 def ocr_page(request):
