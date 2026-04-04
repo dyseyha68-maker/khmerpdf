@@ -250,8 +250,9 @@
     </div>
     
     <script>
-        // Debug: Check template variable
-        console.log('Template holidays:', {{ holidays|safe }});
+        // Debug: Show all holiday data
+        const holidaysData = {{ holidays|safe }};
+        console.log('Holidays from DB:', holidaysData);
         
         const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិចិ្ឆកា', 'ធ្នូ'];
         const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -259,8 +260,8 @@
         const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         
         // Holidays from Django
-        let holidays = {{ holidays|safe }};
-        console.log('Holidays loaded:', holidays.length);
+        let holidays = holidaysData;
+        console.log('Holidays count:', holidays.length);
         
         let currentYear = {{ current_year }};
         let currentMonth = new Date().getMonth();
