@@ -72,11 +72,8 @@ def calendar_page(request):
     else:
         year = int(year)
     
-    # Get all holidays without filtering to see what's in DB
-    holidays = list(Holiday.objects.all().order_by('month', 'day').values('day', 'month', 'name_en', 'name_kh', 'is_public', 'year'))
-    print(f"Found {len(holidays)} holidays in DB")
-    years = list(range(2020, 2031))
-    return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year, 'years': years})
+    holidays = list(Holiday.objects.all().order_by('month', 'day').values('day', 'month', 'name_en', 'name_kh'))
+    return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year})
 
 
 def ocr_page(request):

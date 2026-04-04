@@ -4,59 +4,80 @@
 
 {% block extra_css %}
 <style>
-    .container {
-        padding: 20px;
-    }
-    
-    h1 {
-        text-align: center;
-        color: white;
-        margin-bottom: 20px;
-        font-size: 28px;
-    }
-    
-    .calendar-wrapper {
+    .calendar-container {
         display: flex;
         gap: 20px;
-        background: white;
-        border-radius: 16px;
+        height: calc(100vh - 100px);
         padding: 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     }
     
     .left-panel {
-        width: 300px;
-        flex-shrink: 0;
+        width: 280px;
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
     }
     
     .right-panel {
         flex: 1;
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
     }
     
-    .year-select {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: 2px solid #ddd;
-        margin-bottom: 15px;
-        font-family: 'Kantumruy Pro', sans-serif;
+    .year-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .year-nav button {
+        background: #667eea;
+        color: white;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .year-nav button:hover {
+        background: #5568d3;
+    }
+    
+    .year-nav span {
+        font-size: 20px;
+        font-weight: 600;
+        min-width: 80px;
+        text-align: center;
     }
     
     .month-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
+        gap: 6px;
         margin-bottom: 20px;
     }
     
     .month-btn {
-        padding: 12px 8px;
+        padding: 10px 4px;
         background: #f5f5f5;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 12px;
         font-family: 'Kantumruy Pro', sans-serif;
         transition: all 0.2s;
     }
@@ -70,23 +91,32 @@
         color: white;
     }
     
-    .holiday-list {
-        border-top: 1px solid #eee;
-        padding-top: 15px;
+    .holiday-section {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
     
-    .holiday-list h3 {
+    .holiday-section h3 {
         font-size: 16px;
         color: #333;
         margin-bottom: 10px;
+        flex-shrink: 0;
+    }
+    
+    .holiday-list {
+        flex: 1;
+        overflow-y: auto;
     }
     
     .holiday-item {
         padding: 8px 12px;
-        background: #f9f9f9;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        font-size: 14px;
+        background: #ffcdd2;
+        border-radius: 6px;
+        margin-bottom: 6px;
+        font-size: 13px;
+        border-left: 3px solid #d32f2f;
     }
     
     .holiday-item .date {
@@ -98,29 +128,27 @@
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 4px;
+        flex: 1;
     }
     
     .day-header {
         text-align: center;
-        padding: 10px;
+        padding: 8px;
         font-weight: 600;
         color: #666;
-        font-size: 14px;
+        font-size: 12px;
     }
     
     .calendar-day {
-        aspect-ratio: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         background: #f5f5f5;
-        border-radius: 8px;
-        padding: 5px;
-        font-size: 16px;
+        border-radius: 6px;
+        padding: 4px;
         cursor: pointer;
         transition: all 0.2s;
-        min-height: 50px;
     }
     
     .calendar-day:hover {
@@ -143,14 +171,22 @@
         color: #c62828;
     }
     
-    .calendar-day .khmer {
-        font-size: 10px;
+    .day-number {
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .khmer-day {
+        font-size: 9px;
         color: #666;
         margin-top: 2px;
     }
     
-    .calendar-day.today .khmer {
-        color: white;
+    .calendar-day.today .khmer-day,
+    .calendar-day.holiday .khmer-day,
+    .calendar-day.saturday .khmer-day,
+    .calendar-day.sunday .khmer-day {
+        color: inherit;
     }
     
     .month-title {
@@ -162,43 +198,35 @@
     }
     
     @media (max-width: 900px) {
-        .main-content { flex-direction: column; padding: 12px; }
+        .calendar-container { flex-direction: column; height: auto; }
         .left-panel, .right-panel { width: 100%; }
-        .calendar-wrapper { flex-direction: column; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>
-        <span class="text-en">Cambodia Calendar</span>
-        <span class="text-kh">ប្រតិទិកកម្ពុជា</span>
-    </h1>
-    
-    <div class="calendar-wrapper">
-        <div class="left-panel">
-            <select id="yearSelect" class="year-select" onchange="changeYear(this.value)">
-                {% for y in years %}
-                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
-                {% endfor %}
-            </select>
-            
-            <div class="month-grid" id="monthGrid"></div>
-            
-            <div class="holiday-list">
-                <h3>
-                    <span class="text-en">Holidays</span>
-                    <span class="text-kh">ថ្ងៃឈប់សម្រាក</span>
-                </h3>
-                <div id="holidayList"></div>
-            </div>
+<div class="calendar-container">
+    <div class="left-panel">
+        <div class="year-nav">
+            <button onclick="changeYear(-1)">◀</button>
+            <span id="yearDisplay">{{ current_year }}</span>
+            <button onclick="changeYear(1)">▶</button>
         </div>
         
-        <div class="right-panel">
-            <div class="month-title" id="monthTitle"></div>
-            <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="month-grid" id="monthGrid"></div>
+        
+        <div class="holiday-section">
+            <h3>
+                <span class="text-en">Holidays</span>
+                <span class="text-kh">ថ្ងៃឈប់សម្រាក</span>
+            </h3>
+            <div class="holiday-list" id="holidayList"></div>
         </div>
+    </div>
+    
+    <div class="right-panel">
+        <div class="month-title" id="monthTitle"></div>
+        <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 </div>
 
@@ -206,15 +234,16 @@
     const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិចិ្ឆកា', 'ធ្នូ'];
     const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const khmerDays = ['ច', 'អ', 'ព', 'ព្រ', 'ស', 'សៅ', 'អា'];
-    const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     
     let holidays = {{ holidays|safe }};
+    console.log('Holidays:', holidays);
     
     let currentYear = {{ current_year }};
     let currentMonth = new Date().getMonth();
     
-    function changeYear(year) {
-        currentYear = parseInt(year);
+    function changeYear(delta) {
+        currentYear += delta;
+        document.getElementById('yearDisplay').textContent = currentYear;
         render();
     }
     
@@ -234,7 +263,7 @@
         monthTitle.textContent = (isKh ? khmerMonths[currentMonth] : englishMonths[currentMonth]) + ' ' + currentYear;
         
         grid.innerHTML = '';
-        const headers = isKh ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : dayHeaders;
+        const headers = isKh ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         headers.forEach(day => {
             const div = document.createElement('div');
             div.className = 'day-header';
@@ -272,7 +301,7 @@
                 div.classList.add(dayOfWeek === 6 ? 'saturday' : 'sunday');
             }
             
-            div.innerHTML = '<span>' + dayNum + '</span><span class="khmer">' + khmerDays[dayOfWeek] + '</span>';
+            div.innerHTML = '<span class="day-number">' + dayNum + '</span><span class="khmer-day">' + khmerDays[dayOfWeek] + '</span>';
             grid.appendChild(div);
         }
         
@@ -287,12 +316,16 @@
         
         holidayList.innerHTML = '';
         const monthHolidays = holidays.filter(h => h.month === currentMonth + 1);
-        monthHolidays.forEach(h => {
-            const item = document.createElement('div');
-            item.className = 'holiday-item';
-            item.innerHTML = '<span class="date">' + h.day + '/' + h.month + '</span> ' + (isKh ? h.name_kh : (h.name_en || h.name_kh));
-            holidayList.appendChild(item);
-        });
+        if (monthHolidays.length === 0) {
+            holidayList.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">No holidays</div>';
+        } else {
+            monthHolidays.forEach(h => {
+                const item = document.createElement('div');
+                item.className = 'holiday-item';
+                item.innerHTML = '<span class="date">' + h.day + '/' + h.month + '</span> ' + (isKh ? h.name_kh : (h.name_en || h.name_kh));
+                holidayList.appendChild(item);
+            });
+        }
     }
     
     render();
