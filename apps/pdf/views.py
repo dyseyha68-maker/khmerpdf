@@ -448,16 +448,17 @@ def image_to_pdf_api(request):
     for f in files:
         if not f.type.startswith('image/'):
             return Response({'error': 'Only image files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
-        if f.size > settings.MAX_UPLOAD_SIZE:
-            return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         # Save all images to temp storage
+        uploads_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+        os.makedirs(uploads_dir, exist_ok=True)
+        
         file_paths = []
         for f in files:
-            temp_path = os.path.join(settings.MEDIA_ROOT, 'uploads', f'{uuid.uuid4().hex}_{f.name}')
-            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
-            with open(temp_path, 'wb+') as dest:
+            safe_name = f'{uuid.uuid4().hex}_{f.name}'
+            temp_path = os.path.join(uploads_dir, safe_name)
+            with open(temp_path, 'wb') as dest:
                 for chunk in f.chunks():
                     dest.write(chunk)
             file_paths.append(temp_path)
