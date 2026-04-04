@@ -184,7 +184,11 @@
             
             <div class="year-nav">
                 <button onclick="changeYear(-1)">◀</button>
-                <span id="yearDisplay">2026</span>
+                <select id="yearSelect" onchange="changeYearTo(this.value)" style="padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
+                    {% for y in years %}
+                    <option value="{{ y }}" {% if y == current_year|add:0 %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
                 <button onclick="changeYear(1)">▶</button>
             </div>
             
@@ -213,25 +217,23 @@
     const dayHeadersEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const dayHeadersKh = ['ថ្ងៃចន្ទ', 'ថ្ងៃអង្គារ', 'ថ្ងៃពុធ','ថ្ងៃព្រហស្បត្តិ៍', 'ថ្ងៃសុក្រ', 'ថ្ងៃសៅរ៍', 'ថ្ងៃអាទិត្យ'];
     
+    // Holidays from database
     const holidays = [
-        { date: '01-01', nameEn: 'New Year', nameKh: 'បុណ្យឆ្នាំសកល' },
-        { date: '01-07', nameEn: 'Victory Day', nameKh: '៧ មករា ទិវាជ័យជំនះ' },
-        { date: '04-14', nameEn: 'Khmer New Year', nameKh: 'បុណ្យចូលឆ្នាំប្រពៃណីខ្មែរ' },
-        { date: '04-15', nameEn: 'Khmer New Year', nameKh: 'បុណ្យចូលឆ្នាំប្រពៃណីខ្មែរាំ' },
-        { date: '04-16', nameEn: 'Khmer New Year', nameKh: 'បុណ្យចូលឆ្នាំប្រពៃណីខ្មែរ' },
-        { date: '05-01', nameEn: 'Labor Day', nameKh: 'ទិវាពលកម្មអន្តរជាតិ' },
-        { date: '05-13', nameEn: 'Royal Ploughing', nameKh: 'ពិធីជ្រត់ព្រះនង្គ័ល' },
-        { date: '10-15', nameEn: 'Commemoration Day', nameKh: 'ទិវារំលត់' },
-        { date: '11-09', nameEn: 'Independence Day', nameKh: 'បុណ្យឯករាជជាតិ' },
-        { date: '11-10', nameEn: 'Water Festival', nameKh: 'រាជពិធីអ៊ុំទូក' },
-        { date: '11-11', nameEn: 'Water Festival', nameKh: 'រាជពិធីអ៊ុំទូក' },
+        {% for h in holidays %}
+        { date: '{{ h.day|stringformat:"02d" }}-{{ h.month|stringformat:"02d" }}', nameEn: '{{ h.name_en|default:"" }}', nameKh: '{{ h.name_kh|escapejs }}' },
+        {% endfor %}
     ];
     
-    let currentYear = new Date().getFullYear();
+    let currentYear = {{ current_year|default:2026 }};
     let currentMonth = new Date().getMonth();
     
     function changeYear(delta) {
         currentYear += delta;
+        renderCalendar();
+    }
+    
+    function changeYearTo(year) {
+        currentYear = parseInt(year);
         renderCalendar();
     }
     

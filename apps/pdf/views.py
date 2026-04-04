@@ -68,9 +68,12 @@ def calendar_page(request):
     if not year:
         from datetime import datetime
         year = datetime.now().year
+    else:
+        year = int(year)
     
-    holidays = Holiday.objects.filter(year=year) if year else []
-    return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year})
+    holidays = Holiday.objects.filter(year=year)
+    years = list(range(2020, 2031))
+    return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year, 'years': years})
 
 
 def ocr_page(request):
