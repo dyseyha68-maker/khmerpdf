@@ -1,47 +1,9 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block title %}Compress PDF - Khmer PDF Tools{% endblock %}
 
 {% block extra_css %}
 <style>
-    .compress-options {
-        margin: 16px 0;
-        padding: 16px;
-        background: #f5f5f5;
-        border-radius: 8px;
-    }
-    .compress-options h3 {
-        font-size: 14px;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 12px;
-    }
-    .compress-options label {
-        display: block;
-        padding: 8px 12px;
-        margin-bottom: 8px;
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 13px;
-    }
-    .compress-options input[type="radio"] {
-        margin-right: 8px;
-    }
-    .options-select {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        font-family: 'Kantumruy Pro', sans-serif;
-        font-size: 14px;
-        margin-bottom: 16px;
-    }
-    .options-select:focus {
-        border-color: #667eea;
-        outline: none;
-    }
     .selected-files {
         max-height: 200px;
         overflow-y: auto;
@@ -93,27 +55,6 @@
             
             <div class="selected-files" id="compressFilesList"></div>
             
-            <div class="compress-options">
-                <h3>
-                    <span class="text-en">Compression Level</span>
-                    <span class="text-kh">កម្រិតនៃការបង្រួម</span>
-                </h3>
-                <select id="compressionLevel" class="options-select">
-                    <option value="extreme">
-                        <span class="text-en">Extreme (Smallest size)</span>
-                        <span class="text-kh">បង្រួមខ្លាំង (ទំហំតូចបំផុត)</span>
-                    </option>
-                    <option value="recommended" selected>
-                        <span class="text-en">Recommended (Balanced)</span>
-                        <span class="text-kh">ណែនាំ (តុល្យភាព)</span>
-                    </option>
-                    <option value="less">
-                        <span class="text-en">Less (Better quality)</span>
-                        <span class="text-kh">តិច (គុណភាព better)</span>
-                    </option>
-                </select>
-            </div>
-            
             <button class="action-btn" id="compressBtn" onclick="compressPdf()" disabled>
                 <span class="text-en">Compress PDF</span>
                 <span class="text-kh">បង្រួម PDF</span>
@@ -122,8 +63,8 @@
         
         <div class="right-panel">
             <div class="instructions" id="instructions">
-                <span class="text-en">👆 Add PDF files to compress. Select compression level and click Compress.</span>
-                <span class="text-kh">👆 បន្ថែមឯកសារ PDF ដើម្បីបង្រួម ជ្រើសរើសកម្រិត ហើយចុច Compress</span>
+                <span class="text-en">👆 Add PDF files and click Compress.</span>
+                <span class="text-kh">👆 បន្ថែមឯកសារ ហើយចុច Compress</span>
             </div>
             
             <div class="right-panel-inner">
@@ -149,777 +90,120 @@
             </div>
         </div>
     </div>
-{% endblock %}
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-size: cover;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            background: rgba(255,255,255,0.95);
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: #333;
-        }
-        .logo-icon { font-size: 28px; }
-        .logo-text {
-            font-size: 22px;
-            font-weight: 700;
-            color: #d32f2f;
-        }
-        .nav-links {
-            display: flex;
-            gap: 8px;
-        }
-        .nav-links a {
-            text-decoration: none;
-            color: #666;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .nav-links a:hover {
-            background: #f5f5f5;
-            color: #d32f2f;
-        }
-        .nav-links a.active {
-            background: #d32f2f;
-            color: white;
-        }
-        .header h1 {
-            font-size: 24px;
-            color: #333;
-        }
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        
-        .lang-btns { display: flex; gap: 8px; }
-        .lang-btn {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: white;
-            border: 2px solid #d32f2f;
-            color: #d32f2f;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .lang-btn.active { background: #d32f2f; color: white; }
-        
-        .back-btn {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: #f5f5f5;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            color: #333;
-        }
-        .back-btn:hover { background: #e0e0e0; }
-        
-        .main-content {
-            flex: 1;
-            padding: 24px;
-            display: flex;
-            gap: 24px;
-        }
-        
-        .left-panel {
-            width: 320px;
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            max-height: calc(100vh - 120px);
-            overflow-y: auto;
-        }
-        
-        .left-panel::-webkit-scrollbar {
-            width: 8px;
-        }
-        .left-panel::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        .left-panel::-webkit-scrollbar-thumb {
-            background: #d32f2f;
-            border-radius: 4px;
-        }
-        
-        .drop-zone {
-            border: 3px dashed #ddd;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 16px;
-        }
-        .drop-zone:hover { border-color: #d32f2f; background: #fff5f5; }
-        .drop-zone-icon { font-size: 32px; margin-bottom: 8px; }
-        
-        .file-list {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 16px;
-        }
-        
-        .file-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 6px;
-            margin-bottom: 8px;
-        }
-        .file-item .file-icon { font-size: 24px; margin-right: 10px; }
-        .file-item .file-name {
-            flex: 1;
-            font-size: 13px;
-            color: #333;
-            word-break: break-all;
-        }
-        .file-item .remove-btn {
-            padding: 4px 8px;
-            background: none;
-            border: none;
-            color: #d32f2f;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .compress-options {
-            margin-bottom: 16px;
-        }
-        .compress-options h3 {
-            font-size: 13px;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        .radio-option {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .radio-option:hover { border-color: #d32f2f; }
-        .radio-option.selected {
-            border-color: #d32f2f;
-            background: #fff5f5;
-        }
-        .radio-option input { display: none; }
-        .radio-option .radio-circle {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #ccc;
-            border-radius: 50%;
-            margin-right: 10px;
-            position: relative;
-        }
-        .radio-option.selected .radio-circle {
-            border-color: #d32f2f;
-        }
-        .radio-option.selected .radio-circle::after {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 8px;
-            height: 8px;
-            background: #d32f2f;
-            border-radius: 50%;
-        }
-        
-        .compress-btn {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-        }
-        .compress-btn:hover { transform: translateY(-2px); }
-        .compress-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-        
-        .right-panel {
-            flex: 1;
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            height: calc(100vh - 140px);
-            overflow: hidden;
-        }
-        
-        .right-panel-inner {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        
-        .right-panel-inner::-webkit-scrollbar {
-            width: 10px;
-        }
-        .right-panel-inner::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 5px;
-        }
-        .right-panel-inner::-webkit-scrollbar-thumb {
-            background: #d32f2f;
-            border-radius: 5px;
-        }
-        
-        .instructions {
-            padding: 12px;
-            background: #ffebee;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #c62828;
-        }
-        
-        .page-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: flex-start;
-            align-content: flex-start;
-            padding: 10px;
-        }
-        
-        .file-thumb {
-            width: 180px;
-            background: white;
-            border: 3px solid #ddd;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .file-thumb:hover { border-color: #d32f2f; transform: scale(1.05); }
-        .file-thumb img {
-            max-width: 140px;
-            max-height: 160px;
-            object-fit: contain;
-            margin-bottom: 8px;
-        }
-        .file-thumb .file-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: #333;
-            text-align: center;
-            word-break: break-all;
-            max-height: 36px;
-            overflow: hidden;
-        }
-        .file-thumb .page-count {
-            font-size: 14px;
-            font-weight: 600;
-            color: #d32f2f;
-            margin-top: 4px;
-        }
-        
-        .text-en, .text-kh { display: none; }
-        body.lang-en .text-en { display: block; }
-        body.lang-kh .text-kh { display: block; }
-        
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-overlay.active { display: flex; }
-        
-        .modal {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .modal h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 20px;
-        }
-        
-        .progress-container {
-            width: 100%;
-            margin: 20px 0;
-        }
-        .progress-bar-bg {
-            width: 100%;
-            height: 20px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #d32f2f, #ff5722);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 10px;
-        }
-        .progress-text {
-            margin-top: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-        .progress-percent {
-            font-size: 28px;
-            color: #d32f2f;
-        }
-        
-        .modal-btn {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: #f5f5f5;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 16px;
-        }
-        
-        @media (max-width: 900px) {
-            .main-content { flex-direction: column; }
-            .left-panel { width: 100%; }
-        }
-    </style>
-</head>
-<body class="lang-kh">
-    <div class="header">
-        <div class="header-left">
-            <a href="/" class="logo">
-                <span class="logo-icon">📄</span>
-                <span class="logo-text">PDF Tools</span>
-            </a>
-            <nav class="nav-links">
-                <a href="/compress/" class="active">
-                    <span class="text-en">Compress</span>
-                    <span class="text-kh">បង្រួម</span>
-                </a>
-                <a href="/merge/">
-                    <span class="text-en">Merge</span>
-                    <span class="text-kh">បញ្ជូល</span>
-                </a>
-                <a href="/pdf-split/">
-                    <span class="text-en">Split</span>
-                    <span class="text-kh">បំបែក</span>
-                </a>
-                <a href="/organize/">
-                    <span class="text-en">Organize</span>
-                    <span class="text-kh">រៀបចំ</span>
-                </a>
-                <a href="/calendar/">
-                    <span class="text-en">Calendar</span>
-                    <span class="text-kh">ប្រតិទិក</span>
-                </a>
-                <a href="/ocr/">
-                    <span class="text-en">OCR</span>
-                    <span class="text-kh">OCR</span>
-                </a>
-            </nav>
-        </div>
-        <div class="header-actions">
-            <div class="lang-btns">
-                <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
-                <button class="lang-btn" id="langKh" onclick="setLang('kh')">KH</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="main-content">
-        <div class="left-panel">
-            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                <div class="drop-zone-icon">📄</div>
-                <p>
-                    <span class="text-en">Select PDF files or drop here</span>
-                    <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
-                </p>
-                <input type="file" id="fileInput" accept=".pdf" multiple style="display:none" onchange="addFiles()">
-            </div>
-            
-            <div class="file-list" id="fileList"></div>
-            
-            <div class="compress-options">
-                <h3>
-                    <span class="text-en">Compression Level</span>
-                    <span class="text-kh">កម្រិតបង្រួម</span>
-                </h3>
-                
-                <label class="radio-option selected" onclick="selectCompression(this, 'extreme')">
-                    <input type="radio" name="compression" value="extreme" checked>
-                    <span class="radio-circle"></span>
-                    <div>
-                        <strong>
-                            <span class="text-en">Extreme</span>
-                            <span class="text-kh">ខ្លាំងបំផុត</span>
-                        </strong>
-                        <div style="font-size:11px;color:#666;">
-                            <span class="text-en">~70-90% smaller</span>
-                            <span class="text-kh">~70-90% តូចជាង</span>
-                        </div>
-                        <div id="extreme-size" style="font-size:10px;color:#d32f2f;display:none;">
-                            <span class="text-en">Est: </span>
-                            <span class="text-kh">ប៉ាន់ស្មារ: </span>
-                            <span id="extreme-size-val">-</span>
-                        </div>
-                    </div>
-                </label>
-                
-                <label class="radio-option" onclick="selectCompression(this, 'recommended')">
-                    <input type="radio" name="compression" value="recommended">
-                    <span class="radio-circle"></span>
-                    <div>
-                        <strong>
-                            <span class="text-en">Recommended</span>
-                            <span class="text-kh">ណែនាំ</span>
-                        </strong>
-                        <div style="font-size:11px;color:#666;">
-                            <span class="text-en">~40-60% smaller</span>
-                            <span class="text-kh">~40-60% តូចជាង</span>
-                        </div>
-                        <div id="recommended-size" style="font-size:10px;color:#d32f2f;display:none;">
-                            <span class="text-en">Est: </span>
-                            <span class="text-kh">ប៉ាន់ស្មារ: </span>
-                            <span id="recommended-size-val">-</span>
-                        </div>
-                    </div>
-                </label>
-                
-                <label class="radio-option" onclick="selectCompression(this, 'less')">
-                    <input type="radio" name="compression" value="less">
-                    <span class="radio-circle"></span>
-                    <div>
-                        <strong>
-                            <span class="text-en">Less</span>
-                            <span class="text-kh">តិច</span>
-                        </strong>
-                        <div style="font-size:11px;color:#666;">
-                            <span class="text-en">~20-40% smaller</span>
-                            <span class="text-kh">~20-40% តូចជាង</span>
-                        </div>
-                        <div id="less-size" style="font-size:10px;color:#d32f2f;display:none;">
-                            <span class="text-en">Est: </span>
-                            <span class="text-kh">ប៉ាន់ស្មារ: </span>
-                            <span id="less-size-val">-</span>
-                        </div>
-                    </div>
-                </label>
-            </div>
-            
-            <button class="compress-btn" id="compressBtn" disabled onclick="compressPdf()">
-                <span class="text-en">Compress PDF</span>
-                <span class="text-kh">បង្រួម PDF</span>
-            </button>
-        </div>
-        
-        <div class="right-panel">
-            <div class="instructions" id="instructions">
-                <span class="text-en">👆 Add PDF files to compress. Click Compress to reduce file size.</span>
-                <span class="text-kh">👆 បន្ថែមឯកសារ PDF ដើម្បីបង្រួម ចុច Compress ដើម្បីបង្រួមទំហំឯកសារ</span>
-            </div>
-            
-            <div class="right-panel-inner">
-                <div class="page-grid" id="pageGrid"></div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h2>
-                <span class="text-en">Compressing PDF...</span>
-                <span class="text-kh">កំពុងបង្រួម PDF...</span>
-            </h2>
-            
-            <div class="progress-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar" id="modalProgressBar"></div>
-                </div>
-                <div class="progress-text">
-                    <span class="progress-percent" id="modalPercent">0</span>%
-                </div>
-            </div>
-            
-            <button class="modal-btn" onclick="cancelCompress()">
-                <span class="text-en">Cancel</span>
-                <span class="text-kh">បោះបង់</span>
-            </button>
-        </div>
-    </div>
-    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
     <script>
-        function setLang(lang) {
-            if (lang === 'kh') {
-                document.body.className = 'lang-kh';
-                document.getElementById('langKh').classList.add('active');
-                document.getElementById('langEn').classList.remove('active');
-            } else {
-                document.body.className = 'lang-en';
-                document.getElementById('langEn').classList.add('active');
-                document.getElementById('langKh').classList.remove('active');
-            }
-            localStorage.setItem('pdf_lang', lang);
-        }
+        let currentFiles = [];
+        let pdfDoc = null;
         
-        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
-        setLang(savedLang);
-        
-        let files = [];
-        let compressionLevel = 'extreme';
-        
-        const dropZone = document.getElementById('dropZone');
-        
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#d32f2f';
-            dropZone.style.background = '#fff5f5';
-        });
-        
-        dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#ddd';
-            dropZone.style.background = 'white';
-        });
-        
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#ddd';
-            dropZone.style.background = 'white';
-            handleFiles(e.dataTransfer.files);
-        });
-        
-        function handleFiles(fileList) {
-            for (let i = 0; i < fileList.length; i++) {
-                const file = fileList[i];
-                if (file.type === 'application/pdf') {
-                    files.push(file);
-                }
+        function compressSelectFile() {
+            const input = document.getElementById('fileInput');
+            for (let i = 0; i < input.files.length; i++) {
+                currentFiles.push(input.files[i]);
             }
             renderFileList();
-            document.getElementById('compressBtn').disabled = files.length === 0;
-        }
-        
-        function addFiles() {
-            const input = document.getElementById('fileInput');
-            handleFiles(input.files);
-            input.value = '';
+            loadPdfPreview();
         }
         
         function renderFileList() {
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            files.forEach((file, index) => {
-                const item = document.createElement('div');
-                item.className = 'file-item';
-                item.innerHTML = `
-                    <span class="file-icon">📄</span>
-                    <span class="file-name">${file.name}</span>
-                    <button class="remove-btn" onclick="removeFile(${index})">×</button>
+            const list = document.getElementById('compressFilesList');
+            list.innerHTML = '';
+            currentFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'selected-file';
+                div.innerHTML = `
+                    <span class="selected-file-name">${file.name} (${(file.size/1024/1024).toFixed(2)} MB)</span>
+                    <button class="selected-file-remove" onclick="removeFile(${index})">×</button>
                 `;
-                fileList.appendChild(item);
+                list.appendChild(div);
             });
-            renderPreview();
-            estimateFileSizes();
-        }
-        
-        function estimateFileSizes() {
-            if (files.length === 0) {
-                document.getElementById('extreme-size').style.display = 'none';
-                document.getElementById('recommended-size').style.display = 'none';
-                document.getElementById('less-size').style.display = 'none';
-                return;
-            }
-            
-            const fileSize = files[0].size;
-            
-            // Estimated compression ratios based on Ghostscript presets
-            const ratios = {
-                extreme: 0.15,   // ~85% smaller
-                recommended: 0.40, // ~60% smaller  
-                less: 0.65       // ~35% smaller
-            };
-            
-            const formatSize = (bytes) => {
-                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-                return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-            };
-            
-            document.getElementById('extreme-size').style.display = 'block';
-            document.getElementById('recommended-size').style.display = 'block';
-            document.getElementById('less-size').style.display = 'block';
-            
-            document.getElementById('extreme-size-val').textContent = formatSize(fileSize * ratios.extreme);
-            document.getElementById('recommended-size-val').textContent = formatSize(fileSize * ratios.recommended);
-            document.getElementById('less-size-val').textContent = formatSize(fileSize * ratios.less);
+            document.getElementById('compressBtn').disabled = currentFiles.length === 0;
         }
         
         function removeFile(index) {
-            files.splice(index, 1);
+            currentFiles.splice(index, 1);
             renderFileList();
-            document.getElementById('compressBtn').disabled = files.length === 0;
+            loadPdfPreview();
         }
         
-        async function renderPreview() {
-            const grid = document.getElementById('pageGrid');
-            grid.innerHTML = '';
+        async function loadPdfPreview() {
+            if (currentFiles.length === 0) return;
+            const file = currentFiles[0];
+            const arrayBuffer = await file.arrayBuffer();
+            pdfDoc = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
             
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                const totalPages = pdf.numPages;
-                
-                const page = await pdf.getPage(1);
-                const viewport = page.getViewport({ scale: 0.4 });
-                
+            const pageGrid = document.getElementById('pageGrid');
+            pageGrid.innerHTML = '';
+            
+            const totalPages = pdfDoc.numPages;
+            document.getElementById('instructions').innerHTML = `<span class="text-en">📄 ${file.name} - ${totalPages} pages</span><span class="text-kh">📄 ${file.name} - ${totalPages} ទំព័រ</span>`;
+            
+            for (let i = 1; i <= Math.min(totalPages, 50); i++) {
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({scale: 0.5});
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
+                await page.render({canvasContext: context, viewport: viewport}).promise;
                 
-                await page.render({ canvasContext: context, viewport: viewport }).promise;
-                
-                const fileThumb = document.createElement('div');
-                fileThumb.className = 'file-thumb';
-                fileThumb.onclick = () => removeFile(i);
-                fileThumb.title = 'Click to remove';
-                
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL();
-                
-                const name = document.createElement('div');
-                name.className = 'file-name';
-                name.textContent = file.name;
-                
-                const count = document.createElement('div');
-                count.className = 'page-count';
-                count.textContent = totalPages + ' ' + (totalPages > 1 ? 
-                    (document.body.classList.contains('lang-kh') ? 'ទំព័រ' : 'pages') : 
-                    (document.body.classList.contains('lang-kh') ? 'ទំព័រ' : 'page'));
-                
-                fileThumb.appendChild(img);
-                fileThumb.appendChild(name);
-                fileThumb.appendChild(count);
-                grid.appendChild(fileThumb);
+                const div = document.createElement('div');
+                div.className = 'page-item';
+                div.innerHTML = `<img src="${canvas.toDataURL()}"><span class="page-num">Page ${i}</span>`;
+                pageGrid.appendChild(div);
             }
         }
         
-        function selectCompression(el, level) {
-            document.querySelectorAll('.compress-options .radio-option').forEach(opt => opt.classList.remove('selected'));
-            el.classList.add('selected');
-            compressionLevel = level;
-            estimateFileSizes();
+        function showModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+            let progress = 0;
+            const progressBar = document.getElementById('modalProgressBar');
+            const percentEl = document.getElementById('modalPercent');
+            const interval = setInterval(() => {
+                progress += Math.random() * 15 + 5;
+                if (progress > 95) progress = 95;
+                progressBar.style.width = progress + '%';
+                percentEl.textContent = Math.round(progress);
+            }, 300);
+            return interval;
+        }
+        
+        function hideModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.getElementById('modalProgressBar').style.width = '0%';
+            document.getElementById('modalPercent').textContent = '0';
         }
         
         function compressPdf() {
-            if (files.length === 0) {
-                alert('Please add at least 1 PDF file');
-                return;
-            }
-            
-            const fd = new FormData();
-            files.forEach(f => fd.append('files', f));
-            fd.append('compression_level', compressionLevel);
-            
+            if (currentFiles.length === 0) return;
             const btn = document.getElementById('compressBtn');
             btn.disabled = true;
-            
             const modalInterval = showModal();
             
-            fetch('/api/compress/', { 
-                method: 'POST', 
-                body: fd
-            })
-                .then(r => {
-                    if (!r.ok) {
-                        return r.json().then(err => { throw new Error(err.error || 'Upload failed'); });
-                    }
-                    return r.json();
-                })
+            const fd = new FormData();
+            currentFiles.forEach(f => fd.append('files', f));
+            fd.append('compression_level', 'recommended');
+            
+            fetch('/api/compress/', { method: 'POST', body: fd })
+                .then(r => r.json())
                 .then(d => {
                     if (d.job_id) {
-                        checkJobStatus(d.job_id, modalInterval);
+                        checkJobStatus(d.job_id, modalInterval, btn);
                     } else {
-                        alert(d.error || 'Error: ' + JSON.stringify(d));
+                        alert(d.error || 'Error');
                         btn.disabled = false;
                         hideModal();
                     }
                 })
                 .catch(e => {
-                    console.error('Compress error:', e);
-                    let msg = e.message || 'Unknown error';
-                    if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch')) {
-                        msg = 'Upload timed out. Large files (>200MB) may take several minutes. Please try again or use a smaller file.';
-                    }
-                    alert('Error: ' + msg);
+                    alert('Error: ' + e.message);
                     btn.disabled = false;
                     hideModal();
                 });
         }
         
-        function checkJobStatus(jobId, modalInterval) {
+        function checkJobStatus(jobId, modalInterval, btn) {
             const interval = setInterval(() => {
                 fetch('/api/job/' + jobId + '/')
                     .then(r => r.json())
@@ -934,47 +218,10 @@
                             clearInterval(modalInterval);
                             hideModal();
                             alert('Error: ' + (job.error || 'Processing failed'));
-                            document.getElementById('compressBtn').disabled = false;
+                            btn.disabled = false;
                         }
                     });
-            }, 1000);
-        }
-        
-        function showModal() {
-            document.getElementById('modalOverlay').classList.add('active');
-            let progress = 0;
-            const progressBar = document.getElementById('modalProgressBar');
-            const percentEl = document.getElementById('modalPercent');
-            
-            // For large files, show uploading progress first
-            const isLargeFile = files.length > 0 && files[0].size > 50 * 1024 * 1024;
-            
-            const modalInterval = setInterval(() => {
-                if (progress < 30) {
-                    // Uploading phase - slow progress
-                    progress += Math.random() * 2 + 0.5;
-                } else if (progress < 95) {
-                    // Processing phase
-                    progress += Math.random() * 5 + 1;
-                }
-                if (progress > 95) progress = 95;
-                progressBar.style.width = progress + '%';
-                percentEl.textContent = Math.round(progress);
-            }, 500);
-            
-            return modalInterval;
-        }
-        
-        function hideModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-            document.getElementById('modalProgressBar').style.width = '0%';
-            document.getElementById('modalPercent').textContent = '0';
-        }
-        
-        function cancelCompress() {
-            hideModal();
-            document.getElementById('compressBtn').disabled = false;
+            }, 2000);
         }
     </script>
-</body>
-</html>
+{% endblock %}
