@@ -1,721 +1,403 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merge PDF - Free Online PDF Merger</title>
-    <meta name="description" content="Merge multiple PDF files into one. Free online PDF merger. Combine PDFs easily with Khmer PDF tools.">
-    <meta name="keywords" content="merge PDF, combine PDF, join PDF, merge multiple PDFs, free PDF tools, online PDF merger">
-    <meta property="og:title" content="Merge PDF - Free Online PDF Merger">
-    <meta property="og:description" content="Merge multiple PDF files into one. Free online PDF merger.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://khmerpdf-production.up.railway.app/merge/">
-    <meta property="og:image" content="/static/preview.jpg">
-    <meta name="twitter:card" content="summary_large_image">
-    <link rel="canonical" href="https://khmerpdf-production.up.railway.app/merge/">
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-    {% load static %}
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-size: cover;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            background: rgba(255,255,255,0.95);
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: #333;
-        }
-        .logo-icon { font-size: 28px; }
-        .logo-text {
-            font-size: 22px;
-            font-weight: 700;
-            color: #667eea;
-        }
-        .nav-links {
-            display: flex;
-            gap: 8px;
-        }
-        .nav-links a {
-            text-decoration: none;
-            color: #666;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .nav-links a:hover {
-            background: #f5f5f5;
-            color: #667eea;
-        }
-        .nav-links a.active {
-            background: #667eea;
-            color: white;
-        }
-        .header h1 {
-            font-size: 24px;
-            color: #333;
-        }
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        
-        .lang-btns { display: flex; gap: 8px; }
-        .lang-btn {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .lang-btn.active { background: #667eea; color: white; }
-        
-        .back-btn {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: #f5f5f5;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            color: #333;
-        }
-        .back-btn:hover { background: #e0e0e0; }
-        
-        .main-content {
-            flex: 1;
-            padding: 24px;
-            display: flex;
-            gap: 24px;
-        }
-        
-        .left-panel {
-            width: 320px;
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            max-height: calc(100vh - 120px);
-            overflow-y: auto;
-        }
-        
-        .left-panel::-webkit-scrollbar {
-            width: 8px;
-        }
-        .left-panel::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        .left-panel::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 4px;
-        }
-        
-        .drop-zone {
-            border: 3px dashed #ddd;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 16px;
-        }
-        .drop-zone:hover { border-color: #667eea; background: #f0f0ff; }
-        .drop-zone-icon { font-size: 32px; margin-bottom: 8px; }
-        
-        .drop-zone-small {
-            border: 2px dashed #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 12px;
-        }
-        .drop-zone-small:hover { border-color: #667eea; background: #f0f0ff; }
-        
-        .file-list {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 16px;
-        }
-        
-        .file-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            cursor: move;
-            transition: all 0.2s;
-        }
-        .file-item:hover { background: #e8e8f0; }
-        .file-item.dragging { opacity: 0.5; }
-        .file-item .file-icon { font-size: 24px; margin-right: 10px; }
-        .file-item .file-name {
-            flex: 1;
-            font-size: 13px;
-            color: #333;
-            word-break: break-all;
-        }
-        .file-item .remove-btn {
-            padding: 4px 8px;
-            background: none;
-            border: none;
-            color: #d32f2f;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .merge-btn {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-        }
-        .merge-btn:hover { transform: translateY(-2px); }
-        .merge-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-        
-        .right-panel {
-            flex: 1;
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            height: calc(100vh - 140px);
-            overflow: hidden;
-        }
-        
-        .right-panel-inner {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        
-        .right-panel-inner::-webkit-scrollbar {
-            width: 10px;
-        }
-        .right-panel-inner::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 5px;
-        }
-        .right-panel-inner::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 5px;
-        }
-        
-        .instructions {
-            padding: 12px;
-            background: #e3f2fd;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #1565c0;
-        }
-        
-        .selection-info {
-            padding: 12px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            text-align: center;
-            font-size: 14px;
-            color: #666;
-        }
-        .selection-info strong { color: #667eea; }
-        
-        .page-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: flex-start;
-            align-content: flex-start;
-            padding: 10px;
-        }
-        
-        .page-item {
-            width: 180px;
-            height: 240px;
-            background: white;
-            border: 3px solid #ddd;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            padding: 12px;
-        }
-        .page-item:hover {
-            border-color: #667eea;
-            transform: scale(1.02);
-        }
-        .page-item.selected {
-            border-color: #667eea;
-            background: #f0f0ff;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        .page-item.selected::after {
-            content: '✓';
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: #667eea;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .page-item img {
-            max-width: 150px;
-            max-height: 180px;
-            object-fit: contain;
-            margin-bottom: 8px;
-        }
-        .page-item .page-num {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .text-en, .text-kh { display: none; }
-        body.lang-en .text-en { display: block; }
-        body.lang-kh .text-kh { display: block; }
-        
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-overlay.active { display: flex; }
-        
-        .modal {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .modal h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 20px;
-        }
-        
-        .progress-container {
-            width: 100%;
-            margin: 20px 0;
-        }
-        .progress-bar-bg {
-            width: 100%;
-            height: 20px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 10px;
-        }
-        .progress-text {
-            margin-top: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-        .progress-percent {
-            font-size: 28px;
-            color: #667eea;
-        }
-        
-        @media (max-width: 900px) {
-            .main-content { flex-direction: column; }
-            .left-panel { width: 100%; }
-            .page-item { width: 140px; height: 190px; }
-            .page-item img { max-width: 110px; max-height: 140px; }
-        }
-    </style>
-</head>
-<body class="lang-kh">
-    <div class="header">
-        <div class="header-left">
-            <a href="/" class="logo">
-                <span class="logo-icon">📄</span>
-                <span class="logo-text">PDF Tools</span>
-            </a>
-            <nav class="nav-links">
-                <a href="/compress/">
-                    <span class="text-en">Compress</span>
-                    <span class="text-kh">បង្រួម</span>
-                </a>
-                <a href="/merge/" class="active">
-                    <span class="text-en">Merge</span>
-                    <span class="text-kh">បញ្ជូល</span>
-                </a>
-                <a href="/pdf-split/">
-                    <span class="text-en">Split</span>
-                    <span class="text-kh">បំបែក</span>
-                </a>
-                <a href="/organize/">
-                    <span class="text-en">Organize</span>
-                    <span class="text-kh">រៀបចំ</span>
-                </a>
-                <a href="/calendar/">
-                    <span class="text-en">Calendar</span>
-                    <span class="text-kh">ប្រតិទិក</span>
-                </a>
-                <a href="/ocr/">
-                    <span class="text-en">OCR</span>
-                    <span class="text-kh">OCR</span>
-                </a>
-            </nav>
+{% extends 'base.html' %}
+
+{% block title %}Merge PDF - Free Online PDF Merger{% endblock %}
+
+{% block extra_css %}
+<style>
+    .drop-zone-small {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: 12px;
+    }
+    .drop-zone-small:hover { border-color: #667eea; background: #f0f0ff; }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: #f5f5f5;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        cursor: move;
+        transition: all 0.2s;
+    }
+    .file-item:hover { background: #e8e8f0; }
+    .file-item.dragging { opacity: 0.5; }
+    .file-item .file-icon { font-size: 24px; margin-right: 10px; }
+    .file-item .file-name {
+        flex: 1;
+        font-size: 13px;
+        color: #333;
+        word-break: break-all;
+    }
+    .file-item .remove-btn {
+        padding: 4px 8px;
+        background: none;
+        border: none;
+        color: #d32f2f;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .merge-btn {
+        font-family: 'Kantumruy Pro', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+    }
+    .merge-btn:hover { transform: translateY(-2px); }
+    .merge-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+    .selection-info {
+        padding: 12px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+    }
+    .selection-info strong { color: #667eea; }
+
+    .page-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: flex-start;
+        align-content: flex-start;
+        padding: 10px;
+    }
+
+    .page-item {
+        width: 180px;
+        height: 240px;
+        background: white;
+        border: 3px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        padding: 12px;
+    }
+    .page-item:hover {
+        border-color: #667eea;
+        transform: scale(1.02);
+    }
+    .page-item.selected {
+        border-color: #667eea;
+        background: #f0f0ff;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    .page-item.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #667eea;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .page-item img {
+        max-width: 150px;
+        max-height: 180px;
+        object-fit: contain;
+        margin-bottom: 8px;
+    }
+    .page-item .page-num {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    @media (max-width: 900px) {
+        .page-item { width: 140px; height: 190px; }
+        .page-item img { max-width: 110px; max-height: 140px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<div class="main-content">
+    <div class="left-panel">
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <div class="drop-zone-icon">📄</div>
+            <p>
+                <span class="text-en">Select PDF files or drop here</span>
+                <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
+            </p>
+            <input type="file" id="fileInput" accept=".pdf" multiple style="display:none" onchange="addFiles()">
         </div>
-        <div class="header-actions">
-            <div class="lang-btns">
-                <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
-                <button class="lang-btn" id="langKh" onclick="setLang('kh')">KH</button>
+        
+        <div class="file-list" id="fileList"></div>
+        
+        <button class="merge-btn" id="mergeBtn" disabled onclick="mergePdf()">
+            <span class="text-en">Merge PDF</span>
+            <span class="text-kh">បញ្ជូល PDF</span>
+        </button>
+    </div>
+    
+    <div class="right-panel">
+        <div class="instructions" id="instructions">
+            <span class="text-en">👆 Add PDF files to merge. Click Merge to combine them.</span>
+            <span class="text-kh">👆 បន្ថែមឯកសារ PDF ដើម្បីបញ្ជូល ចុច Merge ដើម្បីបញ្ជូលគ្នា</span>
+        </div>
+        
+        <div class="right-panel-inner">
+            <div class="page-grid" id="pageGrid"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h2>
+            <span class="text-en">Merging PDF files...</span>
+            <span class="text-kh">កំពុងបញ្ជូល PDF...</span>
+        </h2>
+        
+        <div class="progress-container">
+            <div class="progress-bar-bg">
+                <div class="progress-bar" id="modalProgressBar"></div>
+            </div>
+            <div class="progress-text">
+                <span class="progress-percent" id="modalPercent">0</span>%
             </div>
         </div>
     </div>
+</div>
+
+<script>
+    let files = [];
     
-    <div class="main-content">
-        <div class="left-panel">
-            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                <div class="drop-zone-icon">📄</div>
-                <p>
-                    <span class="text-en">Select PDF files or drop here</span>
-                    <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
-                </p>
-                <input type="file" id="fileInput" accept=".pdf" multiple style="display:none" onchange="addFiles()">
-            </div>
-            
-            <div class="file-list" id="fileList"></div>
-            
-            <button class="merge-btn" id="mergeBtn" disabled onclick="mergePdf()">
-                <span class="text-en">Merge PDF</span>
-                <span class="text-kh">បញ្ជូល PDF</span>
-            </button>
-        </div>
-        
-        <div class="right-panel">
-            <div class="instructions" id="instructions">
-                <span class="text-en">👆 Add PDF files to merge. Click Merge to combine them.</span>
-                <span class="text-kh">👆 បន្ថែមឯកសារ PDF ដើម្បីបញ្ជូល ចុច Merge ដើម្បីបញ្ជូលគ្នា</span>
-            </div>
-            
-            <div class="right-panel-inner">
-                <div class="page-grid" id="pageGrid"></div>
-            </div>
-        </div>
-    </div>
+    const dropZone = document.getElementById('dropZone');
     
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h2>
-                <span class="text-en">Merging PDF files...</span>
-                <span class="text-kh">កំពុងបញ្ជូល PDF...</span>
-            </h2>
-            
-            <div class="progress-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar" id="modalProgressBar"></div>
-                </div>
-                <div class="progress-text">
-                    <span class="progress-percent" id="modalPercent">0</span>%
-                </div>
-            </div>
-        </div>
-    </div>
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#667eea';
+        dropZone.style.background = '#f0f0ff';
+    });
     
-    <script>
-        function setLang(lang) {
-            if (lang === 'kh') {
-                document.body.className = 'lang-kh';
-                document.getElementById('langKh').classList.add('active');
-                document.getElementById('langEn').classList.remove('active');
-            } else {
-                document.body.className = 'lang-en';
-                document.getElementById('langEn').classList.add('active');
-                document.getElementById('langKh').classList.remove('active');
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#ddd';
+        dropZone.style.background = 'white';
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#ddd';
+        dropZone.style.background = 'white';
+        handleFiles(e.dataTransfer.files);
+    });
+    
+    function handleFiles(fileList) {
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+            if (file.type === 'application/pdf') {
+                files.push(file);
             }
-            localStorage.setItem('pdf_lang', lang);
         }
-        
-        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
-        setLang(savedLang);
-        
-        let files = [];
-        
-        const dropZone = document.getElementById('dropZone');
-        
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#667eea';
-            dropZone.style.background = '#f0f0ff';
-        });
-        
-        dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#ddd';
-            dropZone.style.background = 'white';
-        });
-        
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#ddd';
-            dropZone.style.background = 'white';
-            handleFiles(e.dataTransfer.files);
-        });
-        
-        function handleFiles(fileList) {
-            for (let i = 0; i < fileList.length; i++) {
-                const file = fileList[i];
-                if (file.type === 'application/pdf') {
-                    files.push(file);
-                }
-            }
-            renderFileList();
-            document.getElementById('mergeBtn').disabled = files.length === 0;
-        }
-        
-        function addFiles() {
-            const input = document.getElementById('fileInput');
-            handleFiles(input.files);
-            input.value = '';
-        }
-        
-        function renderFileList() {
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            files.forEach((file, index) => {
-                const item = document.createElement('div');
-                item.className = 'file-item';
-                item.draggable = true;
-                item.dataset.index = index;
-                item.innerHTML = `
-                    <span class="file-icon">📄</span>
-                    <span class="file-name">${file.name}</span>
-                    <button class="remove-btn" onclick="removeFile(${index})">×</button>
-                `;
-                
-                item.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', index);
-                    item.classList.add('dragging');
-                });
-                
-                item.addEventListener('dragend', () => {
-                    item.classList.remove('dragging');
-                });
-                
-                item.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                });
-                
-                item.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-                    const toIndex = index;
-                    if (fromIndex !== toIndex) {
-                        const [removed] = files.splice(fromIndex, 1);
-                        files.splice(toIndex, 0, removed);
-                        renderFileList();
-                        renderPreview();
-                    }
-                });
-                
-                fileList.appendChild(item);
+        renderFileList();
+        document.getElementById('mergeBtn').disabled = files.length === 0;
+    }
+    
+    function addFiles() {
+        const input = document.getElementById('fileInput');
+        handleFiles(input.files);
+        input.value = '';
+    }
+    
+    function renderFileList() {
+        const fileList = document.getElementById('fileList');
+        fileList.innerHTML = '';
+        files.forEach((file, index) => {
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            item.draggable = true;
+            item.dataset.index = index;
+            item.innerHTML = `
+                <span class="file-icon">📄</span>
+                <span class="file-name">${file.name}</span>
+                <button class="remove-btn" onclick="removeFile(${index})">×</button>
+            `;
+            
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', index);
+                item.classList.add('dragging');
             });
-            renderPreview();
-        }
-        
-        function removeFile(index) {
-            files.splice(index, 1);
-            renderFileList();
-            document.getElementById('mergeBtn').disabled = files.length === 0;
-        }
-        
-        async function renderPreview() {
-            const grid = document.getElementById('pageGrid');
-            grid.innerHTML = '';
             
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                const totalPages = pdf.numPages;
-                
-                for (let pageNum = 1; pageNum <= Math.min(totalPages, 3); pageNum++) {
-                    const page = await pdf.getPage(pageNum);
-                    const viewport = page.getViewport({ scale: 0.3 });
-                    
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    
-                    await page.render({ canvasContext: context, viewport: viewport }).promise;
-                    
-                    const pageItem = document.createElement('div');
-                    pageItem.className = 'page-item';
-                    
-                    const img = document.createElement('img');
-                    img.src = canvas.toDataURL();
-                    
-                    const pageNumEl = document.createElement('div');
-                    pageNumEl.className = 'page-num';
-                    pageNumEl.textContent = (i + 1) + '-' + pageNum;
-                    
-                    pageItem.appendChild(img);
-                    pageItem.appendChild(pageNumEl);
-                    grid.appendChild(pageItem);
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+            });
+            
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            
+            item.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                const toIndex = index;
+                if (fromIndex !== toIndex) {
+                    const [removed] = files.splice(fromIndex, 1);
+                    files.splice(toIndex, 0, removed);
+                    renderFileList();
+                    renderPreview();
                 }
+            });
+            
+            fileList.appendChild(item);
+        });
+        renderPreview();
+    }
+    
+    function removeFile(index) {
+        files.splice(index, 1);
+        renderFileList();
+        document.getElementById('mergeBtn').disabled = files.length === 0;
+    }
+    
+    async function renderPreview() {
+        const grid = document.getElementById('pageGrid');
+        grid.innerHTML = '';
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const totalPages = pdf.numPages;
+            
+            for (let pageNum = 1; pageNum <= Math.min(totalPages, 3); pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 0.3 });
                 
-                if (totalPages > 3) {
-                    const moreItem = document.createElement('div');
-                    moreItem.className = 'page-item';
-                    moreItem.innerHTML = `<div class="page-num" style="font-size:12px;color:#666;">+${totalPages - 3} more</div>`;
-                    grid.appendChild(moreItem);
-                }
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                
+                const pageItem = document.createElement('div');
+                pageItem.className = 'page-item';
+                
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL();
+                
+                const pageNumEl = document.createElement('div');
+                pageNumEl.className = 'page-num';
+                pageNumEl.textContent = (i + 1) + '-' + pageNum;
+                
+                pageItem.appendChild(img);
+                pageItem.appendChild(pageNumEl);
+                grid.appendChild(pageItem);
+            }
+            
+            if (totalPages > 3) {
+                const moreItem = document.createElement('div');
+                moreItem.className = 'page-item';
+                moreItem.innerHTML = `<div class="page-num" style="font-size:12px;color:#666;">+${totalPages - 3} more</div>`;
+                grid.appendChild(moreItem);
             }
         }
+    }
+    
+    function mergePdf() {
+        if (files.length === 0) {
+            alert('Please add at least 1 PDF file');
+            return;
+        }
         
-        function mergePdf() {
-            if (files.length === 0) {
-                alert('Please add at least 1 PDF file');
-                return;
-            }
-            
-            const fd = new FormData();
-            files.forEach(f => fd.append('files', f));
-            
-            const btn = document.getElementById('mergeBtn');
-            btn.disabled = true;
-            
-            const modalInterval = showModal();
-            
-            fetch('/api/merge/', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.job_id) {
-                        checkJobStatus(d.job_id, modalInterval);
-                    } else {
-                        alert(d.error || 'Error');
-                        btn.disabled = false;
-                        hideModal();
-                    }
-                })
-                .catch(e => {
-                    alert('Error: ' + e.message);
+        const fd = new FormData();
+        files.forEach(f => fd.append('files', f));
+        
+        const btn = document.getElementById('mergeBtn');
+        btn.disabled = true;
+        
+        const modalInterval = showModal();
+        
+        fetch('/api/merge/', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(d => {
+                if (d.job_id) {
+                    checkJobStatus(d.job_id, modalInterval);
+                } else {
+                    alert(d.error || 'Error');
                     btn.disabled = false;
                     hideModal();
+                }
+            })
+            .catch(e => {
+                alert('Error: ' + e.message);
+                btn.disabled = false;
+                hideModal();
+            });
+    }
+    
+    function checkJobStatus(jobId, modalInterval) {
+        const interval = setInterval(() => {
+            fetch('/api/job/' + jobId + '/')
+                .then(r => r.json())
+                .then(job => {
+                    if (job.status === 'done') {
+                        clearInterval(interval);
+                        clearInterval(modalInterval);
+                        hideModal();
+                        window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
+                    } else if (job.status === 'failed') {
+                        clearInterval(interval);
+                        clearInterval(modalInterval);
+                        hideModal();
+                        alert('Error: ' + (job.error || 'Processing failed'));
+                        document.getElementById('mergeBtn').disabled = false;
+                    }
                 });
-        }
+        }, 1000);
+    }
+    
+    function showModal() {
+        document.getElementById('modalOverlay').classList.add('active');
+        let progress = 0;
+        const progressBar = document.getElementById('modalProgressBar');
+        const percentEl = document.getElementById('modalPercent');
         
-        function checkJobStatus(jobId, modalInterval) {
-            const interval = setInterval(() => {
-                fetch('/api/job/' + jobId + '/')
-                    .then(r => r.json())
-                    .then(job => {
-                        if (job.status === 'done') {
-                            clearInterval(interval);
-                            clearInterval(modalInterval);
-                            hideModal();
-                            window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
-                        } else if (job.status === 'failed') {
-                            clearInterval(interval);
-                            clearInterval(modalInterval);
-                            hideModal();
-                            alert('Error: ' + (job.error || 'Processing failed'));
-                            document.getElementById('mergeBtn').disabled = false;
-                        }
-                    });
-            }, 1000);
-        }
+        const modalInterval = setInterval(() => {
+            progress += Math.random() * 8 + 2;
+            if (progress > 90) progress = 90;
+            progressBar.style.width = progress + '%';
+            percentEl.textContent = Math.round(progress);
+        }, 300);
         
-        function showModal() {
-            document.getElementById('modalOverlay').classList.add('active');
-            let progress = 0;
-            const progressBar = document.getElementById('modalProgressBar');
-            const percentEl = document.getElementById('modalPercent');
-            
-            const modalInterval = setInterval(() => {
-                progress += Math.random() * 8 + 2;
-                if (progress > 90) progress = 90;
-                progressBar.style.width = progress + '%';
-                percentEl.textContent = Math.round(progress);
-            }, 300);
-            
-            return modalInterval;
-        }
-        
-        function hideModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-            document.getElementById('modalProgressBar').style.width = '0%';
-            document.getElementById('modalPercent').textContent = '0';
-        }
-    </script>
-</body>
-</html>
+        return modalInterval;
+    }
+    
+    function hideModal() {
+        document.getElementById('modalOverlay').classList.remove('active');
+        document.getElementById('modalProgressBar').style.width = '0%';
+        document.getElementById('modalPercent').textContent = '0';
+    }
+</script>
+{% endblock %}
