@@ -11,7 +11,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Job
+from .models import Job, Holiday
+from django.db import models
 from .tasks import compress_pdf, merge_pdf, split_pdf, organize_pdf
 
 
@@ -71,7 +72,10 @@ def calendar_page(request):
     else:
         year = int(year)
     
-    holidays = Holiday.objects.filter(year=year)
+    holidays = Holiday.objects.filter(
+        models.Q(year=year) | models.Q(year__isnull=True),
+        is_public=True
+    )
     years = list(range(2020, 2031))
     return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year, 'years': years})
 
