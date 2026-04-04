@@ -63,7 +63,14 @@ def organize_page(request):
 
 
 def calendar_page(request):
-    return render(request, 'calendar.html')
+    from .models import Holiday
+    year = request.GET.get('year')
+    if not year:
+        from datetime import datetime
+        year = datetime.now().year
+    
+    holidays = Holiday.objects.filter(year=year) if year else []
+    return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year})
 
 
 def ocr_page(request):

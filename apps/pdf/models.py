@@ -15,6 +15,22 @@ def pdf_processed_path(instance, filename):
     return os.path.join('processed', filename)
 
 
+class Holiday(models.Model):
+    name_en = models.CharField(max_length=200, blank=True, null=True)
+    name_kh = models.CharField(max_length=200, verbose_name='Name (Khmer)')
+    day = models.IntegerField(verbose_name='Day')
+    month = models.IntegerField(verbose_name='Month')
+    year = models.IntegerField(verbose_name='Year', blank=True, null=True)
+    is_public = models.BooleanField(default=True, verbose_name='Public Holiday')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['month', 'day']
+    
+    def __str__(self):
+        return f"{self.day}/{self.month} - {self.name_kh}"
+
+
 class Job(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
