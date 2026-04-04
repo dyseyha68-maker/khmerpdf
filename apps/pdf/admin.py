@@ -12,13 +12,13 @@ class JobAdmin(admin.ModelAdmin):
 
 @admin.register(Holiday)
 class HolidayAdmin(admin.ModelAdmin):
-    list_display = ['name_kh', 'name_en', 'day', 'month', 'year', 'is_public']
-    list_filter = ['is_public', 'month', 'year']
+    list_display = ['name_kh', 'name_en', 'start_date', 'end_date', 'year', 'is_public']
+    list_filter = ['is_public', 'year']
     search_fields = ['name_kh', 'name_en']
-    ordering = ['month', 'day']
+    ordering = ['start_date']
     
     fieldsets = (
         ('Holiday Info', {
-            'fields': ('name_kh', 'name_en', 'day', 'month', 'year', 'is_public')
+            'fields': ('name_kh', 'name_en', 'start_date', 'end_date', 'year', 'is_public')
         }),
     )

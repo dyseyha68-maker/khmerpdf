@@ -72,7 +72,19 @@ def calendar_page(request):
     else:
         year = int(year)
     
-    holidays = list(Holiday.objects.all().order_by('month', 'day').values('day', 'month', 'name_en', 'name_kh'))
+    # Get holidays and expand date ranges
+    holiday_objs = Holiday.objects.all()
+    holidays = []
+    for h in holiday_objs:
+        days = h.get_days_in_range()
+        for d in days:
+            holidays.append({
+                'day': d['day'],
+                'month': d['month'],
+                'name_en': h.name_en or '',
+                'name_kh': h.name_kh
+            })
+    
     return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year})
 
 

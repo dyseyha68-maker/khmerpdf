@@ -18,17 +18,31 @@ def pdf_processed_path(instance, filename):
 class Holiday(models.Model):
     name_en = models.CharField(max_length=200, blank=True, null=True)
     name_kh = models.CharField(max_length=200, verbose_name='Name (Khmer)')
-    day = models.IntegerField(verbose_name='Day')
-    month = models.IntegerField(verbose_name='Month')
+    start_date = models.DateField(verbose_name='Start Date')
+    end_date = models.DateField(verbose_name='End Date', blank=True, null=True)
     year = models.IntegerField(verbose_name='Year', blank=True, null=True)
     is_public = models.BooleanField(default=True, verbose_name='Public Holiday')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['month', 'day']
+        ordering = ['start_date']
     
     def __str__(self):
-        return f"{self.day}/{self.month} - {self.name_kh}"
+        if self.end_date:
+            return f"{self.start_date} - {self.end_date} - {self.name_kh}"
+        return f"{self.start_date} - {self.name_kh}"
+    
+    def get_days_in_range(self):
+        from datetime import date, timedelta
+        days = []
+        if self.end_date:
+            current = self.start_date
+            while current <= self.end_date:
+                days.append({'day': current.day, 'month': current.month})
+                current += timedelta(days=1)
+        else:
+            days = [{'day': self.start_date.day, 'month': self.start_date.month}]
+        return days
 
 
 class Job(models.Model):

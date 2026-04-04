@@ -201,6 +201,23 @@
         .calendar-container { flex-direction: column; height: auto; }
         .left-panel, .right-panel { width: 100%; }
     }
+    
+    .lang-btn {
+        background: white;
+        border: 2px solid #667eea;
+        color: #667eea;
+        padding: 6px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: 'Kantumruy Pro', sans-serif;
+        margin-left: 5px;
+    }
+    
+    .lang-btn.active {
+        background: #667eea;
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -225,6 +242,10 @@
     </div>
     
     <div class="right-panel">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+            <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
+        </div>
         <div class="month-title" id="monthTitle"></div>
         <div class="calendar-grid" id="calendarGrid"></div>
     </div>
@@ -240,6 +261,23 @@
     
     let currentYear = {{ current_year }};
     let currentMonth = new Date().getMonth();
+    
+    function setLang(lang) {
+        if (lang === 'kh') {
+            document.body.className = 'lang-kh';
+            document.getElementById('langKh').classList.add('active');
+            document.getElementById('langEn').classList.remove('active');
+        } else {
+            document.body.className = 'lang-en';
+            document.getElementById('langEn').classList.add('active');
+            document.getElementById('langKh').classList.remove('active');
+        }
+        localStorage.setItem('pdf_lang', lang);
+        render();
+    }
+    
+    const savedLang = localStorage.getItem('pdf_lang') || 'kh';
+    setLang(savedLang);
     
     function changeYear(delta) {
         currentYear += delta;
