@@ -72,12 +72,10 @@ def calendar_page(request):
     else:
         year = int(year)
     
-    holidays = Holiday.objects.filter(
-        models.Q(year=year) | models.Q(year__isnull=True),
-        is_public=True
-    )
+    holidays = Holiday.objects.filter(is_public=True).order_by('month', 'day')
+    print(f"Holidays found: {holidays.count()}")  # Debug
     years = list(range(2020, 2031))
-    return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year, 'years': years})
+    return render(request, 'calendar.html', {'holidays': list(holidays.values()), 'current_year': year, 'years': years})
 
 
 def ocr_page(request):

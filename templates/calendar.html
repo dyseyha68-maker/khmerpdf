@@ -342,6 +342,7 @@
             { date: '{{ h.day|stringformat:"02d" }}-{{ h.month|stringformat:"02d" }}', nameEn: '{{ h.name_en|default:"" }}', nameKh: '{{ h.name_kh|escapejs }}' },
             {% endfor %}
         ];
+        console.log('Holidays loaded:', holidays);
         
         let currentYear = {{ current_year|default:2026 }};
         let currentMonth = new Date().getMonth();
@@ -363,6 +364,8 @@
         }
         
         function renderCalendar() {
+            console.log('Holidays:', holidays, 'Month:', currentMonth);
+            
             const grid = document.getElementById('calendarGrid');
             const monthGrid = document.getElementById('monthGrid');
             const holidayList = document.getElementById('holidayList');
