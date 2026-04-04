@@ -118,28 +118,31 @@ def compress_api(request):
         
         logger.info(f'Job created: {job.id}')
         
-        if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
-            from apps.pdf.tasks import compress_pdf
+        # Run synchronously (CELERY_TASK_ALWAYS_EAGER=True)
+        from apps.pdf.tasks import compress_pdf
+        try:
             compress_pdf(str(job.id))
-            job.refresh_from_db()
-            
-            logger.info(f'Job completed, status: {job.status}, result: {job.result}')
-            
+        except Exception as task_err:
+            logger.error(f'Task error: {task_err}')
+            job.status = 'failed'
+            job.error_message = str(task_err)
+            job.save()
+        
+        job.refresh_from_db()
+        
+        if job.status == 'failed':
             return Response({
+                'error': job.error_message or 'Compression failed',
                 'job_id': str(job.id),
-                'status': job.status,
-                'result_url': job.result.url if job.result else None,
-                'message': 'File compressed successfully'
-            }, status=status.HTTP_201_CREATED)
-        else:
-            from apps.pdf.tasks import compress_pdf
-            compress_pdf.delay(str(job.id))
-            
-            return Response({
-                'job_id': str(job.id),
-                'status': 'pending',
-                'message': 'Job created successfully'
-            }, status=status.HTTP_201_CREATED)
+                'status': job.status
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({
+            'job_id': str(job.id),
+            'status': job.status,
+            'result_url': job.result.url if job.result else None,
+            'message': 'File compressed successfully'
+        }, status=status.HTTP_201_CREATED)
             
     except Exception as e:
         logger.error(f'Compress API error: {e}', exc_info=True)

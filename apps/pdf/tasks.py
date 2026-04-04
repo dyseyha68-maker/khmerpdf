@@ -18,17 +18,10 @@ logger = logging.getLogger(__name__)
 def compress_with_ghostscript(input_path, output_path, compression_level='recommended'):
     """Use Ghostscript for powerful PDF compression - best for scanned documents"""
     
-    # Get file size
-    file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-    logger.info(f'Input file size: {file_size_mb:.2f} MB')
+    original_size = os.path.getsize(input_path)
+    original_size_mb = original_size / (1024 * 1024)
+    logger.info(f'Input file size: {original_size_mb:.2f} MB')
     
-    # PDFSETTINGS presets:
-    # /screen   - 72 DPI, smallest size (for web/screen)
-    # /ebook    - 150 DPI, balanced (for e-readers) 
-    # /printer  - 300 DPI, high quality (for printing)
-    # /prepress - 300 DPI, best quality (for professional print)
-    
-    # More aggressive settings for better compression
     preset_map = {
         'extreme': '/screen',
         'recommended': '/screen',
@@ -36,14 +29,9 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
     }
     preset = preset_map.get(compression_level, '/screen')
     
-    logger.info(f'Compressing with Ghostscript, preset: {preset}')
+    timeout = max(120, int(original_size_mb * 6))
+    timeout = min(timeout, 900)
     
-    # Adjust timeout based on file size (larger files need more time)
-    # 1 minute per 10MB, minimum 2 minutes, max 15 minutes
-    timeout = max(120, int(file_size_mb * 6))  # 6 seconds per MB
-    timeout = min(timeout, 900)  # max 15 minutes
-    
-    # Ghostscript command for PDF compression with additional optimization flags
     cmd = [
         'gs',
         '-sDEVICE=pdfwrite',
@@ -57,33 +45,69 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
         '-dQUIET',
         '-dBATCH',
         '-dSAFER',
-        # Memory settings for large files
-        '-dMaxBitmap=500000000',  # 500MB max bitmap
-        '-dBufferSpace=100000000',  # 100MB buffer
+        '-dMaxBitmap=500000000',
+        '-dBufferSpace=100000000',
         f'-sOutputFile={output_path}',
         input_path
     ]
     
-    logger.info(f'Running Ghostscript with timeout {timeout}s')
+    logger.info(f'Running Ghostscript with preset: {preset}')
     
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
-        logger.error(f'Ghostscript timed out after {timeout}s')
-        raise Exception(f'Compression timed out for large file ({file_size_mb:.1f}MB)')
+        raise Exception(f'Compression timed out for large file ({original_size_mb:.1f}MB)')
     
     if result.returncode != 0:
-        logger.error(f'Ghostscript error: {result.stderr}')
-        # Try fallback method
         raise Exception(f'Ghostscript error: {result.stderr[:200]}')
     
-    # Check output file exists and has size
-    if os.path.exists(output_path):
-        output_size = os.path.getsize(output_path)
-        output_size_mb = output_size / (1024 * 1024)
-        logger.info(f'Compressed file size: {output_size_mb:.2f} MB (was {file_size_mb:.2f} MB)')
-    else:
+    if not os.path.exists(output_path):
         raise Exception('Ghostscript did not create output file')
+    
+    output_size = os.path.getsize(output_path)
+    output_size_mb = output_size / (1024 * 1024)
+    logger.info(f'Ghostscript result: {output_size_mb:.2f} MB (was {original_size_mb:.2f} MB)')
+    
+    if output_size >= original_size:
+        logger.warning(f'Ghostscript did not reduce size, trying more aggressive compression')
+        os.remove(output_path)
+        
+        more_aggressive_cmd = [
+            'gs',
+            '-sDEVICE=pdfwrite',
+            '-dCompatibilityLevel=1.4',
+            '-dPDFSETTINGS=/screen',
+            '-dDetectDuplicateImages=true',
+            '-dRemoveUnusedResources=true',
+            '-dCompressFonts=true',
+            '-dSubsetFonts=true',
+            '-dMonoImageFilter=/DCTFilter',
+            '-dColorImageFilter=/DCTFilter',
+            '-dAutoFilterColorImages=false',
+            '-dAutoFilterMonoImages=false',
+            '-dColorImageDownsampleThreshold=1.0',
+            '-dColorImageDownsampleType=/Bicubic',
+            '-dColorImageResolution=72',
+            '-dMonoImageResolution=72',
+            '-dNOPAUSE',
+            '-dQUIET',
+            '-dBATCH',
+            '-dSAFER',
+            f'-sOutputFile={output_path}',
+            input_path
+        ]
+        
+        try:
+            result = subprocess.run(more_aggressive_cmd, capture_output=True, text=True, timeout=timeout)
+        except Exception as e:
+            logger.error(f'Aggressive compression failed: {e}')
+        
+        if os.path.exists(output_path):
+            output_size = os.path.getsize(output_path)
+            output_size_mb = output_size / (1024 * 1024)
+            logger.info(f'Aggressive Ghostscript result: {output_size_mb:.2f} MB')
+        else:
+            raise Exception('Both Ghostscript and aggressive compression failed to produce output')
     
     return output_path
 
@@ -143,6 +167,7 @@ def compress_with_pymupdf(input_path, output_path, compression_level='recommende
     doc.close()
 
 
+@shared_task
 def compress_pdf(job_id):
     from apps.pdf.models import Job
     
@@ -221,8 +246,14 @@ def compress_pdf(job_id):
                 logger.info(f'Used Ghostscript for single file')
             except Exception as gs_err:
                 logger.warning(f'Ghostscript failed, falling back to PyMuPDF: {gs_err}')
-                # Fallback to PyMuPDF if Ghostscript fails
-                compress_with_pymupdf(input_path, output_path, compression_level)
+                try:
+                    compress_with_pymupdf(input_path, output_path, compression_level)
+                except Exception as pymupdf_err:
+                    logger.error(f'Both compression methods failed: GS={gs_err}, PyMuPDF={pymupdf_err}')
+                    raise Exception(f'Compression failed: {pymupdf_err}')
+            
+            if not os.path.exists(output_path):
+                raise Exception(f'Compression failed: output file not created')
             
             compressed_size = os.path.getsize(output_path)
             

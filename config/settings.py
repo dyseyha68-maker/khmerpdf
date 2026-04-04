@@ -87,15 +87,16 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 400 * 1024 * 1024  # 400MB
 MAX_UPLOAD_SIZE = 350 * 1024 * 1024  # 350MB - allow large PDF files
 ALLOWED_EXTENSIONS = ['pdf']
 
-# Celery settings (use 'solo' broker for Windows local dev without Redis)
+# Celery settings
+CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously (no Redis needed)
+CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously for local dev
-CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
 
 # Django REST Framework settings
 REST_FRAMEWORK = {
