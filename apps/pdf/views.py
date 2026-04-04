@@ -72,10 +72,16 @@ def calendar_page(request):
     else:
         year = int(year)
     
-    holidays = Holiday.objects.filter(is_public=True).order_by('month', 'day')
-    print(f"Holidays found: {holidays.count()}")  # Debug
+    holidays = Holiday.objects.all().order_by('month', 'day')
     years = list(range(2020, 2031))
-    return render(request, 'calendar.html', {'holidays': list(holidays.values()), 'current_year': year, 'years': years})
+    
+    # Debug: create a simple test holiday if no holidays exist
+    if not holidays.exists():
+        test_holidays = [{'day': 1, 'month': 1, 'name_en': 'New Year', 'name_kh': 'បុណ្យឆ្នាំថ្មី'}]
+    else:
+        test_holidays = list(holidays.values())
+    
+    return render(request, 'calendar.html', {'holidays': test_holidays, 'current_year': year, 'years': years})
 
 
 def ocr_page(request):
