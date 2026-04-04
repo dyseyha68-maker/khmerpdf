@@ -4,167 +4,85 @@
 
 {% block extra_css %}
 <style>
-    body {
+    .main-content {
         justify-content: center;
         align-items: center;
-        padding: 20px;
+        padding: 40px 20px;
     }
     
     .container {
         background: white;
         border-radius: 16px;
         box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        padding: 32px;
+        padding: 40px;
         max-width: 800px;
         width: 100%;
-    }
-    
-    .top-bar {
-        font-family: 'Kantumruy Pro', sans-serif;
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 20px;
+        text-align: center;
     }
     
     .columns {
         display: flex;
         gap: 40px;
-        align-items: center;
-    }
-    .col-left, .col-right {
-        flex: 1;
-        text-align: center;
-    }
-    .col-right {
-        padding: 24px;
-        background: #f8f9fa;
-        border-radius: 16px;
+        margin-top: 30px;
     }
     
-    .success-icon {
-        width: 90px;
-        height: 90px;
-        background: #d4edda;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 16px;
-        font-size: 50px;
-    }
-    h1 { color: #333; margin-bottom: 8px; font-size: 24px; }
-    .subtitle { color: #666; margin-bottom: 20px; font-size: 14px; }
+    .column { flex: 1; text-align: center; }
     
-    .btn-group {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-items: center;
-    }
-    .download-btn, .home-btn {
-        font-family: 'Kantumruy Pro', sans-serif;
+    .download-btn {
         display: inline-block;
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        border: none;
-        padding: 16px 36px;
-        border-radius: 10px;
-        font-size: 17px;
-        font-weight: 600;
-        cursor: pointer;
+        padding: 16px 32px;
+        border-radius: 8px;
         text-decoration: none;
-        width: 100%;
-        max-width: 260px;
+        font-weight: 600;
+        margin-top: 20px;
     }
+    .download-btn:hover { transform: translateY(-2px); }
     
     .home-btn {
-        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-    }
-    
-    .khqr-box { margin-bottom: 16px; }
-    .khqr-box img { width: 200px; border-radius: 12px; }
-    
-    .support-text { color: #333; font-size: 15px; font-weight: 600; margin-bottom: 12px; }
-    
-    .amount-buttons {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    .amount-btn {
-        font-family: 'Kantumruy Pro', sans-serif;
-        background: white;
-        border: 2px solid #667eea;
-        color: #667eea;
-        padding: 10px 18px;
+        display: inline-block;
+        background: #f5f5f5;
+        color: #333;
+        padding: 16px 32px;
         border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
         text-decoration: none;
+        font-weight: 600;
+        margin-top: 20px;
+        margin-left: 10px;
     }
+    .home-btn:hover { background: #e0e0e0; }
+    
+    .success-icon { font-size: 64px; margin-bottom: 20px; }
+    .thank-you-text { font-size: 24px; color: #333; margin-bottom: 10px; }
+    .sub-text { color: #666; font-size: 14px; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="top-bar">
-        <div class="lang-btns">
-            <button class="lang-btn active" id="langEn" onclick="setLang('en')">EN</button>
-            <button class="lang-btn" id="langKh" onclick="setLang('kh')">KH</button>
-        </div>
-    </div>
-    
-    <div class="columns">
-        <div class="col-left">
-            <div class="success-icon">&#10003;</div>
-            
-            <h1>
-                <span class="text-en">Thank You!</span>
-                <span class="text-kh">សូមអរគុណ!</span>
-            </h1>
-            
-            <p class="subtitle">
-                <span class="text-en">Your PDF has been processed successfully.</span>
-                <span class="text-kh">ឯកសារ PDF របស់អ្នកត្រូវបានអនុវត្តន៍ទទួលបានជោគជ័យ។</span>
-            </p>
-            
-            <div class="btn-group">
-                {% if download_url %}
-                <a href="{{ download_url }}" class="download-btn" id="downloadBtn" target="_blank">
-                    <span class="text-en">Download PDF</span>
-                    <span class="text-kh">ទាញយក PDF</span>
-                </a>
-                {% endif %}
-                
-                <a href="/" class="home-btn">
-                    <span class="text-en">Upload Another PDF</span>
-                    <span class="text-kh">បញ្ចូលឯកសារ PDF ផ្សេងទៀត</span>
+    <div class="container">
+        <div class="success-icon">✅</div>
+        <h1 class="thank-you-text">
+            <span class="text-en">Thank You!</span>
+            <span class="text-kh">អរគុណ!</span>
+        </h1>
+        <p class="sub-text">
+            <span class="text-en">Your file has been processed successfully.</span>
+            <span class="text-kh">ឯកសាររបស់អ្នកត្រូវបានដំណើរការដោយជោគជ័យ។</span>
+        </p>
+        
+        <div class="columns">
+            <div class="column">
+                <a href="{{ download_url }}" class="download-btn" download>
+                    <span class="text-en">📥 Download File</span>
+                    <span class="text-kh">📥 ទាញយកឯកសារ</span>
                 </a>
             </div>
         </div>
         
-        <div class="col-right">
-            <div class="khqr-box">
-                <img src="/static/khqr.jpg" alt="KHQR">
-            </div>
-            
-            <p class="support-text">
-                <span class="text-en">Support The Khmer Tool</span>
-                <span class="text-kh">សូមជួយគាំទ្រកម្មវិធីខ្មែរសម្រាប់ការលើកទឹកចិត្ត</span>
-            </p>
-            
-            <div class="amount-buttons">
-                <a href="#" class="amount-btn">$0.50</a>
-                <a href="#" class="amount-btn">$1</a>
-                <a href="#" class="amount-btn">$2</a>
-                <a href="#" class="amount-btn">$5</a>
-                <a href="#" class="amount-btn">$10</a>
-                <a href="#" class="amount-btn">$20</a>
-                <a href="#" class="amount-btn">$50</a>
-            </div>
-        </div>
+        <a href="/" class="home-btn">
+            <span class="text-en">🏠 Back to Home</span>
+            <span class="text-kh">🏠 ត្រឡប់ទៅដើម</span>
+        </a>
     </div>
-</div>
 {% endblock %}
