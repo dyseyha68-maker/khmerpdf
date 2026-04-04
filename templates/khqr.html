@@ -22,54 +22,94 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 48px;
-            max-width: 600px;
+            padding: 40px;
+            max-width: 450px;
             width: 100%;
             text-align: center;
         }
         
-        .success-icon { font-size: 72px; margin-bottom: 24px; }
+        .success-icon { font-size: 72px; margin-bottom: 20px; }
         
         .thank-you-text { 
-            font-size: 28px; 
+            font-size: 26px; 
             color: #333; 
-            margin-bottom: 12px; 
+            margin-bottom: 8px; 
             font-weight: 700;
         }
         
         .sub-text { 
             color: #666; 
-            font-size: 16px; 
-            margin-bottom: 32px;
+            font-size: 15px; 
+            margin-bottom: 24px;
+        }
+        
+        .qr-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .qr-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        
+        .qr-image {
+            width: 180px;
+            height: 180px;
+            margin-bottom: 12px;
+        }
+        
+        .amount-btns {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        
+        .amount-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+        .amount-btn:hover { transform: scale(1.05); }
+        
+        .donate-text {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 24px;
         }
         
         .download-btn {
-            display: inline-block;
+            display: block;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 18px 40px;
+            padding: 16px 32px;
             border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
             font-size: 16px;
-            transition: all 0.3s;
+            margin-bottom: 12px;
         }
-        .download-btn:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
+        .download-btn:hover { transform: translateY(-2px); }
         
         .home-btn {
             display: inline-block;
             background: #f5f5f5;
             color: #333;
-            padding: 18px 40px;
+            padding: 14px 28px;
             border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 16px;
-            margin-left: 12px;
-            transition: all 0.3s;
         }
         .home-btn:hover { background: #e0e0e0; }
         
@@ -77,14 +117,9 @@
         body.lang-en .text-en { display: block; }
         body.lang-kh .text-kh { display: block; }
         
-        @media (max-width: 600px) {
-            .container { padding: 32px 24px; }
-            .thank-you-text { font-size: 24px; }
-            .download-btn, .home-btn { 
-                display: block; 
-                width: 100%; 
-                margin: 10px 0 0 0; 
-            }
+        @media (max-width: 480px) {
+            .container { padding: 28px 20px; }
+            .amount-btn { padding: 8px 12px; font-size: 14px; }
         }
     </style>
     <script>
@@ -107,6 +142,25 @@
             <span class="text-en">Your file has been processed successfully.</span>
             <span class="text-kh">ឯកសាររបស់អ្នកត្រូវបានដំណើរការដោយជោគជ័យ។</span>
         </p>
+        
+        <div class="qr-section">
+            <div class="qr-title">
+                <span class="text-en">Support Us with QR Code</span>
+                <span class="text-kh">គេហទំព័ររបស់យើងជាមួយ QR Code</span>
+            </div>
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="QR Code" class="qr-image">
+            <div class="amount-btns">
+                <button class="amount-btn">$0.5</button>
+                <button class="amount-btn">$1</button>
+                <button class="amount-btn">$2</button>
+                <button class="amount-btn">$5</button>
+                <button class="amount-btn">$10</button>
+            </div>
+            <p class="donate-text">
+                <span class="text-en">Any donation is appreciated! 🙏</span>
+                <span class="text-kh">ការបរិច្ចាកណាមួយគឺស្រលាញ់! 🙏</span>
+            </p>
+        </div>
         
         <a href="{{ download_url }}" class="download-btn" download>
             <span class="text-en">📥 Download File</span>
