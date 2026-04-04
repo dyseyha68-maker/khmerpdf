@@ -449,11 +449,11 @@ def image_to_pdf_api(request):
         return Response({'error': 'No files provided'}, status=status.HTTP_400_BAD_REQUEST)
     
     for f in files:
-        if not f.type.startswith('image/'):
+        content_type = f.content_type or ''
+        if not ('image' in content_type or f.type.startswith('image/')):
             return Response({'error': 'Only image files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        # Save all images to temp storage
         uploads_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
         os.makedirs(uploads_dir, exist_ok=True)
         
@@ -468,7 +468,6 @@ def image_to_pdf_api(request):
         
         logger.info(f'Saved {len(file_paths)} files')
         
-        # Create job
         job = Job.objects.create(tool='image_to_pdf')
         
         from .tasks import image_to_pdf_task
