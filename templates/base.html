@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Khmer PDF Tools{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.98);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #333;
+        }
+        .logo-icon { font-size: 28px; }
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .nav-links {
+            display: flex;
+            gap: 4px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+        .nav-links a.active {
+            background: #667eea;
+            color: white;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .lang-btns { display: flex; gap: 8px; }
+        .lang-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .lang-btn.active { background: #667eea; color: white; }
+        
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            gap: 24px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .left-panel {
+            width: 320px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        .left-panel::-webkit-scrollbar { width: 8px; }
+        .left-panel::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .left-panel::-webkit-scrollbar-thumb { background: #667eea; border-radius: 4px; }
+        
+        .drop-zone {
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+        .drop-zone:hover { border-color: #667eea; background: #f8f9ff; }
+        .drop-zone-icon { font-size: 36px; margin-bottom: 8px; }
+        
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            max-height: 300px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .file-item .file-icon { font-size: 24px; margin-right: 10px; }
+        .file-item .file-name {
+            flex: 1;
+            font-size: 13px;
+            color: #333;
+            word-break: break-all;
+        }
+        
+        .action-btn {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: auto;
+        }
+        .action-btn:hover { transform: translateY(-2px); }
+        .action-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        
+        .right-panel {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 140px);
+            overflow: hidden;
+        }
+        
+        .right-panel-inner {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .right-panel-inner::-webkit-scrollbar {
+            width: 10px;
+        }
+        .right-panel-inner::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        .right-panel-inner::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+        
+        .instructions {
+            padding: 12px 16px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        
+        .page-grid, .image-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 10px;
+        }
+        
+        .page-item, .image-item {
+            width: 160px;
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+        .page-item:hover, .image-item:hover {
+            border-color: #667eea;
+        }
+        .page-item img, .image-item img {
+            max-width: 130px;
+            max-height: 160px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .page-item .page-num, .image-item .image-num {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .text-en, .text-kh { display: none; }
+        body.lang-en .text-en { display: block; }
+        body.lang-kh .text-kh { display: block; }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal h2 { color: #333; margin-bottom: 20px; font-size: 20px; }
+        
+        .progress-container { width: 100%; margin: 20px 0; }
+        .progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            margin-top: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .progress-percent {
+            font-size: 28px;
+            color: #667eea;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; padding: 12px; }
+            .left-panel { width: 100%; }
+            .nav-links { display: none; }
+            .header { flex-wrap: wrap; gap: 10px; padding: 10px; }
+            .header-left { flex-wrap: wrap; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="lang-kh">
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="logo">
+                <span class="logo-icon">📄</span>
+                <span class="logo-text">PDF Tools</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/compress/"><span class="text-en">Compress</span><span class="text-kh">បង្រួម</span></a>
+                <a href="/merge/"><span class="text-en">Merge</span><span class="text-kh">បញ្ជូល</span></a>
+                <a href="/pdf-split/"><span class="text-en">Split</span><span class="text-kh">បំបែក</span></a>
+                <a href="/organize/"><span class="text-en">Organize</span><span class="text-kh">រៀបចំ</span></a>
+                <a href="/calendar/"><span class="text-en">Calendar</span><span class="text-kh">ប្រតិទិក</span></a>
+                <a href="/ocr/"><span class="text-en">OCR</span><span class="text-kh">OCR</span></a>
+                <a href="/pdf-to-image/"><span class="text-en">PDF to Image</span><span class="text-kh">PDF ទៅ រូបភាព</span></a>
+                <a href="/image-to-pdf/"><span class="text-en">Image to PDF</span><span class="text-kh">រូបភាព ទៅ PDF</span></a>
+            </nav>
+        </div>
+        <div class="header-actions">
+            <div class="lang-btns">
+                <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+                <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function setLang(lang) {
+            if (lang === 'kh') {
+                document.body.className = 'lang-kh';
+                document.getElementById('langKh').classList.add('active');
+                document.getElementById('langEn').classList.remove('active');
+            } else {
+                document.body.className = 'lang-en';
+                document.getElementById('langEn').classList.add('active');
+                document.getElementById('langKh').classList.remove('active');
+            }
+            localStorage.setItem('pdf_lang', lang);
+        }
+        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
+        setLang(savedLang);
+    </script>
+    
+    {% block content %}{% endblock %}
+</body>
+</html>
