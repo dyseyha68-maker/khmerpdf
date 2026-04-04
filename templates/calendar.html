@@ -1,376 +1,302 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cambodia Calendar - Khmer PDF Tools</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    {% load static %}
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Kantumruy Pro', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .lang-btn {
-            background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            font-family: 'Kantumruy Pro', sans-serif;
-        }
-        
-        .lang-btn.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        h1 {
-            text-align: center;
-            color: white;
-            margin-bottom: 20px;
-            font-size: 28px;
-        }
-        
-        .calendar-wrapper {
-            display: flex;
-            gap: 20px;
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        
-        .left-panel {
-            width: 300px;
-            flex-shrink: 0;
-        }
-        
-        .right-panel {
-            flex: 1;
-        }
-        
-        .year-select {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 2px solid #ddd;
-            margin-bottom: 15px;
-            font-family: 'Kantumruy Pro', sans-serif;
-        }
-        
-        .month-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .month-btn {
-            padding: 12px 8px;
-            background: #f5f5f5;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: 'Kantumruy Pro', sans-serif;
-            transition: all 0.2s;
-        }
-        
-        .month-btn:hover {
-            background: #e0e0e0;
-        }
-        
-        .month-btn.active {
-            background: #d32f2f;
-            color: white;
-        }
-        
-        .holiday-list {
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-        }
-        
-        .holiday-list h3 {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .holiday-item {
-            padding: 8px 12px;
-            background: #f9f9f9;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .holiday-item .date {
-            color: #d32f2f;
-            font-weight: 600;
-        }
-        
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-        }
-        
-        .day-header {
-            text-align: center;
-            padding: 10px;
-            font-weight: 600;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #f5f5f5;
-            border-radius: 8px;
-            padding: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-height: 50px;
-        }
-        
-        .calendar-day:hover {
-            background: #e0e0e0;
-        }
-        
-        .calendar-day.today {
-            background: #d32f2f;
-            color: white;
-        }
-        
-        .calendar-day.holiday {
-            background: #ffcdd2;
-            color: #c62828;
-        }
-        
-        .calendar-day.saturday,
-        .calendar-day.sunday {
-            background: #ffebee;
-            color: #c62828;
-        }
-        
-        .calendar-day .khmer {
-            font-size: 10px;
-            color: #666;
-            margin-top: 2px;
-        }
-        
-        .calendar-day.today .khmer {
-            color: white;
-        }
-        
-        .month-title {
-            text-align: center;
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        .text-en { display: none; }
-        .text-kh { display: none; }
-        body.lang-en .text-en { display: block; }
-        body.lang-kh .text-kh { display: block; }
-        
-        @media (max-width: 800px) {
-            .calendar-wrapper { flex-direction: column; }
-            .left-panel { width: 100%; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <a href="/" style="color: white; text-decoration: none; font-size: 18px;">
-                <img src="{% static 'logo.png' %}" alt="Logo" style="height: 40px; vertical-align: middle;">
-            </a>
-            <div>
-                <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
-                <button class="lang-btn active" id="langKh" onclick="setLang('kh')">KH</button>
+{% extends 'base.html' %}
+
+{% block title %}Cambodia Calendar - Khmer PDF Tools{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    h1 {
+        text-align: center;
+        color: white;
+        margin-bottom: 20px;
+        font-size: 28px;
+    }
+    
+    .calendar-wrapper {
+        display: flex;
+        gap: 20px;
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .left-panel {
+        width: 300px;
+        flex-shrink: 0;
+    }
+    
+    .right-panel {
+        flex: 1;
+    }
+    
+    .year-select {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        margin-bottom: 15px;
+        font-family: 'Kantumruy Pro', sans-serif;
+    }
+    
+    .month-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .month-btn {
+        padding: 12px 8px;
+        background: #f5f5f5;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-family: 'Kantumruy Pro', sans-serif;
+        transition: all 0.2s;
+    }
+    
+    .month-btn:hover {
+        background: #e0e0e0;
+    }
+    
+    .month-btn.active {
+        background: #d32f2f;
+        color: white;
+    }
+    
+    .holiday-list {
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+    
+    .holiday-list h3 {
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .holiday-item {
+        padding: 8px 12px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .holiday-item .date {
+        color: #d32f2f;
+        font-weight: 600;
+    }
+    
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+    
+    .day-header {
+        text-align: center;
+        padding: 10px;
+        font-weight: 600;
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-height: 50px;
+    }
+    
+    .calendar-day:hover {
+        background: #e0e0e0;
+    }
+    
+    .calendar-day.today {
+        background: #d32f2f;
+        color: white;
+    }
+    
+    .calendar-day.holiday {
+        background: #ffcdd2;
+        color: #c62828;
+    }
+    
+    .calendar-day.saturday,
+    .calendar-day.sunday {
+        background: #ffebee;
+        color: #c62828;
+    }
+    
+    .calendar-day .khmer {
+        font-size: 10px;
+        color: #666;
+        margin-top: 2px;
+    }
+    
+    .calendar-day.today .khmer {
+        color: white;
+    }
+    
+    .month-title {
+        text-align: center;
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    @media (max-width: 900px) {
+        .main-content { flex-direction: column; padding: 12px; }
+        .left-panel, .right-panel { width: 100%; }
+        .calendar-wrapper { flex-direction: column; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>
+        <span class="text-en">Cambodia Calendar</span>
+        <span class="text-kh">ប្រតិទិកកម្ពុជា</span>
+    </h1>
+    
+    <div class="calendar-wrapper">
+        <div class="left-panel">
+            <select id="yearSelect" class="year-select" onchange="changeYear(this.value)">
+                {% for y in years %}
+                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            
+            <div class="month-grid" id="monthGrid"></div>
+            
+            <div class="holiday-list">
+                <h3>
+                    <span class="text-en">Holidays</span>
+                    <span class="text-kh">ថ្ងៃឈប់សម្រាក</span>
+                </h3>
+                <div id="holidayList"></div>
             </div>
         </div>
         
-        <h1>
-            <span class="text-en">Cambodia Calendar</span>
-            <span class="text-kh">ប្រតិទិកកម្ពុជា</span>
-        </h1>
-        
-        <div class="calendar-wrapper">
-            <div class="left-panel">
-                <select id="yearSelect" class="year-select" onchange="changeYear(this.value)">
-                    {% for y in years %}
-                    <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
-                    {% endfor %}
-                </select>
-                
-                <div class="month-grid" id="monthGrid"></div>
-                
-                <div class="holiday-list">
-                    <h3>
-                        <span class="text-en">Holidays</span>
-                        <span class="text-kh">ថ្ងៃឈប់សម្រាក</span>
-                    </h3>
-                    <div id="holidayList"></div>
-                </div>
-            </div>
-            
-            <div class="right-panel">
-                <div class="month-title" id="monthTitle"></div>
-                <div class="calendar-grid" id="calendarGrid"></div>
-            </div>
+        <div class="right-panel">
+            <div class="month-title" id="monthTitle"></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
         </div>
     </div>
+</div>
+
+<script>
+    const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិចិ្ឆកា', 'ធ្នូ'];
+    const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const khmerDays = ['ច', 'អ', 'ព', 'ព្រ', 'ស', 'សៅ', 'អា'];
+    const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     
-    <script>
-        // Debug: Show all holiday data
-        const holidaysData = {{ holidays|safe }};
-        console.log('Holidays from DB:', holidaysData);
+    let holidays = {{ holidays|safe }};
+    
+    let currentYear = {{ current_year }};
+    let currentMonth = new Date().getMonth();
+    
+    function changeYear(year) {
+        currentYear = parseInt(year);
+        render();
+    }
+    
+    function selectMonth(m) {
+        currentMonth = m;
+        render();
+    }
+    
+    function render() {
+        const grid = document.getElementById('calendarGrid');
+        const monthGrid = document.getElementById('monthGrid');
+        const holidayList = document.getElementById('holidayList');
+        const monthTitle = document.getElementById('monthTitle');
         
-        const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិចិ្ឆកា', 'ធ្នូ'];
-        const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        const khmerDays = ['ច', 'អ', 'ព', 'ព្រ', 'ស', 'សៅ', 'អា'];
-        const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const isKh = document.body.classList.contains('lang-kh');
         
-        // Holidays from Django
-        let holidays = holidaysData;
-        console.log('Holidays count:', holidays.length);
+        monthTitle.textContent = (isKh ? khmerMonths[currentMonth] : englishMonths[currentMonth]) + ' ' + currentYear;
         
-        let currentYear = {{ current_year }};
-        let currentMonth = new Date().getMonth();
+        grid.innerHTML = '';
+        const headers = isKh ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : dayHeaders;
+        headers.forEach(day => {
+            const div = document.createElement('div');
+            div.className = 'day-header';
+            div.textContent = day;
+            grid.appendChild(div);
+        });
         
-        function changeYear(year) {
-            currentYear = parseInt(year);
-            render();
-        }
+        const firstOfMonth = new Date(currentYear, currentMonth, 1);
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        let startDay = firstOfMonth.getDay();
+        startDay = startDay === 0 ? 6 : startDay - 1;
         
-        function selectMonth(m) {
-            currentMonth = m;
-            render();
-        }
+        const today = new Date();
         
-        function render() {
-            const grid = document.getElementById('calendarGrid');
-            const monthGrid = document.getElementById('monthGrid');
-            const holidayList = document.getElementById('holidayList');
-            const monthTitle = document.getElementById('monthTitle');
+        for (let i = 0; i < startDay + daysInMonth; i++) {
+            const dayNum = i - startDay + 1;
             
-            const isKh = document.body.classList.contains('lang-kh');
-            
-            // Update month title
-            monthTitle.textContent = (isKh ? khmerMonths[currentMonth] : englishMonths[currentMonth]) + ' ' + currentYear;
-            
-            // Render day headers
-            grid.innerHTML = '';
-            const headers = isKh ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : dayHeaders;
-            headers.forEach(day => {
-                const div = document.createElement('div');
-                div.className = 'day-header';
-                div.textContent = day;
-                grid.appendChild(div);
-            });
-            
-            // Calculate days
-            const firstOfMonth = new Date(currentYear, currentMonth, 1);
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            let startDay = firstOfMonth.getDay();
-            startDay = startDay === 0 ? 6 : startDay - 1;
-            
-            const today = new Date();
-            
-            // Render calendar days
-            for (let i = 0; i < startDay + daysInMonth; i++) {
-                const dayNum = i - startDay + 1;
-                
-                if (dayNum < 1 || dayNum > daysInMonth) {
-                    const empty = document.createElement('div');
-                    grid.appendChild(empty);
-                    continue;
-                }
-                
-                const div = document.createElement('div');
-                div.className = 'calendar-day';
-                
-                const dayOfWeek = new Date(currentYear, currentMonth, dayNum).getDay();
-                const dateStr = (currentMonth + 1) + '-' + dayNum;
-                
-                // Check if holiday
-                const holiday = holidays.find(h => h.day === dayNum && h.month === currentMonth + 1);
-                
-                if (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === dayNum) {
-                    div.classList.add('today');
-                } else if (holiday) {
-                    div.classList.add('holiday');
-                } else if (dayOfWeek === 6 || dayOfWeek === 0) {
-                    div.classList.add(dayOfWeek === 6 ? 'saturday' : 'sunday');
-                }
-                
-                div.innerHTML = '<span>' + dayNum + '</span><span class="khmer">' + khmerDays[dayOfWeek] + '</span>';
-                grid.appendChild(div);
+            if (dayNum < 1 || dayNum > daysInMonth) {
+                const empty = document.createElement('div');
+                grid.appendChild(empty);
+                continue;
             }
             
-            // Render month buttons
-            monthGrid.innerHTML = '';
-            khmerMonths.forEach((m, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'month-btn' + (idx === currentMonth ? ' active' : '');
-                btn.textContent = isKh ? m : englishMonths[idx].substring(0, 3);
-                btn.onclick = () => selectMonth(idx);
-                monthGrid.appendChild(btn);
-            });
+            const div = document.createElement('div');
+            div.className = 'calendar-day';
             
-            // Render holidays for current month
-            holidayList.innerHTML = '';
-            const monthHolidays = holidays.filter(h => h.month === currentMonth + 1);
-            monthHolidays.forEach(h => {
-                const item = document.createElement('div');
-                item.className = 'holiday-item';
-                item.innerHTML = '<span class="date">' + h.day + '/' + h.month + '</span> ' + (isKh ? h.name_kh : (h.name_en || h.name_kh));
-                holidayList.appendChild(item);
-            });
+            const dayOfWeek = new Date(currentYear, currentMonth, dayNum).getDay();
+            const holiday = holidays.find(h => h.day === dayNum && h.month === currentMonth + 1);
+            
+            if (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === dayNum) {
+                div.classList.add('today');
+            } else if (holiday) {
+                div.classList.add('holiday');
+            } else if (dayOfWeek === 6 || dayOfWeek === 0) {
+                div.classList.add(dayOfWeek === 6 ? 'saturday' : 'sunday');
+            }
+            
+            div.innerHTML = '<span>' + dayNum + '</span><span class="khmer">' + khmerDays[dayOfWeek] + '</span>';
+            grid.appendChild(div);
         }
         
-        // Language toggle
-        function setLang(lang) {
-            document.body.className = 'lang-' + lang;
-            localStorage.setItem('pdf_lang', lang);
-            render();
-        }
+        monthGrid.innerHTML = '';
+        khmerMonths.forEach((m, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'month-btn' + (idx === currentMonth ? ' active' : '');
+            btn.textContent = isKh ? m : englishMonths[idx].substring(0, 3);
+            btn.onclick = () => selectMonth(idx);
+            monthGrid.appendChild(btn);
+        });
         
-        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
-        document.body.className = 'lang-' + savedLang;
-        
-        // Initial render
-        render();
-    </script>
-</body>
-</html>
+        holidayList.innerHTML = '';
+        const monthHolidays = holidays.filter(h => h.month === currentMonth + 1);
+        monthHolidays.forEach(h => {
+            const item = document.createElement('div');
+            item.className = 'holiday-item';
+            item.innerHTML = '<span class="date">' + h.day + '/' + h.month + '</span> ' + (isKh ? h.name_kh : (h.name_en || h.name_kh));
+            holidayList.appendChild(item);
+        });
+    }
+    
+    render();
+</script>
+{% endblock %}
