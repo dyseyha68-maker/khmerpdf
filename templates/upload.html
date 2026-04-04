@@ -7,31 +7,31 @@
     .main-content {
         flex-direction: column;
         align-items: center;
-        padding-top: 40px;
+        justify-content: flex-start;
+        padding: 40px 20px;
+        min-height: calc(100vh - 80px);
     }
     
     .cards-container {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 24px;
-        max-width: 1400px;
+        max-width: 1200px;
         width: 100%;
-        justify-content: center;
+        justify-items: center;
     }
     
     .tool-card {
         background: white;
         border-radius: 16px;
-        width: 100%;
-        max-width: 280px;
-        padding: 30px 20px;
+        width: 260px;
+        padding: 30px 24px;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s;
         box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     }
     .tool-card:hover { transform: translateY(-8px); box-shadow: 0 15px 50px rgba(0,0,0,0.4); }
-    .tool-card.active { background: #d32f2f; color: white; }
     
     .tool-icon { font-size: 56px; margin-bottom: 16px; }
     .tool-card h2 { font-size: 18px; margin-bottom: 8px; }
@@ -49,16 +49,8 @@
         margin: 0 auto 20px;
         color: white;
     }
-    .calendar-date .cal-month {
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    .calendar-date .cal-day {
-        font-size: 32px;
-        font-weight: 700;
-        line-height: 1;
-    }
+    .calendar-date .cal-month { font-size: 12px; font-weight: 600; text-transform: uppercase; }
+    .calendar-date .cal-day { font-size: 32px; font-weight: 700; line-height: 1; }
     
     @media (max-width: 1100px) {
         .cards-container { grid-template-columns: repeat(3, 1fr); }
@@ -68,6 +60,7 @@
     }
     @media (max-width: 500px) {
         .cards-container { grid-template-columns: 1fr; }
+        .tool-card { width: 100%; max-width: 300px; }
     }
 </style>
 {% endblock %}
