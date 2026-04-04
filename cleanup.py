@@ -1,11 +1,11 @@
 import os
 import time
-from datetime import timedelta
 from django.conf import settings
+from django.core.management import execute_from_command_line
 
 
 def cleanup():
-    """Delete files older than 24 hours"""
+    """Delete files older than 24 hours - runs automatically when any job is created"""
     cutoff = time.time() - (24 * 3600)
     deleted_count = 0
     
@@ -24,13 +24,13 @@ def cleanup():
                 except:
                     pass
     
-    print(f'Cleaned up {deleted_count} files')
+    print(f'Cleaned up {deleted_count} old files')
 
 
 if __name__ == '__main__':
-    import django
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    import django
     django.setup()
     
     cleanup()
-    print('Daily cleanup completed')
+    print('Done')
