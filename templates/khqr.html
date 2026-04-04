@@ -148,7 +148,8 @@
                 <span class="text-en">Support Us with QR Code</span>
                 <span class="text-kh">គេហទំព័ររបស់យើងជាមួយ QR Code</span>
             </div>
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="QR Code" class="qr-image">
+{% load static %}
+            <img src="{% static 'khqr.jpg' %}" alt="QR Code" class="qr-image">
             <div class="amount-btns">
                 <button class="amount-btn">$0.5</button>
                 <button class="amount-btn">$1</button>
