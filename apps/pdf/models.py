@@ -18,7 +18,7 @@ def pdf_processed_path(instance, filename):
 class Holiday(models.Model):
     name_en = models.CharField(max_length=200, blank=True, null=True)
     name_kh = models.CharField(max_length=200, verbose_name='Name (Khmer)')
-    start_date = models.DateField(verbose_name='Start Date')
+    start_date = models.DateField(verbose_name='Start Date', default='2026-01-01')
     end_date = models.DateField(verbose_name='End Date', blank=True, null=True)
     year = models.IntegerField(verbose_name='Year', blank=True, null=True)
     is_public = models.BooleanField(default=True, verbose_name='Public Holiday')
