@@ -66,7 +66,7 @@ def organize_page(request):
 def calendar_page(request):
     from .models import Holiday
     import json
-    from datetime import datetime
+    from datetime import datetime, timedelta
     
     year = request.GET.get('year')
     if not year:
@@ -78,11 +78,20 @@ def calendar_page(request):
     try:
         holiday_objs = Holiday.objects.all()
         for h in holiday_objs:
-            days = h.get_days_in_range()
-            for d in days:
+            if h.end_date:
+                current = h.start_date
+                while current <= h.end_date:
+                    holidays.append({
+                        'day': current.day,
+                        'month': current.month,
+                        'name_en': h.name_en or '',
+                        'name_kh': h.name_kh
+                    })
+                    current += timedelta(days=1)
+            else:
                 holidays.append({
-                    'day': d['day'],
-                    'month': d['month'],
+                    'day': h.start_date.day,
+                    'month': h.start_date.month,
                     'name_en': h.name_en or '',
                     'name_kh': h.name_kh
                 })

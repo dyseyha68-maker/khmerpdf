@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='holiday',
             name='start_date',
-            field=models.DateField(default=date(2026, 1, 1), verbose_name='Start Date'),
+            field=models.DateField(verbose_name='Start Date'),
         ),
         migrations.AddField(
             model_name='holiday',
