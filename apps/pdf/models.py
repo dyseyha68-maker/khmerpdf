@@ -20,12 +20,11 @@ class Holiday(models.Model):
     name_kh = models.CharField(max_length=200, verbose_name='Name (Khmer)')
     start_date = models.DateField(verbose_name='Start Date', default='2026-01-01')
     end_date = models.DateField(verbose_name='End Date', blank=True, null=True)
-    year = models.IntegerField(verbose_name='Year', blank=True, null=True)
     is_public = models.BooleanField(default=True, verbose_name='Public Holiday')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['start_date']
+        ordering = ['-start_date']
     
     def __str__(self):
         if self.end_date:
@@ -33,7 +32,7 @@ class Holiday(models.Model):
         return f"{self.start_date} - {self.name_kh}"
     
     def get_days_in_range(self):
-        from datetime import date, timedelta
+        from datetime import timedelta
         days = []
         if not self.start_date:
             return days
