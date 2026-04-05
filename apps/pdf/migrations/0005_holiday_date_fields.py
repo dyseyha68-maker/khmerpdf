@@ -1,14 +1,7 @@
-# Generated migration for Holiday model - handles existing data
+# Migration for Holiday model with date fields
 
 from django.db import migrations, models
 from datetime import date
-
-
-def set_default_start_date(apps, schema_editor):
-    Holiday = apps.get_model('pdf', 'Holiday')
-    for holiday in Holiday.objects.filter(start_date__isnull=True):
-        holiday.start_date = date(2026, 1, 1)
-        holiday.save()
 
 
 class Migration(migrations.Migration):
@@ -28,7 +21,6 @@ class Migration(migrations.Migration):
             name='end_date',
             field=models.DateField(blank=True, null=True, verbose_name='End Date'),
         ),
-        migrations.RunPython(set_default_start_date, migrations. RunPython.noop),
         migrations.RemoveField(
             model_name='holiday',
             name='day',
