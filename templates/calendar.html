@@ -256,8 +256,7 @@
     const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const khmerDays = ['ច', 'អ', 'ព', 'ព្រ', 'ស', 'សៅ', 'អា'];
     
-    let holidays = {{ holidays|safe }};
-    console.log('Holidays:', holidays);
+    let holidays = {{ holidays }};
     
     let currentYear = {{ current_year }};
     let currentMonth = new Date().getMonth();

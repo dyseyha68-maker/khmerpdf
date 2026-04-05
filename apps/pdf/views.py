@@ -65,6 +65,8 @@ def organize_page(request):
 
 def calendar_page(request):
     from .models import Holiday
+    import json
+    
     year = request.GET.get('year')
     if not year:
         from datetime import datetime
@@ -85,7 +87,10 @@ def calendar_page(request):
                 'name_kh': h.name_kh
             })
     
-    return render(request, 'calendar.html', {'holidays': holidays, 'current_year': year})
+    return render(request, 'calendar.html', {
+        'holidays': json.dumps(holidays),
+        'current_year': year
+    })
 
 
 def ocr_page(request):
