@@ -35,6 +35,8 @@ class Holiday(models.Model):
     def get_days_in_range(self):
         from datetime import date, timedelta
         days = []
+        if not self.start_date:
+            return days
         if self.end_date:
             current = self.start_date
             while current <= self.end_date:
