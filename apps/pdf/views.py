@@ -66,26 +66,29 @@ def organize_page(request):
 def calendar_page(request):
     from .models import Holiday
     import json
+    from datetime import datetime
     
     year = request.GET.get('year')
     if not year:
-        from datetime import datetime
         year = datetime.now().year
     else:
         year = int(year)
     
-    # Get holidays and expand date ranges
-    holiday_objs = Holiday.objects.all()
-    holidays = []
-    for h in holiday_objs:
-        days = h.get_days_in_range()
-        for d in days:
-            holidays.append({
-                'day': d['day'],
-                'month': d['month'],
-                'name_en': h.name_en or '',
-                'name_kh': h.name_kh
-            })
+    try:
+        holiday_objs = Holiday.objects.all()
+        holidays = []
+        for h in holiday_objs:
+            days = h.get_days_in_range()
+            for d in days:
+                holidays.append({
+                    'day': d['day'],
+                    'month': d['month'],
+                    'name_en': h.name_en or '',
+                    'name_kh': h.name_kh
+                })
+    except Exception as e:
+        holidays = []
+        print(f"Error loading holidays: {e}")
     
     return render(request, 'calendar.html', {
         'holidays': json.dumps(holidays),
