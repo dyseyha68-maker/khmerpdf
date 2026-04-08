@@ -512,11 +512,11 @@ def organize_pdf(job_id, replace_files=None):
         raise
 
 
+@shared_task
 def ocr_pdf(job_id):
     from apps.pdf.models import Job
     import logging
-    import subprocess
-    import sys
+    import pytesseract
     from PIL import Image, ImageEnhance
     import io
     logger = logging.getLogger(__name__)
@@ -527,17 +527,18 @@ def ocr_pdf(job_id):
     
     ocr_lang = job.compression_level or 'eng'
     
+    # Map UI lang selection to Tesseract lang codes
+    lang_map = {
+        'eng': 'eng',
+        'khm': 'khm',
+        'eng+khm': 'eng+khm'
+    }
+    tess_lang = lang_map.get(ocr_lang, 'eng')
+    
     try:
-        try:
-            import easyocr
-        except ImportError:
-            logger.info('Installing EasyOCR...')
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--quiet', 'easyocr'])
-            import easyocr
-        
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting EasyOCR, file size: {file_size_mb:.1f}MB')
+        logger.info(f'Starting OCR, file size: {file_size_mb:.1f}MB, lang: {tess_lang}')
         
         from pdf2image import convert_from_path
         from docx import Document
@@ -548,27 +549,8 @@ def ocr_pdf(job_id):
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
         
-        pages = convert_from_path(input_path, dpi=350)
-        max_pages = min(len(pages), 25)
-        
-        # Initialize EasyOCR reader with better settings
-        logger.info('Loading EasyOCR model...')
-        reader = easyocr.Reader(['en', 'km'], gpu=False, verbose=False)
-        
-        def enhance_image(img_pil):
-            """Enhance image for better OCR"""
-            # Convert to grayscale
-            img = img_pil.convert('L')
-            
-            # Increase contrast
-            enhancer = ImageEnhance.Contrast(img)
-            img = enhancer.enhance(1.5)
-            
-            # Increase sharpness
-            enhancer = ImageEnhance.Sharpness(img)
-            img = enhancer.enhance(1.5)
-            
-            return img
+        pages = convert_from_path(input_path, dpi=300)
+        max_pages = min(len(pages), 50)
         
         def clean_text(text):
             if not text:
@@ -588,51 +570,16 @@ def ocr_pdf(job_id):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             
-            # Save page as image
-            temp_img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_ocr_{i}.png')
-            page.save(temp_img_path, format='PNG')
+            # Convert to grayscale for better OCR
+            gray = page.convert('L')
             
-            # Try multiple passes with different settings
-            all_results = []
-            
-            # Pass 1: Enhanced image
+            # Try OCR
             try:
-                enhanced_img = enhance_image(page)
-                enhanced_img.save(temp_img_path)
-                results1 = reader.readtext(temp_img_path, detail=0)
-                if results1:
-                    all_results.append(('\n'.join(results1), len(results1)))
+                text = pytesseract.image_to_string(gray, lang=tess_lang)
+                text = clean_text(text)
             except Exception as e:
-                logger.warning(f'Pass 1 failed: {e}')
-            
-            # Pass 2: Original image
-            try:
-                results2 = reader.readtext(temp_img_path, detail=0)
-                if results2:
-                    all_results.append(('\n'.join(results2), len(results2)))
-            except Exception as e:
-                logger.warning(f'Pass 2 failed: {e}')
-            
-            # Pass 3: Try batch mode
-            try:
-                results3 = reader.readtext(temp_img_path, detail=0, batch_size=1)
-                if results3:
-                    all_results.append(('\n'.join(results3), len(results3)))
-            except Exception as e:
-                logger.warning(f'Pass 3 failed: {e}')
-            
-            # Pick the result with most text (usually most accurate)
-            if all_results:
-                best = max(all_results, key=lambda x: x[1])
-                text = best[0]
-            else:
+                logger.warning(f'OCR failed: {e}')
                 text = ""
-            
-            text = clean_text(text)
-            
-            # Clean up temp file
-            if os.path.exists(temp_img_path):
-                os.remove(temp_img_path)
             
             doc.add_heading(f'Page {i+1}', level=1)
             
