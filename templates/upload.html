@@ -59,17 +59,18 @@
         .cards-container { grid-template-columns: repeat(2, 1fr); gap: 15px; }
     }
     @media (max-width: 450px) {
-        .cards-container { grid-template-columns: 1fr; }
-        .tool-card { max-width: 280px; margin: 0 auto; }
-        .tool-icon { font-size: 32px; }
-        .tool-card h2 { font-size: 16px; }
-        .tool-card p { font-size: 12px; }
-        .hero h1 { font-size: 24px; }
-        .hero p { font-size: 14px; }
+        .cards-container { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .tool-card { padding: 12px; }
+        .tool-icon { font-size: 28px; }
+        .tool-card h2 { font-size: 14px; }
+        .tool-card p { font-size: 11px; }
+        .hero h1 { font-size: 20px; }
+        .hero p { font-size: 12px; }
     }
     @media (max-width: 350px) {
-        .tool-card { padding: 16px; }
-        .tool-icon { font-size: 28px; }
+        .cards-container { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .tool-card { padding: 10px; }
+        .tool-icon { font-size: 24px; }
     }
 </style>
 {% endblock %}
