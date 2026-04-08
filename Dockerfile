@@ -5,6 +5,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     ghostscript \
     poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-khm \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
