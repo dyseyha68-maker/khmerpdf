@@ -301,6 +301,35 @@
             .header { flex-wrap: wrap; gap: 10px; padding: 10px; }
             .header-left { flex-wrap: wrap; }
         }
+        
+        @media (max-width: 600px) {
+            .header { padding: 8px; }
+            .logo-text { font-size: 16px; }
+            .logo img { height: 28px; }
+            .lang-btn { padding: 4px 10px; font-size: 12px; }
+            .main-content { padding: 8px; gap: 12px; }
+            .left-panel, .right-panel { padding: 12px; }
+            .drop-zone { padding: 16px; }
+            .drop-zone-icon { font-size: 28px; }
+            .file-item { padding: 8px; }
+            .action-btn { padding: 12px; font-size: 14px; }
+            .page-item, .image-item { width: 100px; }
+            .page-item img, .image-item img { max-width: 80px; max-height: 100px; }
+        }
+        
+        @media (max-width: 400px) {
+            .header-left { justify-content: center; }
+            .logo { gap: 4px; }
+            .logo-text { font-size: 14px; }
+            .logo img { height: 24px; }
+            .lang-btns { gap: 4px; }
+            .lang-btn { padding: 3px 8px; font-size: 11px; }
+            .left-panel { width: 100%; }
+            .page-grid, .image-grid { gap: 8px; }
+            .page-item, .image-item { width: 80px; padding: 8px; }
+            .page-item img, .image-item img { max-width: 60px; max-height: 80px; }
+            .instructions { padding: 8px 12px; font-size: 12px; }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>

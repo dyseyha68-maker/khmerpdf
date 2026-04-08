@@ -202,6 +202,27 @@
         .left-panel, .right-panel { width: 100%; }
     }
     
+    @media (max-width: 600px) {
+        .calendar-container { padding: 10px; }
+        .left-panel, .right-panel { padding: 12px; }
+        .year-nav button { width: 32px; height: 32px; font-size: 14px; }
+        .year-nav span { font-size: 18px; min-width: 60px; }
+        .month-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .month-btn { padding: 8px 4px; font-size: 11px; }
+        .holiday-item { padding: 6px 8px; font-size: 12px; }
+        .calendar-grid { gap: 2px; }
+        .day-header { padding: 4px; font-size: 10px; }
+        .calendar-day { min-height: 40px; }
+        .day-number { font-size: 12px; }
+        .khmer-day { font-size: 7px; }
+        .month-title { font-size: 16px; }
+    }
+    
+    @media (max-width: 400px) {
+        .left-panel { width: 100%; }
+        .right-panel { min-height: 300px; }
+    }
+    
     .lang-btn {
         background: white;
         border: 2px solid #667eea;

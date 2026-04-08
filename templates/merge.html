@@ -133,6 +133,17 @@
         .page-item { width: 140px; height: 190px; }
         .page-item img { max-width: 110px; max-height: 140px; }
     }
+    @media (max-width: 600px) {
+        .page-grid { gap: 10px; }
+        .page-item { width: 100px; height: 130px; padding: 8px; }
+        .page-item img { max-width: 80px; max-height: 100px; }
+        .main-content { padding: 8px; gap: 12px; }
+    }
+    @media (max-width: 400px) {
+        .page-item { width: 80px; height: 100px; padding: 6px; }
+        .page-item img { max-width: 60px; max-height: 75px; }
+        .page-item .page-num { font-size: 11px; }
+    }
 </style>
 {% endblock %}
 

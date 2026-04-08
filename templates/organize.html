@@ -198,6 +198,19 @@
         .page-item { width: 100px; }
         .page-item img { max-width: 80px; max-height: 100px; }
     }
+    @media (max-width: 600px) {
+        .page-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .page-item { width: 80px; padding: 8px; }
+        .page-item img { max-width: 60px; max-height: 80px; }
+        .main-content { padding: 8px; gap: 12px; }
+    }
+    @media (max-width: 400px) {
+        .page-grid { grid-template-columns: repeat(2, 1fr); }
+        .page-item { width: 70px; }
+        .page-item img { max-width: 50px; max-height: 70px; }
+        .left-panel { padding: 10px; }
+        .instructions { font-size: 12px; padding: 8px; }
+    }
 </style>
 {% endblock %}
 
