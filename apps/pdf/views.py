@@ -73,31 +73,38 @@ def calendar_page(request):
     if not year:
         year = datetime.now().year
     else:
-        year = int(year)
+        try:
+            year = int(year)
+        except:
+            year = datetime.now().year
     
     holidays = []
     try:
         holiday_objs = Holiday.objects.all()
         for h in holiday_objs:
-            if h.end_date:
-                current = h.start_date
-                while current <= h.end_date:
+            try:
+                if h.end_date and h.start_date:
+                    current = h.start_date
+                    while current <= h.end_date:
+                        holidays.append({
+                            'day': current.day,
+                            'month': current.month,
+                            'name_en': h.name_en or '',
+                            'name_kh': h.name_kh or ''
+                        })
+                        current += timedelta(days=1)
+                elif h.start_date:
                     holidays.append({
-                        'day': current.day,
-                        'month': current.month,
+                        'day': h.start_date.day,
+                        'month': h.start_date.month,
                         'name_en': h.name_en or '',
-                        'name_kh': h.name_kh
+                        'name_kh': h.name_kh or ''
                     })
-                    current += timedelta(days=1)
-            else:
-                holidays.append({
-                    'day': h.start_date.day,
-                    'month': h.start_date.month,
-                    'name_en': h.name_en or '',
-                    'name_kh': h.name_kh
-                })
-    except:
-        pass
+            except Exception as e:
+                print(f"Error processing holiday: {e}")
+                continue
+    except Exception as e:
+        print(f"Error loading holidays: {e}")
     
     return render(request, 'calendar.html', {
         'holidays': json.dumps(holidays),
