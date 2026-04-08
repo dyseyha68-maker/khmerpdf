@@ -128,7 +128,7 @@
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 4px;
-        flex: 1;
+        min-height: 400px;
     }
     
     .day-header {
@@ -147,8 +147,7 @@
         background: #f5f5f5;
         border-radius: 6px;
         padding: 4px;
-        cursor: pointer;
-        transition: all 0.2s;
+        min-height: 60px;
     }
     
     .calendar-day:hover {
@@ -277,8 +276,9 @@
     const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const khmerDays = ['ច', 'អ', 'ព', 'ព្រ', 'ស', 'សៅ', 'អា'];
     
-    let holidays = {{ holidays }};
-    
+    let holidays = {{ holidays|safe }};
+    console.log('Holidays:', holidays);
+    console.log('Current Year:', {{ current_year }});
     let currentYear = {{ current_year }};
     let currentMonth = new Date().getMonth();
     
