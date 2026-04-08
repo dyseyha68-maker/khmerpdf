@@ -71,6 +71,65 @@
             background: #667eea;
             color: white;
         }
+        
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 3px;
+            background: #333;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+        
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            z-index: 99;
+        }
+        .mobile-menu.active {
+            display: flex;
+        }
+        .mobile-menu a {
+            text-decoration: none;
+            color: #666;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .mobile-menu a:hover {
+            background: #f5f5f5;
+            color: #667eea;
+        }
+        .mobile-menu a.active {
+            background: #667eea;
+            color: white;
+        }
         .header-actions {
             display: flex;
             gap: 12px;
@@ -299,7 +358,10 @@
             .left-panel { width: 100%; }
             .nav-links { display: none; }
             .header { flex-wrap: wrap; gap: 10px; padding: 10px; }
-            .header-left { flex-wrap: wrap; }
+            .header-left { flex-wrap: wrap; justify-content: space-between; width: 100%; }
+            .hamburger { display: flex; }
+            .mobile-menu { position: fixed; top: 50px; }
+            .header-actions { margin-left: auto; }
         }
         
         @media (max-width: 600px) {
@@ -340,6 +402,11 @@
                 <img src="{% static 'logo.png' %}" alt="Logo" style="height: 36px; vertical-align: middle;">
                 <span class="logo-text">PDF Tools</span>
             </a>
+            <button class="hamburger" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <nav class="nav-links">
                 <a href="/compress/"><span class="text-en">Compress</span><span class="text-kh">បង្រួម</span></a>
                 <a href="/merge/"><span class="text-en">Merge</span><span class="text-kh">បញ្ជូល</span></a>
@@ -359,6 +426,17 @@
         </div>
     </div>
     
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="/compress/"><span class="text-en">Compress</span><span class="text-kh">បង្រួម</span></a>
+        <a href="/merge/"><span class="text-en">Merge</span><span class="text-kh">បញ្ជូល</span></a>
+        <a href="/pdf-split/"><span class="text-en">Split</span><span class="text-kh">បំបែក</span></a>
+        <a href="/organize/"><span class="text-en">Organize</span><span class="text-kh">រៀបចំ</span></a>
+        <a href="/calendar/"><span class="text-en">Calendar</span><span class="text-kh">ប្រតិទិក</span></a>
+        <a href="/ocr/"><span class="text-en">OCR</span><span class="text-kh">OCR</span></a>
+        <a href="/pdf-to-image/"><span class="text-en">PDF to Image</span><span class="text-kh">PDF ទៅ រូបភាព</span></a>
+        <a href="/image-to-pdf/"><span class="text-en">Image to PDF</span><span class="text-kh">រូបភាព ទៅ PDF</span></a>
+    </div>
+    
     <script>
         function setLang(lang) {
             if (lang === 'kh') {
@@ -374,6 +452,24 @@
         }
         const savedLang = localStorage.getItem('pdf_lang') || 'kh';
         setLang(savedLang);
+        
+        function toggleMobileMenu() {
+            const hamburger = document.querySelector('.hamburger');
+            const mobileMenu = document.getElementById('mobileMenu');
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const hamburger = document.querySelector('.hamburger');
+            if (!mobileMenu.contains(e.target) && !hamburger.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
+    </script>
     </script>
     
     {% block content %}{% endblock %}
