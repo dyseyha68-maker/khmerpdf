@@ -549,8 +549,9 @@ def ocr_pdf(job_id):
         style.font.name = 'Times New Roman'
         style.font.size = Pt(11)
         
-        pages = convert_from_path(input_path, dpi=300)
-        max_pages = min(len(pages), 50)
+        # Use lower DPI for faster processing
+        pages = convert_from_path(input_path, dpi=200)
+        max_pages = min(len(pages), 30)
         
         def clean_text(text):
             if not text:
@@ -570,12 +571,12 @@ def ocr_pdf(job_id):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             
-            # Convert to grayscale for better OCR
+            # Convert to grayscale for faster OCR
             gray = page.convert('L')
             
-            # Try OCR
+            # Try OCR with faster settings
             try:
-                text = pytesseract.image_to_string(gray, lang=tess_lang)
+                text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
                 text = clean_text(text)
             except Exception as e:
                 logger.warning(f'OCR failed: {e}')
