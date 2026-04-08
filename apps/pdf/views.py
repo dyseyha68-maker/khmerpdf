@@ -6,6 +6,7 @@ from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -122,6 +123,7 @@ def khqr(request):
 
 
 @api_view(['POST'])
+@csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def compress_api(request):
     import logging
@@ -188,6 +190,7 @@ def compress_api(request):
 
 
 @api_view(['POST'])
+@csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def merge_api(request):
     # Cleanup old files every time a job is created
@@ -232,6 +235,7 @@ def merge_api(request):
 
 
 @api_view(['POST'])
+@csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def split_api(request):
     # Cleanup old files every time a job is created
@@ -294,6 +298,7 @@ def job_status(request, job_id):
 
 
 @api_view(['POST'])
+@csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def organize_api(request):
     import logging
@@ -364,6 +369,7 @@ def organize_api(request):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
+@csrf_exempt
 def ocr_api(request):
     import logging
     logger = logging.getLogger(__name__)
@@ -421,6 +427,7 @@ def ocr_api(request):
 
 
 @api_view(['POST'])
+@csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def pdf_to_image_api(request):
     import logging
@@ -474,6 +481,7 @@ def pdf_to_image_api(request):
 
 
 @api_view(['POST'])
+@csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def image_to_pdf_api(request):
     import logging
