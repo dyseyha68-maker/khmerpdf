@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar - Khmer PDF Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Kantumruy Pro', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; padding: 24px; }
+        h1 { text-align: center; margin-bottom: 20px; color: #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .year-nav button { background: #667eea; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+        .year-nav span { font-size: 24px; font-weight: 700; min-width: 100px; text-align: center; }
+        .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .month-btn { padding: 12px; background: #f5f5f5; border: none; border-radius: 8px; cursor: pointer; font-family: 'Kantumruy Pro', sans-serif; }
+        .month-btn:hover { background: #e0e0e0; }
+        .month-btn.active { background: #d32f2f; color: white; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .day-header { text-align: center; padding: 10px; font-weight: 700; color: #666; }
+        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f5f5f5; border-radius: 8px; font-size: 16px; }
+        .calendar-day.today { background: #d32f2f; color: white; }
+        .calendar-day.holiday { background: #ffcdd2; color: #c62828; }
+        .calendar-day.saturday, .calendar-day.sunday { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cambodia Calendar</h1>
+        <div class="header">
+            <div class="year-nav">
+                <button onclick="changeYear(-1)">◀</button>
+                <span id="yearDisplay">2026</span>
+                <button onclick="changeYear(1)">▶</button>
+            </div>
+        </div>
+        <div class="month-grid" id="monthGrid"></div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+    <script>
+        const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិចិ្ឆកា', 'ធ្នូ'];
+        const englishMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const khmerDays = ['ច', 'អ', 'ព', 'ព្រ', 'ស', 'សៅ', 'អា'];
+        
+        let holidays = {{ holidays|safe }};
+        let currentYear = {{ current_year }};
+        let currentMonth = new Date().getMonth();
+        
+        function changeYear(delta) {
+            currentYear += delta;
+            document.getElementById('yearDisplay').textContent = currentYear;
+            render();
+        }
+        
+        function selectMonth(m) {
+            currentMonth = m;
+            render();
+        }
+        
+        function render() {
+            const grid = document.getElementById('calendarGrid');
+            const monthGrid = document.getElementById('monthGrid');
+            grid.innerHTML = '';
+            
+            ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(d => {
+                const h = document.createElement('div');
+                h.className = 'day-header';
+                h.textContent = d;
+                grid.appendChild(h);
+            });
+            
+            const first = new Date(currentYear, currentMonth, 1);
+            const days = new Date(currentYear, currentMonth + 1, 0).getDate();
+            let start = first.getDay();
+            start = start === 0 ? 6 : start - 1;
+            
+            for (let i = 0; i < start + days; i++) {
+                const dayNum = i - start + 1;
+                if (dayNum < 1 || dayNum > days) {
+                    grid.appendChild(document.createElement('div'));
+                    continue;
+                }
+                const div = document.createElement('div');
+                div.className = 'calendar-day';
+                div.textContent = dayNum;
+                grid.appendChild(div);
+            }
+            
+            monthGrid.innerHTML = '';
+            khmerMonths.forEach((m, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'month-btn' + (i === currentMonth ? ' active' : '');
+                btn.textContent = m;
+                btn.onclick = () => selectMonth(i);
+                monthGrid.appendChild(btn);
+            });
+        }
+        
+        render();
+    </script>
+</body>
+</html>
