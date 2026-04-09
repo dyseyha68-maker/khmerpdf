@@ -81,28 +81,33 @@ def calendar_page(request):
     holidays = []
     try:
         holiday_objs = Holiday.objects.all()
+        print(f"Holiday objects count: {holiday_objs.count()}")
         for h in holiday_objs:
             try:
-                if h.end_date and h.start_date:
-                    current = h.start_date
-                    while current <= h.end_date:
+                start = getattr(h, 'start_date', None)
+                end = getattr(h, 'end_date', None)
+                if start:
+                    if end:
+                        current = start
+                        while current <= end:
+                            holidays.append({
+                                'day': current.day,
+                                'month': current.month,
+                                'name_en': h.name_en or '',
+                                'name_kh': h.name_kh or ''
+                            })
+                            current += timedelta(days=1)
+                    else:
                         holidays.append({
-                            'day': current.day,
-                            'month': current.month,
+                            'day': start.day,
+                            'month': start.month,
                             'name_en': h.name_en or '',
                             'name_kh': h.name_kh or ''
                         })
-                        current += timedelta(days=1)
-                elif h.start_date:
-                    holidays.append({
-                        'day': h.start_date.day,
-                        'month': h.start_date.month,
-                        'name_en': h.name_en or '',
-                        'name_kh': h.name_kh or ''
-                    })
             except Exception as e:
                 print(f"Error processing holiday: {e}")
                 continue
+        print(f"Total holidays: {len(holidays)}")
     except Exception as e:
         print(f"Error loading holidays: {e}")
     
