@@ -23,8 +23,10 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
     logger.info(f'Input file size: {original_size_mb:.2f} MB')
     
     preset_map = {
+        'low': '/screen',
+        'recommended': '/ebook',
+        'high': '/prepress',
         'extreme': '/screen',
-        'recommended': '/screen',
         'less': '/ebook',
     }
     preset = preset_map.get(compression_level, '/screen')

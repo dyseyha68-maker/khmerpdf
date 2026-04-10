@@ -4,11 +4,102 @@
 
 {% block extra_css %}
 <style>
+    .left-panel {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .quality-section {
+        margin-bottom: 20px;
+    }
+    
+    .quality-section label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .quality-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .quality-option {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .quality-option:hover {
+        border-color: #667eea;
+    }
+    
+    .quality-option.selected {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+    
+    .quality-option input {
+        display: none;
+    }
+    
+    .quality-radio {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #667eea;
+        border-radius: 50%;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .quality-option.selected .quality-radio::after {
+        content: '';
+        width: 10px;
+        height: 10px;
+        background: #667eea;
+        border-radius: 50%;
+    }
+    
+    .quality-info {
+        flex: 1;
+    }
+    
+    .quality-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .quality-desc {
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .estimated-size {
+        font-size: 13px;
+        color: #667eea;
+        font-weight: 500;
+        margin-top: 15px;
+        padding: 10px;
+        background: #f0f4ff;
+        border-radius: 6px;
+        text-align: center;
+    }
+    
     .selected-files {
         max-height: 200px;
         overflow-y: auto;
         margin-bottom: 16px;
     }
+    
     .selected-file {
         display: flex;
         justify-content: space-between;
@@ -18,11 +109,13 @@
         border-radius: 6px;
         margin-bottom: 8px;
     }
+    
     .selected-file-name {
         font-size: 13px;
         color: #333;
         word-break: break-all;
     }
+    
     .selected-file-remove {
         background: none;
         border: none;
@@ -30,6 +123,7 @@
         cursor: pointer;
         font-size: 18px;
     }
+    
     .file-info {
         padding: 12px;
         background: #e8f5e9;
@@ -37,6 +131,11 @@
         margin-bottom: 16px;
         font-size: 13px;
         color: #2e7d32;
+    }
+    
+    .right-panel-inner {
+        overflow: auto;
+        max-height: 100%;
     }
 </style>
 {% endblock %}
@@ -54,6 +153,61 @@
             </div>
             
             <div class="selected-files" id="compressFilesList"></div>
+            
+            <div class="quality-section">
+                <label>
+                    <span class="text-en">Compression Quality</span>
+                    <span class="text-kh">គុណភាពបង្រួម</span>
+                </label>
+                <div class="quality-options">
+                    <label class="quality-option selected" onclick="selectQuality(this, 'low')">
+                        <input type="radio" name="quality" value="low" checked>
+                        <div class="quality-radio"></div>
+                        <div class="quality-info">
+                            <div class="quality-name">
+                                <span class="text-en">Low (Best压缩)</span>
+                                <span class="text-kh">ទាប (បង្រួមខ្លាំង)</span>
+                            </div>
+                            <div class="quality-desc">
+                                <span class="text-en">Smallest file size, lower quality</span>
+                                <span class="text-kh">ទំហំតូចបំផុត គុណភាពទាប</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="quality-option" onclick="selectQuality(this, 'recommended')">
+                        <input type="radio" name="quality" value="recommended">
+                        <div class="quality-radio"></div>
+                        <div class="quality-info">
+                            <div class="quality-name">
+                                <span class="text-en">Recommended (平衡)</span>
+                                <span class="text-kh">ណែនាំ (តុល្យភាព)</span>
+                            </div>
+                            <div class="quality-desc">
+                                <span class="text-en">Good balance between size and quality</span>
+                                <span class="text-kh">តុល្យភាពល្អរវាងទំហំ និងគុណភាព</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="quality-option" onclick="selectQuality(this, 'high')">
+                        <input type="radio" name="quality" value="high">
+                        <div class="quality-radio"></div>
+                        <div class="quality-info">
+                            <div class="quality-name">
+                                <span class="text-en">High (最好质量)</span>
+                                <span class="text-kh">ខ្ពស់ (គុណភាពល្អបំផុត)</span>
+                            </div>
+                            <div class="quality-desc">
+                                <span class="text-en">Best quality, larger file size</span>
+                                <span class="text-kh">គុណភាពល្អបំផុត ទំហំធំជាង</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                <div class="estimated-size" id="estimatedSize">
+                    <span class="text-en">Estimated output: Calculating...</span>
+                    <span class="text-kh">ទំហំប៉ារម៉ាស់: កំពុងគណនា...</span>
+                </div>
+            </div>
             
             <button class="action-btn" id="compressBtn" onclick="compressPdf()" disabled>
                 <span class="text-en">Compress PDF</span>
@@ -96,6 +250,37 @@
     <script>
         let currentFiles = [];
         let pdfDoc = null;
+        let currentQuality = 'low';
+        
+        const qualityRates = {
+            'low': 0.2,
+            'recommended': 0.5,
+            'high': 0.8
+        };
+        
+        function selectQuality(element, quality) {
+            document.querySelectorAll('.quality-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            currentQuality = quality;
+            document.querySelector('input[name="quality"][value="' + quality + '"]').checked = true;
+            updateEstimatedSize();
+        }
+        
+        function updateEstimatedSize() {
+            const totalSize = currentFiles.reduce((sum, f) => sum + f.size, 0);
+            const rate = qualityRates[currentQuality];
+            const estimated = totalSize * rate;
+            
+            const mb = (estimated / 1024 / 1024).toFixed(2);
+            const el = document.getElementById('estimatedSize');
+            const isKh = document.body.classList.contains('lang-kh');
+            
+            if (isKh) {
+                el.innerHTML = `ទំហំប៉ារម៉ាស់: ប្រហែល ${mb} MB (${(rate * 100).toFixed(0)}% នៃទំហំដើម)`;
+            } else {
+                el.innerHTML = `Estimated output: ~${mb} MB (${(rate * 100).toFixed(0)}% of original)`;
+            }
+        }
         
         function compressSelectFile() {
             const input = document.getElementById('fileInput');
@@ -104,6 +289,7 @@
             }
             renderFileList();
             loadPdfPreview();
+            updateEstimatedSize();
         }
         
         function renderFileList() {
@@ -125,6 +311,7 @@
             currentFiles.splice(index, 1);
             renderFileList();
             loadPdfPreview();
+            updateEstimatedSize();
         }
         
         async function loadPdfPreview() {
@@ -183,7 +370,7 @@
             
             const fd = new FormData();
             currentFiles.forEach(f => fd.append('files', f));
-            fd.append('compression_level', 'recommended');
+            fd.append('compression_level', currentQuality);
             
             fetch('/api/compress/', { method: 'POST', body: fd })
                 .then(r => r.json())
