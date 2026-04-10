@@ -44,17 +44,48 @@
         overflow: auto;
     }
     
-    .buddha-section {
+    .day-info-section {
         margin-top: 20px;
         padding-top: 20px;
         border-top: 2px solid #eee;
     }
     
-    .left-panel h2 {
+    .day-info {
+        display: none;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+    
+    .day-info.visible {
+        display: block;
+    }
+    
+    .day-info h4 {
         color: #333;
-        margin-bottom: 20px;
-        font-size: 20px;
-        text-align: center;
+        margin-bottom: 12px;
+        font-size: 16px;
+    }
+    
+    .day-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .day-info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .day-info-label {
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .day-info-value {
+        color: #333;
+        font-weight: 600;
     }
     
     .year-nav {
@@ -127,105 +158,55 @@
         color: #c62828;
     }
     
-    
     .month-title {
         text-align: center;
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 700;
         color: #333;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
     
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
-        max-width: 500px;
-        margin: 0 auto;
+        gap: 4px;
+        width: 100%;
     }
     
-    @media (max-width: 1200px) {
-        .calendar-grid {
-            gap: 4px;
-            max-width: 400px;
-        }
-        .calendar-day { font-size: 14px; }
-        .day-header { padding: 8px; font-size: 12px; }
+    .day-header {
+        text-align: center;
+        padding: 8px;
+        font-weight: 700;
+        color: #666;
+        font-size: 12px;
     }
     
-    @media (max-width: 900px) {
-        .calendar-page .main-content { flex-direction: column; }
-        .left-panel { flex: none; }
-        .calendar-grid { max-width: 100%; }
-    }
-    
-    @media (max-width: 600px) {
-        .left-panel { padding: 16px; }
-        .right-panel { padding: 16px; }
-        .calendar-grid { gap: 3px; }
-        .calendar-day { font-size: 13px; }
-        .month-title { font-size: 20px; }
-    }
+    .calendar-day {
+        aspect-ratio: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         background: #f5f5f5;
-        border-radius: 8px;
-        font-size: 16px;
+        border-radius: 6px;
+        font-size: 14px;
         cursor: pointer;
-        transition: transform 0.2s;
+        transition: all 0.2s;
     }
     
     .calendar-day:hover {
-        transform: scale(1.05);
+        background: #e0e0e0;
+        transform: scale(1.02);
     }
     
     .calendar-day.today { background: #d32f2f; color: white; }
+    .calendar-day.today:hover { background: #b71c1c; }
     .calendar-day.holiday { background: #ffcdd2; color: #c62828; }
     .calendar-day.saturday, .calendar-day.sunday { background: #ffebee; color: #c62828; }
-    .calendar-day.selected { border: 3px solid #667eea; }
+    .calendar-day.selected { border: 2px solid #667eea; }
     
-    .calendar-day .khmer-day { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+    .calendar-day .khmer-day { font-size: 10px; opacity: 0.7; margin-top: 2px; }
     .calendar-day.today .khmer-day { color: white; }
-    
-    .buddha-calendar {
-        display: none;
-        padding: 20px;
-        background: #fafafa;
-        border-radius: 12px;
-        margin-top: 10px;
-    }
-    
-    .buddha-calendar.visible {
-        display: block;
-    }
-    
-    .buddha-calendar h4 {
-        color: #333;
-        margin-bottom: 15px;
-        font-size: 18px;
-    }
-    
-    .buddha-info {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    .buddha-item {
-        padding: 12px;
-        background: white;
-        border-radius: 8px;
-        font-size: 14px;
-    }
-    
-    .buddha-item label {
-        font-weight: 600;
-        color: #666;
-        display: block;
-        margin-bottom: 4px;
-    }
     
     @media (max-width: 900px) {
         .calendar-page .main-content { flex-direction: column; }
@@ -235,9 +216,9 @@
     @media (max-width: 600px) {
         .left-panel { padding: 16px; }
         .right-panel { padding: 16px; }
-        .calendar-grid { gap: 4px; }
-        .calendar-day { font-size: 13px; }
-        .month-title { font-size: 20px; }
+        .calendar-grid { gap: 2px; }
+        .calendar-day { font-size: 12px; }
+        .month-title { font-size: 18px; }
     }
 </style>
 {% endblock %}
@@ -266,26 +247,24 @@
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
             
-            <div class="buddha-section">
-                <div class="buddha-calendar" id="buddhaCalendar">
-                    <h4 id="buddhaTitle"> ប្រតិទិនបង្គំ</h4>
-                    <div class="buddha-info">
-                        <div class="buddha-item">
-                            <label>Year (B.E.)</label>
-                            <span id="buddhaYear">2569</span>
-                        </div>
-                        <div class="buddha-item">
-                            <label>Year (C.E.)</label>
-                            <span id="ceYear">2026</span>
-                        </div>
-                        <div class="buddha-item">
-                            <label>Month</label>
-                            <span id="buddhaMonth"> មេសា</span>
-                        </div>
-                        <div class="buddha-item">
-                            <label>Day</label>
-                            <span id="buddhaDay"> ច័ន្ទ</span>
-                        </div>
+            <div class="day-info-section">
+                <div class="day-info" id="dayInfo">
+                    <h4 id="dayInfoTitle">Day Information</h4>
+                    <div class="day-info-row">
+                        <span class="day-info-label">Date:</span>
+                        <span class="day-info-value" id="dayInfoDate">-</span>
+                    </div>
+                    <div class="day-info-row">
+                        <span class="day-info-label">Day:</span>
+                        <span class="day-info-value" id="dayInfoDay">-</span>
+                    </div>
+                    <div class="day-info-row">
+                        <span class="day-info-label">Buddhist Year:</span>
+                        <span class="day-info-value" id="dayInfoBuddha">-</span>
+                    </div>
+                    <div class="day-info-row">
+                        <span class="day-info-label">Holiday:</span>
+                        <span class="day-info-value" id="dayInfoHoliday">-</span>
                     </div>
                 </div>
             </div>
@@ -309,12 +288,8 @@
         currentLang = lang;
         if (lang === 'kh') {
             document.body.className = 'lang-kh';
-            document.getElementById('langKh').classList.add('active');
-            document.getElementById('langEn').classList.remove('active');
         } else {
             document.body.className = 'lang-en';
-            document.getElementById('langEn').classList.add('active');
-            document.getElementById('langKh').classList.remove('active');
         }
         localStorage.setItem('pdf_lang', lang);
         render();
@@ -337,17 +312,19 @@
         return ceYear + 543;
     }
     
-    function showBuddhaCalendar(day, month, year) {
-        const buddhaDiv = document.getElementById('buddhaCalendar');
+    function showDayInfo(day, month, year) {
+        const dayInfo = document.getElementById('dayInfo');
         const isKh = currentLang === 'kh';
+        const dow = new Date(year, month, day).getDay();
+        const hol = holidays.find(h => h.day === day && h.month === month + 1);
         
-        document.getElementById('buddhaTitle').textContent = isKh ? ' ប្រតិទិនបង្គំ' : 'Buddha Calendar';
-        document.getElementById('buddhaYear').textContent = getBuddhaYear(year);
-        document.getElementById('ceYear').textContent = year;
-        document.getElementById('buddhaMonth').textContent = isKh ? khmerMonths[month] : englishMonths[month];
-        document.getElementById('buddhaDay').textContent = isKh ? khmerDays[day] : englishDays[day];
+        document.getElementById('dayInfoTitle').textContent = isKh ? 'ព័ត៌មានថ្ងៃ' : 'Day Information';
+        document.getElementById('dayInfoDate').textContent = day + ' ' + (isKh ? khmerMonths[month] : englishMonths[month]) + ' ' + year;
+        document.getElementById('dayInfoDay').textContent = isKh ? khmerDays[dow] : englishDays[dow];
+        document.getElementById('dayInfoBuddha').textContent = getBuddhaYear(year);
+        document.getElementById('dayInfoHoliday').textContent = hol ? (isKh ? hol.name_kh : hol.name_en) : (isKh ? 'គ្មាន' : 'None');
         
-        buddhaDiv.classList.add('visible');
+        dayInfo.classList.add('visible');
     }
     
     function render() {
@@ -400,7 +377,7 @@
             
             div.onclick = function() {
                 selectedDay = dayNum;
-                showBuddhaCalendar(dow, currentMonth, currentYear);
+                showDayInfo(dow, currentMonth, currentYear);
                 render();
             };
             

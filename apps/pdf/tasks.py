@@ -118,18 +118,22 @@ def compress_with_pymupdf(input_path, output_path, compression_level='recommende
     """Fallback: Use PyMuPDF for compression - works for embedded images"""
     
     quality_map = {
+        'low': 10,
         'extreme': 10,
         'recommended': 30,
+        'high': 50,
         'less': 50,
     }
-    quality = quality_map.get(compression_level, 20)
+    quality = quality_map.get(compression_level, 30)
     
     max_dim_map = {
+        'low': 300,
         'extreme': 300,
         'recommended': 600,
+        'high': 1200,
         'less': 1200,
     }
-    max_dim = max_dim_map.get(compression_level, 400)
+    max_dim = max_dim_map.get(compression_level, 600)
     
     doc = fitz.open(input_path)
     
