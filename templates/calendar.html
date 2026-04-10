@@ -208,9 +208,6 @@
     .calendar-day.saturday, .calendar-day.sunday { background: #ffebee; color: #c62828; }
     .calendar-day.selected { border: 2px solid #667eea; }
     
-    .calendar-day .khmer-day { font-size: 10px; opacity: 0.7; margin-top: 2px; }
-    .calendar-day.today .khmer-day { color: white; }
-    
     @media (max-width: 900px) {
         .calendar-page .main-content { flex-direction: column; }
         .left-panel { flex: none; }
@@ -384,7 +381,7 @@
                 render();
             };
             
-            div.innerHTML = dayNum + '<span class="khmer-day">' + khmerDays[dow] + '</span>';
+            div.innerHTML = dayNum;
             grid.appendChild(div);
         }
         
