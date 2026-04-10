@@ -243,7 +243,6 @@
         
         <div class="right-panel">
             <div class="calendar-section">
-                <div class="month-title" id="monthTitle"></div>
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
             
@@ -330,7 +329,6 @@
     function render() {
         const isKh = currentLang === 'kh';
         
-        document.getElementById('monthTitle').textContent = (isKh ? khmerMonths[currentMonth] : englishMonths[currentMonth]) + ' ' + currentYear;
         document.getElementById('holidayTitle').textContent = isKh ? ' ថ្ងៃឈប់សម្រាក' : 'Holidays';
         
         const grid = document.getElementById('calendarGrid');
