@@ -44,8 +44,12 @@ def cleanup_old_files():
         print(f'Cleanup error: {e}')
 
 
+from datetime import datetime
+
 def index(request):
-    return render(request, 'upload.html')
+    now = datetime.now()
+    months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    return render(request, 'upload.html', {'current_month': months[now.month - 1], 'current_day': now.day})
 
 
 def split_page(request):

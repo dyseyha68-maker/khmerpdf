@@ -7,130 +7,69 @@
     .calendar-page {
         display: flex;
         flex-direction: column;
-        padding: 20px;
-        gap: 20px;
-        height: calc(100vh - 70px);
+        padding: 24px;
+        gap: 24px;
+        width: 100%;
     }
     
     .calendar-page .main-content {
         display: flex;
         gap: 24px;
-        flex: 1;
-        align-items: stretch;
+        width: 100%;
     }
     
     .left-panel {
-        flex: 0 0 320px;
+        width: 340px;
         background: white;
-        border-radius: 16px;
+        border-radius: 12px;
         padding: 24px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
     }
     
     .right-panel {
         flex: 1;
         background: white;
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        height: 100%;
-    }
-    
-    .calendar-section {
-        flex: none;
-        overflow: auto;
-    }
-    
-    .day-info-section {
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 2px solid #eee;
-        flex: none;
-        min-height: 100px;
-    }
-    
-    .day-info {
-        display: none;
-        padding: 20px;
-        background: #f8f9fa;
         border-radius: 12px;
-        font-size: 15px;
-    }
-    
-    .day-info.visible {
-        display: block;
-    }
-    
-    .day-info h4 {
-        color: #333;
-        margin-bottom: 15px;
-        font-size: 18px;
-    }
-    
-    .day-info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 12px 0;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .day-info-row:last-child {
-        border-bottom: none;
-    }
-    
-    .day-info-label {
-        color: #666;
-        font-weight: 500;
-        font-size: 14px;
-    }
-    
-    .day-info-value {
-        color: #333;
-        font-weight: 600;
-        font-size: 14px;
+        padding: 24px;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
     }
     
     .year-nav {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 15px;
-        margin-bottom: 20px;
+        gap: 16px;
+        margin-bottom: 24px;
     }
     
     .year-nav button {
-        background: #667eea;
+        background: #2563eb;
         color: white;
         border: none;
         width: 40px;
         height: 40px;
-        border-radius: 50%;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 18px;
     }
     
     .year-nav span {
-        font-size: 26px;
+        font-size: 28px;
         font-weight: 700;
-        min-width: 80px;
+        min-width: 100px;
         text-align: center;
     }
     
     .month-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 8px;
+        margin-bottom: 24px;
     }
     
     .month-btn {
         padding: 12px;
-        background: #f5f5f5;
+        background: #f1f5f9;
         border: none;
         border-radius: 8px;
         cursor: pointer;
@@ -138,93 +77,120 @@
         font-size: 14px;
     }
     
-    .month-btn:hover { background: #e0e0e0; }
-    .month-btn.active { background: #d32f2f; color: white; }
+    .month-btn:hover { background: #e2e8f0; }
+    .month-btn.active { background: #2563eb; color: white; }
     
     .holiday-section h3 {
-        color: #333;
+        color: #1e293b;
         margin-bottom: 12px;
-        font-size: 18px;
+        font-size: 16px;
+        font-weight: 600;
     }
     
     .holiday-list {
-        max-height: 200px;
+        max-height: 220px;
         overflow-y: auto;
     }
     
     .holiday-item {
         padding: 12px;
-        background: #ffcdd2;
+        background: #fef2f2;
         border-radius: 8px;
-        margin-bottom: 10px;
-        font-size: 15px;
+        margin-bottom: 8px;
+        font-size: 14px;
+        border-left: 3px solid #ef4444;
     }
     
     .holiday-item .date {
         font-weight: 600;
-        color: #c62828;
-    }
-    
-    .month-title {
-        text-align: center;
-        font-size: 24px;
-        font-weight: 700;
-        color: #333;
-        margin-bottom: 16px;
+        color: #dc2626;
     }
     
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 3px;
+        gap: 4px;
         width: 100%;
-        max-width: 550px;
+        max-width: 600px;
         margin: 0 auto;
     }
     
     .day-header {
         text-align: center;
-        padding: 8px;
-        font-weight: 700;
-        color: #666;
+        padding: 10px;
+        font-weight: 600;
+        color: #64748b;
         font-size: 12px;
     }
     
     .calendar-day {
         aspect-ratio: 1;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: #f5f5f5;
-        border-radius: 6px;
+        background: #f1f5f9;
+        border-radius: 8px;
         font-size: 16px;
         cursor: pointer;
         transition: all 0.2s;
     }
     
     .calendar-day:hover {
-        background: #e0e0e0;
-        transform: scale(1.02);
+        background: #e2e8f0;
     }
     
-    .calendar-day.today { background: #d32f2f; color: white; }
-    .calendar-day.today:hover { background: #b71c1c; }
-    .calendar-day.holiday { background: #ffcdd2; color: #c62828; }
-    .calendar-day.saturday, .calendar-day.sunday { background: #ffebee; color: #c62828; }
-    .calendar-day.selected { border: 2px solid #667eea; }
+    .calendar-day.today { background: #2563eb; color: white; }
+    .calendar-day.holiday { background: #fef2f2; color: #dc2626; }
+    .calendar-day.saturday, .calendar-day.sunday { background: #faf5ff; color: #7c3aed; }
+    .calendar-day.selected { border: 2px solid #2563eb; }
+    
+    .day-info-section {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .day-info {
+        display: none;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 12px;
+    }
+    
+    .day-info.visible {
+        display: block;
+    }
+    
+    .day-info h4 {
+        color: #1e293b;
+        margin-bottom: 16px;
+        font-size: 18px;
+    }
+    
+    .day-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .day-info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .day-info-label {
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    .day-info-value {
+        color: #1e293b;
+        font-weight: 600;
+    }
     
     @media (max-width: 900px) {
         .calendar-page .main-content { flex-direction: column; }
-        .left-panel { flex: none; }
-    }
-    
-    @media (max-width: 600px) {
-        .left-panel { padding: 16px; }
-        .right-panel { padding: 16px; }
-        .calendar-grid { gap: 2px; }
-        .calendar-day { font-size: 12px; }
-        .month-title { font-size: 18px; }
+        .left-panel { width: 100%; }
     }
 </style>
 {% endblock %}
@@ -242,15 +208,13 @@
             <div class="month-grid" id="monthGrid"></div>
             
             <div class="holiday-section">
-                <h3 id="holidayTitle"> ថ្ងៃឈប់សម្រាក</h3>
+                <h3 id="holidayTitle">Holidays</h3>
                 <div class="holiday-list" id="holidayList"></div>
             </div>
         </div>
         
         <div class="right-panel">
-            <div class="calendar-section">
-                <div class="calendar-grid" id="calendarGrid"></div>
-            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
             
             <div class="day-info-section">
                 <div class="day-info" id="dayInfo">
@@ -287,15 +251,10 @@
     let currentYear = {{ current_year }};
     let currentMonth = new Date().getMonth();
     let selectedDay = null;
-    let currentLang = localStorage.getItem('pdf_lang') || 'kh';
+    let currentLang = localStorage.getItem('pdf_lang') || 'en';
     
     function setLang(lang) {
         currentLang = lang;
-        if (lang === 'kh') {
-            document.body.className = 'lang-kh';
-        } else {
-            document.body.className = 'lang-en';
-        }
         localStorage.setItem('pdf_lang', lang);
         render();
     }
@@ -323,7 +282,6 @@
         const dow = new Date(year, month, day).getDay();
         const hol = holidays.find(h => h.day === day && h.month === month + 1);
         
-        document.getElementById('dayInfoTitle').textContent = isKh ? 'ព័ត៌មានថ្ងៃ' : 'Day Information';
         document.getElementById('dayInfoDate').textContent = day + ' ' + (isKh ? khmerMonths[month] : englishMonths[month]) + ' ' + year;
         document.getElementById('dayInfoDay').textContent = isKh ? khmerDays[dow] : englishDays[dow];
         document.getElementById('dayInfoBuddha').textContent = getBuddhaYear(year);
@@ -385,7 +343,7 @@
                 render();
             };
             
-            div.innerHTML = dayNum;
+            div.textContent = dayNum;
             grid.appendChild(div);
         }
         
@@ -403,7 +361,7 @@
         const monthHols = holidays.filter(h => h.month === currentMonth + 1);
         
         if (monthHols.length === 0) {
-            holidayList.innerHTML = '<div style="color: #999; text-align: center; padding: 15px;">' + (isKh ? 'គ្មានថ្ងៃឈប់' : 'No holidays') + '</div>';
+            holidayList.innerHTML = '<div style="color: #94a3b8; padding: 12px;">' + (isKh ? 'គ្មានថ្ងៃឈប់' : 'No holidays this month') + '</div>';
         } else {
             holidayList.innerHTML = monthHols.map(h => 
                 '<div class="holiday-item"><span class="date">' + h.day + '/' + h.month + '</span> ' + (isKh ? h.name_kh : h.name_en) + '</div>'

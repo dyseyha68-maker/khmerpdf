@@ -1,138 +1,216 @@
 {% extends 'base.html' %}
 
-{% block title %}Khmer PDF Tools - Free Online PDF Compress, Merge, Split, Organize{% endblock %}
+{% block title %}Khmer PDF Tools - Free Online PDF Tools{% endblock %}
 
 {% block extra_css %}
 <style>
     .main-content {
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
-        padding: 50px 20px;
-        min-height: calc(100vh - 100px);
+        padding: 48px 24px;
         width: 100%;
+    }
+    
+    .hero {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+    
+    .hero h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 12px;
+    }
+    
+    .hero p {
+        font-size: 16px;
+        color: #64748b;
     }
     
     .cards-container {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 20px;
-        max-width: 1100px;
+        max-width: 1200px;
         width: 100%;
-        margin: 20px auto;
     }
     
     .tool-card {
         background: white;
         border-radius: 16px;
-        padding: 28px 24px;
+        padding: 28px;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        border: 1px solid #e2e8f0;
     }
-    .tool-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
     
-    .tool-icon { font-size: 52px; margin-bottom: 14px; }
-    .tool-card h2 { font-size: 17px; margin-bottom: 8px; color: #333; }
-    .tool-card p { font-size: 13px; opacity: 0.7; }
+    .tool-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 40px rgba(37, 99, 235, 0.15);
+        border-color: #2563eb;
+    }
     
-    .calendar-date {
-        width: 60px;
-        height: 60px;
-        background: #d32f2f;
-        border-radius: 12px;
+    .tool-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    
+    .tool-card h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+    
+    .tool-card p {
+        font-size: 13px;
+        color: #64748b;
+    }
+    
+    .calendar-card {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: white;
+        grid-column: span 2;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
         align-items: center;
-        margin: 0 auto 18px;
+        justify-content: center;
+        gap: 24px;
+        padding: 24px 40px;
+    }
+    
+    .calendar-card:hover {
+        border-color: transparent;
+    }
+    
+    .calendar-card .cal-icon {
+        font-size: 56px;
+    }
+    
+    .calendar-card h3, .calendar-card p {
         color: white;
     }
-    .calendar-date .cal-month { font-size: 11px; font-weight: 600; text-transform: uppercase; }
-    .calendar-date .cal-day { font-size: 28px; font-weight: 700; line-height: 1; }
+    
+    .calendar-date {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .calendar-date .cal-month {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        opacity: 0.9;
+    }
+    
+    .calendar-date .cal-day {
+        font-size: 36px;
+        font-weight: 700;
+    }
+    
+    .calendar-card .cal-text {
+        text-align: left;
+    }
     
     @media (max-width: 1000px) {
-        .cards-container { grid-template-columns: repeat(3, 1fr); }
+        .cards-container {
+            grid-template-columns: repeat(3, 1fr);
+        }
     }
-    @media (max-width: 700px) {
-        .cards-container { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    
+    @media (max-width: 768px) {
+        .cards-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .calendar-card {
+            grid-column: span 2;
+            flex-direction: column;
+            text-align: center;
+            gap: 16px;
+        }
+        
+        .calendar-card .cal-text {
+            text-align: center;
+        }
     }
-    @media (max-width: 450px) {
-        .cards-container { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .tool-card { padding: 12px; }
-        .tool-icon { font-size: 28px; }
-        .tool-card h2 { font-size: 14px; }
-        .tool-card p { font-size: 11px; }
-        .hero h1 { font-size: 20px; }
-        .hero p { font-size: 12px; }
-    }
-    @media (max-width: 350px) {
-        .cards-container { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .tool-card { padding: 10px; }
-        .tool-icon { font-size: 24px; }
+    
+    @media (max-width: 480px) {
+        .cards-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .calendar-card {
+            grid-column: span 1;
+        }
+        
+        .hero h1 {
+            font-size: 24px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="hero">
+    <h1>Free Online PDF Tools</h1>
+    <p>Compress, Merge, Split, and Organize PDF Files</p>
+</div>
+
 <div class="cards-container">
     <div class="tool-card" onclick="window.location.href='/compress/'">
-        <div class="tool-icon">🗜️</div>
-        <h2><span class="text-en">Compress PDF</span><span class="text-kh">បង្រួម PDF</span></h2>
-        <p><span class="text-en">Reduce file size</span><span class="text-kh">បង្រួមទំហំ</span></p>
+        <div class="tool-icon">📉</div>
+        <h3>Compress PDF</h3>
+        <p>Reduce PDF file size</p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/merge/'">
         <div class="tool-icon">📑</div>
-        <h2><span class="text-en">Merge PDF</span><span class="text-kh">បញ្ជូល PDF</span></h2>
-        <p><span class="text-en">Combine PDF files</span><span class="text-kh">រួមបញ្ចូល</span></p>
+        <h3>Merge PDF</h3>
+        <p>Combine multiple PDFs</p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/pdf-split/'">
+    <div class="tool-card" onclick="window.location.href='/split/'">
         <div class="tool-icon">✂️</div>
-        <h2><span class="text-en">Split PDF</span><span class="text-kh">បំបែក PDF</span></h2>
-        <p><span class="text-en">Extract pages</span><span class="text-kh">ចម្លងទំព័រ</span></p>
+        <h3>Split PDF</h3>
+        <p>Extract pages</p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/organize/'">
         <div class="tool-icon">📋</div>
-        <h2><span class="text-en">Organize PDF</span><span class="text-kh">រៀបចំ PDF</span></h2>
-        <p><span class="text-en">Reorder pages</span><span class="text-kh">ផ្លាស់ទី</span></p>
+        <h3>Organize PDF</h3>
+        <p>Reorder pages</p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/calendar/'">
-        <div class="calendar-date">
-            <span class="cal-month" id="calMonth"></span>
-            <span class="cal-day" id="calDay"></span>
-        </div>
-        <h2><span class="text-en">Calendar</span><span class="text-kh">ប្រតិទិក</span></h2>
-        <p><span class="text-en">Khmer calendar</span><span class="text-kh">ប្រតិទិកខ្មែរ</span></p>
+    <div class="tool-card" onclick="window.location.href='/pdftoimage/'">
+        <div class="tool-icon">🖼️</div>
+        <h3>PDF to Image</h3>
+        <p>Convert PDF to images</p>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/imagetopdf/'">
+        <div class="tool-icon">📄</div>
+        <h3>Image to PDF</h3>
+        <p>Convert images to PDF</p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/ocr/'">
-        <div class="tool-icon">📝</div>
-        <h2><span class="text-en">OCR PDF</span><span class="text-kh">OCR PDF</span></h2>
-        <p><span class="text-en">Extract text</span><span class="text-kh">ទាញយកអត្ថបទ</span></p>
+        <div class="tool-icon">🔍</div>
+        <h3>OCR</h3>
+        <p>Make scanned PDF searchable</p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/pdf-to-image/'">
-        <div class="tool-icon">🖼️</div>
-        <h2><span class="text-en">PDF to Image</span><span class="text-kh">PDF ទៅ រូបភាព</span></h2>
-        <p><span class="text-en">Convert to images</span><span class="text-kh">បម្លែងទៅរូប</span></p>
-    </div>
-    
-    <div class="tool-card" onclick="window.location.href='/image-to-pdf/'">
-        <div class="tool-icon">📷</div>
-        <h2><span class="text-en">Image to PDF</span><span class="text-kh">រូបភាព ទៅ PDF</span></h2>
-        <p><span class="text-en">Convert to PDF</span><span class="text-kh">បម្លែងទៅ PDF</span></p>
+    <div class="calendar-card" onclick="window.location.href='/calendar/'">
+        <div class="calendar-date">
+            <span class="cal-month">{{ current_month }}</span>
+            <span class="cal-day">{{ current_day }}</span>
+        </div>
+        <div class="cal-text">
+            <h3>Cambodia Calendar</h3>
+            <p>View holidays and Buddha calendar</p>
+        </div>
     </div>
 </div>
-
-<script>
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const today = new Date();
-    document.getElementById('calMonth').textContent = months[today.getMonth()];
-    document.getElementById('calDay').textContent = today.getDate();
-</script>
 {% endblock %}
