@@ -1,9 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="km">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Khmer PDF Tools{% endblock %}</title>
+    <title>{% block title %}Khmer PDF Tools - ឧបករណ៍ PDF ខ្មែរ{% endblock %}</title>
+    
+    <meta name="description" content="Free online PDF tools for Cambodia. Compress, merge, split PDF files easily. ឧបករណ៍ PDF អនន្ដរាយ។ បង្រួម បំបែង បង្កើត PDF ។">
+    <meta name="keywords" content="PDF tools Cambodia, Khmer PDF tools, compress PDF Cambodia, merge PDF Khmer, split PDF Cambodia, PDF organizer Cambodia, ឧបករណ៍ PDF ខ្មែរ, បង្រួម PDF, បំបែង PDF">
+    <meta name="geo.region" content="KH">
+    <meta name="geo.placename" content="Phnom Penh, Cambodia">
+    <meta name="geo.position" content="11.5564;104.9282">
+    <meta name="ICBM" content="11.5564, 104.9282">
+    
+    <meta property="og:locale" content="km_KH">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:site_name" content="DAMSPEY - Khmer PDF Tools">
+    <meta property="og:type" content="website">
+    
+    <link rel="alternate" hreflang="km" href="https://damspey.com/">
+    <link rel="alternate" hreflang="en" href="https://damspey.com/">
+    <link rel="canonical" href="https://damspey.com/">
+    
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     {% load static %}
@@ -322,6 +339,28 @@
         }
     </style>
     {% block extra_css %}{% endblock %}
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "DAMSPEY",
+        "description": "Free online PDF tools for Cambodia. Compress, merge, split, organize PDF files.",
+        "url": "https://damspey.com/",
+        "logo": "https://damspey.com/static/favicon.ico",
+        "areaServed": {
+            "@type": "Country",
+            "name": "Cambodia"
+        },
+        "availableIn": "km-KH",
+        "priceRange": "$$",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Phnom Penh",
+            "addressCountry": "KH"
+        }
+    }
+    </script>
 </head>
 <body>
     <header class="header">
