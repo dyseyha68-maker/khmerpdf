@@ -102,9 +102,6 @@ def calendar_page(request):
         pass
     
     return render(request, 'calendar.html', {'current_year': year, 'holidays': holidays})
-
-
-def ocr_page(request):
     return render(request, 'ocr.html')
 
 
