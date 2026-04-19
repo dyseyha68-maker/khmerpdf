@@ -37,37 +37,22 @@
         gap: 8px;
     }
 
-    .action-btn {
-        font-family: 'Kantumruy Pro', sans-serif;
-        background: white;
-        border: 2px solid #ddd;
-        color: #333;
-        padding: 10px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-align: center;
-    }
-    .action-btn:hover { border-color: #667eea; color: #667eea; }
     .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .extract-btn {
-        font-family: 'Kantumruy Pro', sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary);
         color: white;
         border: none;
         padding: 14px;
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         font-size: 15px;
         font-weight: 600;
         cursor: pointer;
         width: 100%;
         margin-top: auto;
     }
-    .extract-btn:hover { transform: translateY(-2px); }
-    .extract-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+    .extract-btn:hover { background: var(--primary-dark); }
+    .extract-btn:disabled { background: var(--border); cursor: not-allowed; }
 
     .page-grid {
         display: flex;
