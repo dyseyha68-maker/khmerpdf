@@ -542,72 +542,18 @@ def ocr_pdf(job_id):
     try:
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting OCR to Word, file size: {file_size_mb:.1f}MB, lang: {tess_lang}')
+        logger.info(f'Starting OCR to Word with layout, file size: {file_size_mb:.1f}MB, lang: {tess_lang}')
         
-        from pdf2image import convert_from_path
-        from docx import Document
-        from docx.shared import Pt, Inches
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
-        
-        doc = Document()
-        style = doc.styles['Normal']
-        style.font.name = 'Times New Roman'
-        style.font.size = Pt(11)
-        
-        pages = convert_from_path(input_path, dpi=200)
-        max_pages = min(len(pages), 30)
-        
-        def clean_text(text):
-            if not text:
-                return ""
-            lines = text.split('\n')
-            cleaned = []
-            for line in lines:
-                line = line.strip()
-                if len(line) < 2:
-                    continue
-                line = line.rstrip('|_»¿¡')
-                if line:
-                    cleaned.append(line)
-            return '\n'.join(cleaned)
-        
-        for i in range(max_pages):
-            logger.info(f'Processing page {i+1}/{max_pages}')
-            page = pages[i]
-            gray = page.convert('L')
-            
-            try:
-                text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
-                text = clean_text(text)
-            except Exception as e:
-                logger.warning(f'OCR failed for page {i+1}: {e}')
-                text = ""
-            
-            # Add page heading
-            heading = doc.add_heading(f'Page {i+1}', level=1)
-            heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            
-            # Add text content
-            if text:
-                for line in text.split('\n'):
-                    if line.strip():
-                        p = doc.add_paragraph(line)
-                        has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
-                        run = p.runs[0] if p.runs else p.add_run()
-                        if has_khmer:
-                            run.font.name = 'Kantumruy Pro'
-                        else:
-                            run.font.name = 'Times New Roman'
-                        run.font.size = Pt(11)
-            
-            if i < max_pages - 1:
-                doc.add_page_break()
+        from pdf2docx import Converter
         
         output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
-        doc.save(output_path)
+        # Convert PDF to Word preserving layout
+        cv = Converter(input_path)
+        cv.convert(output_path, start=0, end=30)  # Convert up to 30 pages
+        cv.close()
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
@@ -619,10 +565,57 @@ def ocr_pdf(job_id):
         
     except Exception as e:
         logger.error(f'OCR error: {e}', exc_info=True)
-        job.status = 'failed'
-        job.error_message = str(e)
-        job.save()
-        raise
+        # Fallback to basic OCR if pdf2docx fails
+        try:
+            from pdf2image import convert_from_path
+            from docx import Document
+            from docx.shared import Pt
+            from docx.enum.text import WD_ALIGN_PARAGRAPH
+            
+            doc = Document()
+            style = doc.styles['Normal']
+            style.font.name = 'Times New Roman'
+            style.font.size = Pt(11)
+            
+            pages = convert_from_path(input_path, dpi=200)
+            max_pages = min(len(pages), 30)
+            
+            for i in range(max_pages):
+                page = pages[i]
+                gray = page.convert('L')
+                
+                try:
+                    text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
+                except:
+                    text = ""
+                
+                if text.strip():
+                    heading = doc.add_heading(f'Page {i+1}', level=1)
+                    heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    
+                    for line in text.split('\n'):
+                        if line.strip():
+                            p = doc.add_paragraph(line)
+            
+            output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
+            output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            
+            doc.save(output_path)
+            
+            job.result.save(output_filename, open(output_path, 'rb'))
+            os.remove(output_path)
+            
+            job.status = 'done'
+            job.save()
+            
+            return {'status': 'done', 'job_id': str(job_id)}
+        except Exception as fallback_error:
+            logger.error(f'Fallback also failed: {fallback_error}')
+            job.status = 'failed'
+            job.error_message = str(e)
+            job.save()
+            raise
 
 
 def pdf_to_image_task(job_id):
