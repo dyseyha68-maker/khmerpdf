@@ -542,33 +542,105 @@ def ocr_pdf(job_id):
     try:
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting OCR 100% layout, file size: {file_size_mb:.1f}MB')
+        logger.info(f'Starting OCR to editable Word, file size: {file_size_mb:.1f}MB')
         
         from pdf2image import convert_from_path
         from docx import Document
-        from docx.shared import Pt, Inches
+        from docx.shared import Pt
         from docx.enum.text import WD_ALIGN_PARAGRAPH
-        import io
+        from docx.oxml.ns import qn
+        from docx.oxml import OxmlElement
         
         doc = Document()
         
-        pages = convert_from_path(input_path, dpi=150)  # Balance quality and size
+        pages = convert_from_path(input_path, dpi=150)
         max_pages = min(len(pages), 30)
+        
+        def clean_text(text):
+            if not text:
+                return ""
+            lines = text.split('\n')
+            cleaned = []
+            for line in lines:
+                line = line.strip()
+                if len(line) < 2:
+                    continue
+                line = line.rstrip('|_»¿¡')
+                if line:
+                    cleaned.append(line)
+            return '\n'.join(cleaned)
+        
+        # Set table auto-style
+        doc.styles['Normal'].font.name = 'Calibri'
+        doc.styles['Normal'].font.size = Pt(11)
         
         for i in range(max_pages):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
+            gray = page.convert('L')
             
-            # Save page as image in memory
-            img_buffer = io.BytesIO()
-            page.save(img_buffer, format='PNG', optimize=True)
-            img_buffer.seek(0)
+            # Get OCR with position data
+            try:
+                data = pytesseract.image_to_data(gray, lang=tess_lang, output_type=pytesseract.Output.DICT)
+            except:
+                data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}
             
-            # Add a paragraph with the image
-            p = doc.add_paragraph()
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            run = p.add_run()
-            run.add_picture(img_buffer, width=Inches(6))  # Fit to page width
+            # Extract text and organize by lines (y-position)
+            lines_dict = {}
+            n = len(data.get('text', []))
+            
+            if n > 0:
+                # Group words into lines based on y-position
+                for j in range(n):
+                    text = data['text'][j].strip()
+                    if not text:
+                        continue
+                    y = int(data['top'][j])
+                    conf = int(data['conf'][j])
+                    if conf < 30:
+                        continue
+                    
+                    # Group to nearest line (within 10 pixels)
+                    found_line = False
+                    for line_y in lines_dict:
+                        if abs(y - line_y) < 10:
+                            lines_dict[line_y].append(data['text'][j])
+                            found_line = True
+                            break
+                    if not found_line:
+                        lines_dict[y] = [data['text'][j]]
+                
+                # Sort lines by y-position and add to document
+                for line_y in sorted(lines_dict.keys()):
+                    line_text = ' '.join(lines_dict[line_y])
+                    line_text = line_text.strip()
+                    if line_text:
+                        p = doc.add_paragraph(line_text)
+                        
+                        # Detect Khmer
+                        has_khmer = any('\u1780' <= c <= '\u17FF' for c in line_text)
+                        
+                        # Set font
+                        for run in p.runs:
+                            if has_khmer:
+                                run.font.name = 'Kantumruy Pro'
+                            else:
+                                run.font.name = 'Calibri'
+                            run.font.size = Pt(11)
+            else:
+                # Fallback to basic OCR
+                try:
+                    text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
+                    text = clean_text(text)
+                    if text:
+                        for line in text.split('\n'):
+                            if line.strip():
+                                p = doc.add_paragraph(line)
+                                for run in p.runs:
+                                    run.font.name = 'Calibri'
+                                    run.font.size = Pt(11)
+                except:
+                    pass
             
             if i < max_pages - 1:
                 doc.add_page_break()
