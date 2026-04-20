@@ -524,7 +524,6 @@ def ocr_pdf(job_id):
     import logging
     import pytesseract
     from PIL import Image
-    import fitz  # PyMuPDF
     logger = logging.getLogger(__name__)
     
     job = Job.objects.get(id=job_id)
@@ -543,9 +542,17 @@ def ocr_pdf(job_id):
     try:
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting searchable OCR, file size: {file_size_mb:.1f}MB, lang: {tess_lang}')
+        logger.info(f'Starting OCR to Word, file size: {file_size_mb:.1f}MB, lang: {tess_lang}')
         
         from pdf2image import convert_from_path
+        from docx import Document
+        from docx.shared import Pt, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        
+        doc = Document()
+        style = doc.styles['Normal']
+        style.font.name = 'Times New Roman'
+        style.font.size = Pt(11)
         
         pages = convert_from_path(input_path, dpi=200)
         max_pages = min(len(pages), 30)
@@ -564,75 +571,43 @@ def ocr_pdf(job_id):
                     cleaned.append(line)
             return '\n'.join(cleaned)
         
-        # Create new PDF with searchable text overlay
-        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.pdf'
+        for i in range(max_pages):
+            logger.info(f'Processing page {i+1}/{max_pages}')
+            page = pages[i]
+            gray = page.convert('L')
+            
+            try:
+                text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
+                text = clean_text(text)
+            except Exception as e:
+                logger.warning(f'OCR failed for page {i+1}: {e}')
+                text = ""
+            
+            # Add page heading
+            heading = doc.add_heading(f'Page {i+1}', level=1)
+            heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            # Add text content
+            if text:
+                for line in text.split('\n'):
+                    if line.strip():
+                        p = doc.add_paragraph(line)
+                        has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
+                        run = p.runs[0] if p.runs else p.add_run()
+                        if has_khmer:
+                            run.font.name = 'Kantumruy Pro'
+                        else:
+                            run.font.name = 'Times New Roman'
+                        run.font.size = Pt(11)
+            
+            if i < max_pages - 1:
+                doc.add_page_break()
+        
+        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
-        # Create new PDF document
-        new_doc = fitz.open()
-        
-        for i in range(max_pages):
-            logger.info(f'Processing page {i+1}/{max_pages}')
-            page_img = pages[i]
-            
-            # Get page dimensions
-            width, height = page_img.size
-            
-            # Save page as image
-            img_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'temp_{uuid.uuid4().hex[:8]}.png')
-            page_img.save(img_path, 'PNG')
-            
-            # Create new page in PDF with same dimensions
-            page_width_pt = width * 72 / 200  # Convert pixels to points
-            page_height_pt = height * 72 / 200
-            new_page = new_doc.new_page(width=page_width_pt, height=page_height_pt)
-            
-            # Insert the image as background
-            new_page.insert_image(fitz.Rect(0, 0, page_width_pt, page_height_pt), filename=img_path)
-            
-            # Run OCR to get text with positions
-            try:
-                # Get detailed OCR data with bounding boxes
-                data = pytesseract.image_to_data(page_img, lang=tess_lang, output_type=pytesseract.Output.DICT)
-                
-                # Add each word as invisible text layer
-                n = len(data['text'])
-                for j in range(n):
-                    text = data['text'][j].strip()
-                    if text and int(data['conf'][j]) > 30:  # Only add high-confidence text
-                        x = data['left'][j]
-                        y = data['top'][j]
-                        w = data['width'][j]
-                        h = data['height'][j]
-                        
-                        # Insert invisible text at the position
-                        # Scale coordinates from image to PDF points
-                        x_pt = x * page_width_pt / width
-                        y_pt = y * page_height_pt / height
-                        w_pt = w * page_width_pt / width
-                        h_pt = h * page_height_pt / height
-                        
-                        # Insert invisible text
-                        try:
-                            new_page.insert_text(
-                                fitz.Point(x_pt, y_pt + h_pt * 0.7),
-                                text,
-                                fontsize=h_pt * 0.8,
-                                color=(0, 0, 0)
-                            )
-                        except:
-                            pass
-            except Exception as e:
-                logger.warning(f'OCR position failed for page {i+1}: {e}')
-            
-            # Clean up temp image
-            if os.path.exists(img_path):
-                os.remove(img_path)
-        
-        # Save the searchable PDF
-        new_doc.save(output_path)
-        new_doc.close()
+        doc.save(output_path)
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
