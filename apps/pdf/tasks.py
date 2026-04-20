@@ -542,18 +542,42 @@ def ocr_pdf(job_id):
     try:
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting OCR to Word with layout, file size: {file_size_mb:.1f}MB, lang: {tess_lang}')
+        logger.info(f'Starting OCR 100% layout, file size: {file_size_mb:.1f}MB')
         
-        from pdf2docx import Converter
+        from pdf2image import convert_from_path
+        from docx import Document
+        from docx.shared import Pt, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        import io
+        
+        doc = Document()
+        
+        pages = convert_from_path(input_path, dpi=150)  # Balance quality and size
+        max_pages = min(len(pages), 30)
+        
+        for i in range(max_pages):
+            logger.info(f'Processing page {i+1}/{max_pages}')
+            page = pages[i]
+            
+            # Save page as image in memory
+            img_buffer = io.BytesIO()
+            page.save(img_buffer, format='PNG', optimize=True)
+            img_buffer.seek(0)
+            
+            # Add a paragraph with the image
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            run = p.add_run()
+            run.add_picture(img_buffer, width=Inches(6))  # Fit to page width
+            
+            if i < max_pages - 1:
+                doc.add_page_break()
         
         output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
-        # Convert PDF to Word preserving layout
-        cv = Converter(input_path)
-        cv.convert(output_path, start=0, end=30)  # Convert up to 30 pages
-        cv.close()
+        doc.save(output_path)
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
@@ -565,57 +589,10 @@ def ocr_pdf(job_id):
         
     except Exception as e:
         logger.error(f'OCR error: {e}', exc_info=True)
-        # Fallback to basic OCR if pdf2docx fails
-        try:
-            from pdf2image import convert_from_path
-            from docx import Document
-            from docx.shared import Pt
-            from docx.enum.text import WD_ALIGN_PARAGRAPH
-            
-            doc = Document()
-            style = doc.styles['Normal']
-            style.font.name = 'Times New Roman'
-            style.font.size = Pt(11)
-            
-            pages = convert_from_path(input_path, dpi=200)
-            max_pages = min(len(pages), 30)
-            
-            for i in range(max_pages):
-                page = pages[i]
-                gray = page.convert('L')
-                
-                try:
-                    text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
-                except:
-                    text = ""
-                
-                if text.strip():
-                    heading = doc.add_heading(f'Page {i+1}', level=1)
-                    heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    
-                    for line in text.split('\n'):
-                        if line.strip():
-                            p = doc.add_paragraph(line)
-            
-            output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
-            output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            
-            doc.save(output_path)
-            
-            job.result.save(output_filename, open(output_path, 'rb'))
-            os.remove(output_path)
-            
-            job.status = 'done'
-            job.save()
-            
-            return {'status': 'done', 'job_id': str(job_id)}
-        except Exception as fallback_error:
-            logger.error(f'Fallback also failed: {fallback_error}')
-            job.status = 'failed'
-            job.error_message = str(e)
-            job.save()
-            raise
+        job.status = 'failed'
+        job.error_message = str(e)
+        job.save()
+        raise
 
 
 def pdf_to_image_task(job_id):
