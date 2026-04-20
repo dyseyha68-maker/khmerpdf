@@ -72,12 +72,12 @@
     .calendar-card {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: white;
-        grid-column: span 2;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 24px;
-        padding: 24px 40px;
+        gap: 12px;
+        padding: 24px;
     }
     
     .calendar-card:hover {
@@ -85,7 +85,7 @@
     }
     
     .calendar-card .cal-icon {
-        font-size: 56px;
+        font-size: 48px;
     }
     
     .calendar-card h3, .calendar-card p {
@@ -99,24 +99,24 @@
     }
     
     .calendar-date .cal-month {
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
         opacity: 0.9;
     }
     
     .calendar-date .cal-day {
-        font-size: 36px;
+        font-size: 32px;
         font-weight: 700;
     }
     
     .calendar-card .cal-text {
-        text-align: left;
+        text-align: center;
     }
     
     @media (max-width: 1000px) {
         .cards-container {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
         }
     }
     
@@ -124,26 +124,11 @@
         .cards-container {
             grid-template-columns: repeat(2, 1fr);
         }
-        
-        .calendar-card {
-            grid-column: span 2;
-            flex-direction: column;
-            text-align: center;
-            gap: 16px;
-        }
-        
-        .calendar-card .cal-text {
-            text-align: center;
-        }
     }
     
     @media (max-width: 480px) {
         .cards-container {
-            grid-template-columns: 1fr;
-        }
-        
-        .calendar-card {
-            grid-column: span 1;
+            grid-template-columns: repeat(2, 1fr);
         }
         
         .hero h1 {
@@ -202,14 +187,14 @@
         <p>Make scanned PDF searchable</p>
     </div>
     
-    <div class="calendar-card" onclick="window.location.href='/pdf-calendar/'">
+    <div class="tool-card calendar-card" onclick="window.location.href='/pdf-calendar/'">
         <div class="calendar-date">
             <span class="cal-month">{{ current_month }}</span>
             <span class="cal-day">{{ current_day }}</span>
         </div>
         <div class="cal-text">
-            <h3>Cambodia Calendar</h3>
-            <p>View holidays and Buddha calendar</p>
+            <h3>Calendar</h3>
+            <p>Cambodia holidays</p>
         </div>
     </div>
 </div>
