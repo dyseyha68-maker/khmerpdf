@@ -523,8 +523,7 @@ def ocr_pdf(job_id):
     from apps.pdf.models import Job
     import logging
     import pytesseract
-    from PIL import Image, ImageEnhance
-    import io
+    from PIL import Image
     logger = logging.getLogger(__name__)
     
     job = Job.objects.get(id=job_id)
@@ -533,7 +532,6 @@ def ocr_pdf(job_id):
     
     ocr_lang = job.compression_level or 'eng'
     
-    # Map UI lang selection to Tesseract lang codes
     lang_map = {
         'eng': 'eng',
         'khm': 'khm',
@@ -544,18 +542,14 @@ def ocr_pdf(job_id):
     try:
         input_path = job.file.path
         file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
-        logger.info(f'Starting OCR, file size: {file_size_mb:.1f}MB, lang: {tess_lang}')
+        logger.info(f'Starting OCR to PDF, file size: {file_size_mb:.1f}MB, lang: {tess_lang}')
         
         from pdf2image import convert_from_path
-        from docx import Document
-        from docx.shared import Pt
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+        from reportlab.lib.units import inch
         
-        doc = Document()
-        style = doc.styles['Normal']
-        style.font.name = 'Times New Roman'
-        style.font.size = Pt(11)
-        
-        # Use lower DPI for faster processing
         pages = convert_from_path(input_path, dpi=200)
         max_pages = min(len(pages), 30)
         
@@ -573,42 +567,37 @@ def ocr_pdf(job_id):
                     cleaned.append(line)
             return '\n'.join(cleaned)
         
+        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.pdf'
+        output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        doc = SimpleDocTemplate(output_path, pagesize=letter)
+        styles = getSampleStyleSheet()
+        story = []
+        
         for i in range(max_pages):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
-            
-            # Convert to grayscale for faster OCR
             gray = page.convert('L')
             
-            # Try OCR with faster settings
             try:
                 text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
                 text = clean_text(text)
             except Exception as e:
-                logger.warning(f'OCR failed: {e}')
+                logger.warning(f'OCR failed for page {i+1}: {e}')
                 text = ""
             
-            doc.add_heading(f'Page {i+1}', level=1)
+            if text:
+                for line in text.split('\n'):
+                    if line.strip():
+                        p = Paragraph(line, styles['Normal'])
+                        story.append(p)
             
-            lines = text.split('\n')
-            for line in lines:
-                if line.strip():
-                    p = doc.add_paragraph(line)
-                    has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
-                    run = p.runs[0] if p.runs else p.add_run()
-                    if has_khmer:
-                        run.font.name = 'Kantumruy Pro'
-                    else:
-                        run.font.name = 'Times New Roman'
-            
+            story.append(Spacer(1, 0.2*inch))
             if i < max_pages - 1:
-                doc.add_page_break()
+                story.append(PageBreak())
         
-        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
-        output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        
-        doc.save(output_path)
+        doc.build(story)
         
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
@@ -617,7 +606,7 @@ def ocr_pdf(job_id):
         job.save()
         
         return {'status': 'done', 'job_id': str(job_id)}
-        
+    
     except Exception as e:
         logger.error(f'OCR error: {e}', exc_info=True)
         job.status = 'failed'
