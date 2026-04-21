@@ -1,77 +1,178 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login - Khmer PDF Tools</title>
+    <title>Log in | DAMSPEY</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-gradient);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
+        
         .login-container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            padding: 40px;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
+            overflow: hidden;
         }
-        h1 { text-align: center; color: #667eea; margin-bottom: 30px; font-size: 24px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+        
+        .login-header {
+            background: var(--primary);
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .login-header h1 {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .login-header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 13px;
+        }
+        
+        .login-form {
+            padding: 32px 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
             font-size: 14px;
-            font-family: 'Kantumruy Pro', sans-serif;
+            font-weight: 500;
         }
-        input:focus { border-color: #667eea; outline: none; }
-        button {
+        
+        .form-group input {
             width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .submit-row {
+            margin-top: 24px;
+        }
+        
+        .submit-row button {
+            width: 100%;
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            font-family: 'Kantumruy Pro', sans-serif;
+            transition: background 0.2s;
         }
-        button:hover { transform: translateY(-2px); }
-        .error { color: red; font-size: 13px; margin-top: 10px; }
+        
+        .submit-row button:hover {
+            background: var(--primary-dark);
+        }
+        
+        .error-msg {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            color: #991b1b;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+        }
+        
+        .back-link:hover {
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1>🔐 Admin Login</h1>
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required>
-            </div>
-            <button type="submit">Login</button>
-            {% if error %}
-            <p class="error">{{ error }}</p>
-            {% endif %}
-        </form>
+        <div class="login-header">
+            <h1>DAMSPEY</h1>
+            <p>Admin Dashboard</p>
+        </div>
+        
+        <div class="login-form">
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if error %}
+                <div class="error-msg">
+                    {{ error }}
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="id_username">Username</label>
+                    <input type="text" name="username" id="id_username" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password">Password</label>
+                    <input type="password" name="password" id="id_password" required>
+                </div>
+                
+                <div class="submit-row">
+                    <button type="submit">Log in</button>
+                </div>
+            </form>
+            
+            <a href="/" class="back-link">← Back to website</a>
+        </div>
     </div>
 </body>
 </html>
