@@ -17,7 +17,7 @@ def pdf_processed_path(instance, filename):
 
 class Holiday(models.Model):
     name_en = models.CharField(max_length=200, blank=True, null=True)
-    name_kh = models.CharField(max_length=200, verbose_name='Name (Khmer)')
+    name_kh = models.CharField(max_length=200, blank=True, null=True, verbose_name='Name (Khmer)')
     start_date = models.DateField(verbose_name='Start Date')
     end_date = models.DateField(verbose_name='End Date', blank=True, null=True)
     is_public = models.BooleanField(default=True, verbose_name='Public Holiday')
@@ -28,7 +28,7 @@ class Holiday(models.Model):
         ordering = ['start_date']
     
     def __str__(self):
-        return f"{self.start_date} - {self.name_kh}"
+        return f"{self.start_date} - {self.name_kh or self.name_en or 'Holiday'}"
 
 
 class LunarDate(models.Model):
