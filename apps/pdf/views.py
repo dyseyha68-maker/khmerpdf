@@ -69,10 +69,12 @@ def organize_page(request):
 
 
 def calendar_page(request):
-    from .models import Holiday
+    from .models import Holiday, LunarDate, CalendarEvent
     from datetime import datetime, timedelta
     
     year = request.GET.get('year')
+    month = request.GET.get('month')
+    
     if not year:
         year = datetime.now().year
     else:
@@ -81,9 +83,18 @@ def calendar_page(request):
         except:
             year = datetime.now().year
     
+    if not month:
+        month = datetime.now().month
+    else:
+        try:
+            month = int(month)
+        except:
+            month = datetime.now().month
+    
+    # Get holidays from database
     holidays = []
     try:
-        holiday_objs = Holiday.objects.all()
+        holiday_objs = Holiday.objects.filter(start_date__year=year)
         for h in holiday_objs:
             try:
                 start = getattr(h, 'start_date', None)
@@ -92,16 +103,68 @@ def calendar_page(request):
                     if end:
                         current = start
                         while current <= end:
-                            holidays.append({'day': current.day, 'month': current.month, 'name_en': h.name_en or '', 'name_kh': h.name_kh or ''})
+                            holidays.append({
+                                'day': current.day, 
+                                'month': current.month, 
+                                'name_en': h.name_en or '', 
+                                'name_kh': h.name_kh or '',
+                                'is_public': h.is_public
+                            })
                             current += timedelta(days=1)
                     else:
-                        holidays.append({'day': start.day, 'month': start.month, 'name_en': h.name_en or '', 'name_kh': h.name_kh or ''})
+                        holidays.append({
+                            'day': start.day, 
+                            'month': start.month, 
+                            'name_en': h.name_en or '', 
+                            'name_kh': h.name_kh or '',
+                            'is_public': h.is_public
+                        })
             except:
                 continue
     except:
         pass
     
-    return render(request, 'calendar.html', {'current_year': year, 'holidays': holidays})
+    # Get lunar dates for the year
+    lunar_dates = []
+    try:
+        lunar_objs = LunarDate.objects.filter(solar_date__year=year)
+        for ld in lunar_objs:
+            lunar_dates.append({
+                'day': ld.solar_date.day,
+                'month': ld.solar_date.month,
+                'lunar_month': ld.lunar_month,
+                'lunar_day': ld.lunar_day,
+                'lunar_year': ld.lunar_year,
+                'khmer_month': ld.khmer_month_name,
+                'khmer_day': ld.khmer_day_name,
+                'is_holy': ld.is_holy_day,
+                'is_full_moon': ld.is_full_moon,
+                'is_new_moon': ld.is_new_moon,
+            })
+    except:
+        pass
+    
+    # Get events
+    events = []
+    try:
+        event_objs = CalendarEvent.objects.filter(is_active=True)
+        for e in event_objs:
+            events.append({
+                'title_en': e.title_en or '',
+                'title_kh': e.title_kh or '',
+                'type': e.event_type,
+                'solar_date': str(e.solar_date) if e.solar_date else None,
+            })
+    except:
+        pass
+    
+    return render(request, 'calendar.html', {
+        'current_year': year,
+        'current_month': month,
+        'holidays': holidays,
+        'lunar_dates': lunar_dates,
+        'events': events
+    })
 
 
 def ocr_page(request):
