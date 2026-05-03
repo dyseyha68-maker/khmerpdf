@@ -37,19 +37,19 @@
     }
     
     .tool-card {
-        background: white;
+        background: var(--surface);
         border-radius: 16px;
         padding: 28px;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--border);
     }
     
     .tool-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 10px 40px rgba(37, 99, 235, 0.15);
-        border-color: #2563eb;
+        border-color: var(--primary);
     }
     
     .tool-icon {
@@ -70,7 +70,7 @@
     }
     
     .calendar-card {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        background: var(--primary);
         color: white;
         display: flex;
         flex-direction: column;
@@ -146,11 +146,11 @@
 <div class="hero">
     <h1>
         <span class="text-en">Free Online PDF Tools</span>
-        <span class="text-kh" style="display:none;">ឧបករណ៍ PDF ខ្មែរ ដោយឥតគិតថ្លៃ</span>
+        <span class="text-kh">ឧបករណ៍ PDF ខ្មែរ ដោយឥតគិតថ្លៃ</span>
     </h1>
     <p>
         <span class="text-en">Compress, Merge, Split, Organize PDF Files and More</span>
-        <span class="text-kh" style="display:none;">បង្រួម បំបែង រៀបចំ PDF និងច្រើនទៀត</span>
+        <span class="text-kh">បង្រួម, បញ្ចូល, បំបែង, រៀបចំ PDF និងច្រើនទៀត</span>
     </p>
 </div>
 
@@ -159,11 +159,11 @@
         <div class="tool-icon">📉</div>
         <h3>
             <span class="text-en">Compress PDF</span>
-            <span class="text-kh" style="display:none;">បង្រួមទំហំឯកសារ PDF</span>
+            <span class="text-kh">បង្រួមឯកសារ PDF</span>
         </h3>
         <p>
             <span class="text-en">Reduce PDF file size</span>
-            <span class="text-kh" style="display:none;">បន្ថយទំហំឯកសារ PDF</span>
+            <span class="text-kh">បន្ថយទំហំឯកសារ PDF</span>
         </p>
     </div>
     
@@ -171,11 +171,11 @@
         <div class="tool-icon">📑</div>
         <h3>
             <span class="text-en">Merge PDF</span>
-            <span class="text-kh" style="display:none;">បញ្ចូលឯកសារ PDF</span>
+            <span class="text-kh">បញ្ចូលឯកសារ PDF</span>
         </h3>
         <p>
             <span class="text-en">Combine multiple PDFs</span>
-            <span class="text-kh" style="display:none;">បញ្ចូលឯកសារ PDF ជាច្រើនចូលគ្នា</span>
+            <span class="text-kh">បញ្ចូល PDF ច្រើនចូលគ្នា</span>
         </p>
     </div>
     
@@ -183,11 +183,11 @@
         <div class="tool-icon">✂️</div>
         <h3>
             <span class="text-en">Split PDF</span>
-            <span class="text-kh" style="display:none;">ការបែងចែកឯកសារ PDF</span>
+            <span class="text-kh">បំបែងឯកសារ PDF</span>
         </h3>
         <p>
             <span class="text-en">Extract pages</span>
-            <span class="text-kh" style="display:none;">ការចម្លងទំព័រចេញមកក្រៅ</span>
+            <span class="text-kh">ការយកទំព័រចេញ</span>
         </p>
     </div>
     
@@ -195,11 +195,11 @@
         <div class="tool-icon">📋</div>
         <h3>
             <span class="text-en">Organize PDF</span>
-            <span class="text-kh" style="display:none;">រៀបចំឯកសារ PDF</span>
+            <span class="text-kh">រៀបចំឯកសារ PDF</span>
         </h3>
         <p>
             <span class="text-en">Reorder pages</span>
-            <span class="text-kh" style="display:none;">រៀបចំលំដាប់លំដោយតាមទំព័រឡើងវិញ</span>
+            <span class="text-kh">សរុបលំដាប់ទំព័រឡើងវិញ</span>
         </p>
     </div>
     
@@ -207,11 +207,11 @@
         <div class="tool-icon">🖼️</div>
         <h3>
             <span class="text-en">PDF to Image</span>
-            <span class="text-kh" style="display:none;">ការបំលែង PDF ទៅរូបភាព</span>
+            <span class="text-kh">ការបំលែង PDF ទៅរូបភាព</span>
         </h3>
         <p>
             <span class="text-en">Convert PDF to images</span>
-            <span class="text-kh" style="display:none;">ការបំលែង PDF ទៅរូបភាព</span>
+            <span class="text-kh">ការបំលែង PDF ទៅរូបភាព</span>
         </p>
     </div>
     
@@ -219,11 +219,11 @@
         <div class="tool-icon">📄</div>
         <h3>
             <span class="text-en">Image to PDF</span>
-            <span class="text-kh" style="display:none;">ការបំលែងរូបភាព ទៅ PDF</span>
+            <span class="text-kh">ការបំលែងរូបភាពទៅ PDF</span>
         </h3>
         <p>
             <span class="text-en">Convert images to PDF</span>
-            <span class="text-kh" style="display:none;">ការបំលែងរូបភាពទៅ PDF</span>
+            <span class="text-kh">ការបំលែងរូបភាពទៅ PDF</span>
         </p>
     </div>
     
@@ -231,11 +231,83 @@
         <div class="tool-icon">🔍</div>
         <h3>
             <span class="text-en">OCR</span>
-            <span class="text-kh" style="display:none;">ការបំលែងឯកសារស្កេនទៅអក្សរ</span>
+            <span class="text-kh">ការបំលែងឯកសារស្កេនទៅអក្សរ</span>
         </h3>
         <p>
             <span class="text-en">Make scanned PDF searchable</span>
-            <span class="text-kh" style="display:none;">ឯកសារស្កេនរបស់លោកអ្នកកាន់តែអាចស្វែងរកឃើញ</span>
+            <span class="text-kh">ឯកសារស្កេនរបស់លោកអ្នកកាន់តែអាចស្វែងរកឃើញ</span>
+        </p>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdf-merge/'">
+        <div class="tool-icon">📑</div>
+        <h3>
+            <span class="text-en">Merge PDF</span>
+            <span class="text-kh">បញ្ចូលឯកសារ PDF</span>
+        </h3>
+        <p>
+            <span class="text-en">Combine multiple PDFs</span>
+            <span class="text-kh">បញ្ចូល PDF ច្រើនចូលគ្នា</span>
+        </p>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdf-split/'">
+        <div class="tool-icon">✂️</div>
+        <h3>
+            <span class="text-en">Split PDF</span>
+            <span class="text-kh">បំបែងឯកសារ PDF</span>
+        </h3>
+        <p>
+            <span class="text-en">Extract pages</span>
+            <span class="text-kh">ការចម្លោះទំព័រចេញ</span>
+        </p>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdf-organize/'">
+        <div class="tool-icon">📋</div>
+        <h3>
+            <span class="text-en">Organize PDF</span>
+            <span class="text-kh">រៀបចំឯកសារ PDF</span>
+        </h3>
+        <p>
+            <span class="text-en">Reorder pages</span>
+            <span class="text-kh">រៀបចំលំដាប់ទំព័រឡើងវិញ</span>
+        </p>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdf-to-image/'">
+        <div class="tool-icon">🖼️</div>
+        <h3>
+            <span class="text-en">PDF to Image</span>
+            <span class="text-kh">ការបំលែង PDF ទៅរូបភាព</span>
+        </h3>
+        <p>
+            <span class="text-en">Convert PDF to images</span>
+            <span class="text-kh">ការបំលែង PDF ទៅរូបភាព</span>
+        </p>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/image-to-pdf/'">
+        <div class="tool-icon">📄</div>
+        <h3>
+            <span class="text-en">Image to PDF</span>
+            <span class="text-kh">ការបំលែងរូបភាពទៅ PDF</span>
+        </h3>
+        <p>
+            <span class="text-en">Convert images to PDF</span>
+            <span class="text-kh">ការបំលែងរូបភាពទៅ PDF</span>
+        </p>
+    </div>
+    
+    <div class="tool-card" onclick="window.location.href='/pdf-ocr/'">
+        <div class="tool-icon">🔍</div>
+        <h3>
+            <span class="text-en">OCR</span>
+            <span class="text-kh">ការបំលែងឯកសារស្កេនទៅអក្សរ</span>
+        </h3>
+        <p>
+            <span class="text-en">Make scanned PDF searchable</span>
+            <span class="text-kh">ឯកសារស្កេនរបស់លោកអ្នកកាន់តែអាចស្វែងរកឃើញ</span>
         </p>
     </div>
     
@@ -247,11 +319,11 @@
         <div class="cal-text">
             <h3>
                 <span class="text-en">Calendar</span>
-                <span class="text-kh" style="display:none;">ប្រតិទិន</span>
+                <span class="text-kh">ប្រតិទិន</span>
             </h3>
             <p>
                 <span class="text-en">Cambodia holidays</span>
-                <span class="text-kh" style="display:none;">ថ្ងៃឈប់សម្រាក</span>
+                <span class="text-kh">ថ្ងៃឈបសខ្មែរ</span>
             </p>
         </div>
     </div>
