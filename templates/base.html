@@ -44,6 +44,22 @@
             --radius-sm: 8px;
         }
         
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #60a5fa;
+            --secondary: #94a3b8;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+        }
+        
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-gradient);
@@ -51,6 +67,7 @@
             display: flex;
             flex-direction: column;
             color: var(--text);
+            transition: background 0.3s, color 0.3s;
         }
         
         body.lang-kh {
@@ -67,12 +84,14 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background 0.3s;
         }
         
         .header-left {
             display: flex;
             align-items: center;
             flex-shrink: 0;
+            gap: 16px;
         }
         
         .logo {
@@ -80,19 +99,6 @@
             align-items: center;
             gap: 10px;
             text-decoration: none;
-        }
-        
-        .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--primary);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 18px;
         }
         
         .logo-text {
@@ -126,6 +132,12 @@
             color: white;
         }
         
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
         .lang-toggle {
             display: flex;
             background: var(--surface-hover);
@@ -150,6 +162,24 @@
             background: var(--surface);
             color: var(--primary);
             box-shadow: var(--shadow);
+        }
+        
+        .theme-toggle {
+            background: var(--surface-hover);
+            border: none;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--surface-hover);
+            transform: scale(1.05);
         }
         
         .hamburger {
@@ -210,6 +240,7 @@
             box-shadow: var(--shadow-md);
             display: flex;
             flex-direction: column;
+            transition: background 0.3s;
         }
         
         .right-panel {
@@ -219,6 +250,7 @@
             padding: 24px;
             box-shadow: var(--shadow-md);
             overflow: hidden;
+            transition: background 0.3s;
         }
         
         .drop-zone {
@@ -232,7 +264,7 @@
         
         .drop-zone:hover {
             border-color: var(--primary);
-            background: #f8fafc;
+            background: var(--surface-hover);
         }
         
         .drop-zone-icon {
@@ -290,6 +322,10 @@
             color: var(--primary);
         }
         
+        [data-theme="dark"] .instructions {
+            background: #1e3a5f;
+        }
+        
         .modal-overlay {
             display: none;
             position: fixed;
@@ -305,11 +341,12 @@
         }
         
         .modal {
-            background: white;
+            background: var(--surface);
             padding: 32px;
             border-radius: var(--radius);
             text-align: center;
             min-width: 320px;
+            transition: background 0.3s;
         }
         
         .progress-container {
@@ -376,19 +413,19 @@
         <nav class="nav-links" id="navLinks">
             <a href="/pdf-compress/">
                 <span class="text-en">Compress</span>
-                <span class="text-kh" style="display:none;">បង្រួម PDF</span>
+                <span class="text-kh" style="display:none;">បង្រួម</span>
             </a>
             <a href="/pdf-merge/">
                 <span class="text-en">Merge</span>
-                <span class="text-kh" style="display:none;">បញ្ចូល PDF</span>
+                <span class="text-kh" style="display:none;">បញ្ចូល</span>
             </a>
             <a href="/pdf-split/">
                 <span class="text-en">Split</span>
-                <span class="text-kh" style="display:none;">បំបែង PDF</span>
+                <span class="text-kh" style="display:none;">បំបែង</span>
             </a>
             <a href="/pdf-organize/">
                 <span class="text-en">Organize</span>
-                <span class="text-kh" style="display:none;">រៀបចំ PDF</span>
+                <span class="text-kh" style="display:none;">រៀបចំ</span>
             </a>
             <a href="/pdf-calendar/">
                 <span class="text-en">Calendar</span>
@@ -396,14 +433,20 @@
             </a>
         </nav>
         
-        <div class="lang-toggle">
-            <button id="langEn" onclick="setLang('en')">EN</button>
-            <button id="langKh" onclick="setLang('kh')">KH</button>
+        <div class="header-controls">
+            <div class="lang-toggle">
+                <button id="langEn" onclick="setLang('en')">EN</button>
+                <button id="langKh" onclick="setLang('kh')">KH</button>
+            </div>
+            
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+                <span id="themeIcon">🌙</span>
+            </button>
+            
+            <button class="hamburger" onclick="toggleNav()">
+                <span></span><span></span><span></span>
+            </button>
         </div>
-        
-        <button class="hamburger" onclick="toggleNav()">
-            <span></span><span></span><span></span>
-        </button>
     </header>
     
     <main class="main-content">
@@ -453,6 +496,27 @@
             });
         }
         
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('pdf_theme', newTheme);
+            updateThemeIcon();
+        }
+        
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const icon = document.getElementById('themeIcon');
+            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+        
+        function initTheme() {
+            const savedTheme = localStorage.getItem('pdf_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon();
+        }
+        
+        initTheme();
         setLang(currentLang);
     </script>
     
