@@ -53,8 +53,22 @@
     }
     
     .tool-icon {
-        font-size: 48px;
-        margin-bottom: 16px;
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .tool-icon svg {
+        width: 48px;
+        height: 48px;
+        fill: var(--text);
+    }
+    
+    .calendar-card .tool-icon svg {
+        fill: white;
     }
     
     .tool-card h3 {
@@ -156,7 +170,11 @@
 
 <div class="cards-container">
     <div class="tool-card" onclick="window.location.href='/pdf-compress/'">
-        <div class="tool-icon">📉</div>
+        <div class="tool-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M14,2V8H20M12,18C9.79,18 8,16.21 8,14C8,11.79 9.79,10 12,10C14.21,10 16,11.79 16,14C16,16.21 14.21,18 12,18M12,12A2,2 0 0,0 10,14A2,2 0 0,0 12,16A2,2 0 0,0 14,14A2,2 0 0,0 12,12Z"/>
+            </svg>
+        </div>
         <h3>
             <span class="text-en">Compress PDF</span>
             <span class="text-kh">បង្រួមឯកសារ PDF</span>
@@ -168,7 +186,11 @@
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-merge/'">
-        <div class="tool-icon">📑</div>
+        <div class="tool-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19,21H8V5C8,3.9 8.9,3 10,3H15L19,7V21M8,21H5C3.9,21 3,20.1 3,19V5C3,3.9 3.9,3 5,3H8V21M15,9H20.5L15,3.5V9Z"/>
+            </svg>
+        </div>
         <h3>
             <span class="text-en">Merge PDF</span>
             <span class="text-kh">បញ្ចូលឯកសារ PDF</span>
@@ -180,7 +202,11 @@
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-split/'">
-        <div class="tool-icon">✂️</div>
+        <div class="tool-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M14,2V8H20M16,13V11H13V8H11V11H8V13H11V16H13V13H16Z"/>
+            </svg>
+        </div>
         <h3>
             <span class="text-en">Split PDF</span>
             <span class="text-kh">បំបែងឯកសារ PDF</span>
@@ -192,7 +218,11 @@
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-organize/'">
-        <div class="tool-icon">📋</div>
+        <div class="tool-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3,15V5C3,3.9 3.9,3 5,3H19C20.1,3 21,3.9 21,5V15M3,15V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V15M3,15H21M8,15V21M16,15V21M6,9H18"/>
+            </svg>
+        </div>
         <h3>
             <span class="text-en">Organize PDF</span>
             <span class="text-kh">រៀបចំឯកសារ PDF</span>
@@ -204,7 +234,11 @@
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-to-image/'">
-        <div class="tool-icon">🖼️</div>
+        <div class="tool-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21,19V5C21,3.9 20.1,3 19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19M8.5,13.5L11,16.5L14.5,12L19,18H5L8.5,13.5Z"/>
+            </svg>
+        </div>
         <h3>
             <span class="text-en">PDF to Image</span>
             <span class="text-kh">ការបំលែង PDF ទៅរូបភាព</span>
@@ -216,7 +250,11 @@
     </div>
     
     <div class="tool-card" onclick="window.location.href='/image-to-pdf/'">
-        <div class="tool-icon">📄</div>
+        <div class="tool-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21,19V5C21,3.9 20.1,3 19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19M8.5,13.5L11,16.5L14.5,12L19,18H5L8.5,13.5Z"/>
+            </svg>
+        </div>
         <h3>
             <span class="text-en">Image to PDF</span>
             <span class="text-kh">ការបំលែងរូបភាពទៅ PDF</span>
@@ -228,7 +266,11 @@
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-ocr/'">
-        <div class="tool-icon">🔍</div>
+        <div class="tool-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6V12L16,14"/>
+            </svg>
+        </div>
         <h3>
             <span class="text-en">OCR</span>
             <span class="text-kh">ការបំលែងឯកសារស្កេនទៅអក្សរ</span>
