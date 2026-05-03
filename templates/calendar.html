@@ -20,18 +20,18 @@
     
     .left-panel {
         width: 320px;
-        background: white;
+        background: var(--surface);
         border-radius: 16px;
         padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: var(--shadow-md);
     }
     
     .right-panel {
         flex: 1;
-        background: white;
+        background: var(--surface);
         border-radius: 16px;
         padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: var(--shadow-md);
         display: flex;
         flex-direction: column;
     }
@@ -50,7 +50,7 @@
     }
     
     .year-nav button {
-        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        background: var(--primary);
         color: white;
         border: none;
         width: 36px;
@@ -66,10 +66,11 @@
         font-weight: 700;
         min-width: 80px;
         text-align: center;
+        color: var(--text);
     }
     
     .lunar-year-badge {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        background: var(--primary);
         color: white;
         padding: 8px 16px;
         border-radius: 20px;
@@ -86,20 +87,22 @@
     
     .month-btn {
         padding: 10px 8px;
-        background: #f8fafc;
+        background: var(--surface-hover);
         border: 2px solid transparent;
         border-radius: 8px;
         cursor: pointer;
         font-family: 'Kantumruy Pro', sans-serif;
         font-size: 13px;
         text-align: center;
+        color: var(--text);
+        transition: all 0.2s;
     }
     
-    .month-btn:hover { background: #f1f5f9; border-color: #e2e8f0; }
-    .month-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
+    .month-btn:hover { background: var(--surface-hover); border-color: var(--border); }
+    .month-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
     
     .events-section h3 {
-        color: #1e293b;
+        color: var(--text);
         margin-bottom: 12px;
         font-size: 15px;
         font-weight: 600;
@@ -112,19 +115,20 @@
     
     .event-item {
         padding: 10px 12px;
-        background: #fef2f2;
+        background: var(--surface-hover);
         border-radius: 8px;
         margin-bottom: 8px;
-        border-left: 3px solid #dc2626;
+        border-left: 3px solid var(--primary);
         font-size: 13px;
+        color: var(--text);
     }
     
-    .event-item.public { background: #ecfdf5; border-left-color: #059669; }
-    .event-item.religious { background: #fef3c7; border-left-color: #d97706; }
+    .event-item.public { background: var(--surface-hover); border-left-color: #059669; }
+    .event-item.religious { background: var(--surface-hover); border-left-color: #d97706; }
     
     .event-item .event-date {
         font-weight: 600;
-        color: #dc2626;
+        color: var(--primary);
     }
     
     .calendar-header {
@@ -141,12 +145,12 @@
     .current-date-display .solar-date {
         font-size: 28px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--text);
     }
     
     .current-date-display .lunar-date {
         font-size: 18px;
-        color: #dc2626;
+        color: var(--primary);
         font-family: 'Kantumruy Pro', sans-serif;
     }
     
@@ -161,7 +165,7 @@
         text-align: center;
         padding: 8px;
         font-weight: 600;
-        color: #64748b;
+        color: var(--text-secondary);
         font-size: 11px;
         text-transform: uppercase;
     }
@@ -172,16 +176,17 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: #f8fafc;
+        background: var(--surface-hover);
         border-radius: 8px;
         font-size: 14px;
         cursor: pointer;
         transition: all 0.2s;
         position: relative;
+        color: var(--text);
     }
     
     .calendar-day:hover {
-        background: #f1f5f9;
+        background: var(--surface-hover);
         transform: scale(1.05);
     }
     
@@ -192,31 +197,31 @@
     
     .calendar-day .lunar-day {
         font-size: 9px;
-        color: #dc2626;
+        color: var(--primary);
         font-family: 'Kantumruy Pro', sans-serif;
     }
     
     .calendar-day.today { 
-        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); 
+        background: var(--primary); 
         color: white;
     }
     .calendar-day.today .lunar-day { color: white; }
     
     .calendar-day.holiday { 
-        background: #fef2f2; 
-        border: 2px solid #dc2626;
+        background: var(--surface-hover); 
+        border: 2px solid var(--primary);
     }
     
     .calendar-day.holy-day { 
-        background: #fef3c7; 
+        background: var(--surface-hover); 
     }
     
     .calendar-day.weekend { 
-        background: #faf5ff; 
+        background: var(--surface-hover); 
     }
     
     .calendar-day.selected { 
-        border: 3px solid #2563eb; 
+        border: 3px solid var(--primary); 
     }
     
     .moon-indicator {
@@ -227,21 +232,21 @@
         height: 8px;
         border-radius: 50%;
     }
-    .moon-indicator.full { background: #f59e0b; }
-    .moon-indicator.new { background: #1e293b; }
+    .moon-indicator.full { background: var(--primary); }
+    .moon-indicator.new { background: var(--text); }
     
     .day-info-panel {
         display: none;
         margin-top: 20px;
         padding: 20px;
-        background: linear-gradient(135deg, #fef2f2 0%, #fefce8 100%);
+        background: var(--surface-hover);
         border-radius: 12px;
     }
     
     .day-info-panel.visible { display: block; }
     
     .day-info-panel h4 {
-        color: #dc2626;
+        color: var(--primary);
         margin-bottom: 16px;
         font-size: 18px;
     }
@@ -253,7 +258,7 @@
     }
     
     .day-info-item {
-        background: white;
+        background: var(--surface);
         padding: 12px;
         border-radius: 8px;
     }
@@ -261,14 +266,14 @@
     .day-info-item label {
         display: block;
         font-size: 11px;
-        color: #64748b;
+        color: var(--text-secondary);
         margin-bottom: 4px;
     }
     
     .day-info-item span {
         font-size: 14px;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--text);
     }
     
     .special-events {
@@ -277,7 +282,7 @@
     
     .special-event {
         display: inline-block;
-        background: #dc2626;
+        background: var(--primary);
         color: white;
         padding: 4px 12px;
         border-radius: 12px;

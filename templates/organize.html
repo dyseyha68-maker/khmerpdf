@@ -8,15 +8,60 @@
         width: 280px;
     }
 
-    .drop-zone:hover { border-color: #667eea; background: #f5f7ff; }
+    .drop-zone:hover { border-color: var(--primary); background: var(--surface-hover); }
 
     .file-info {
         padding: 12px;
-        background: #f5f5f5;
+        background: var(--surface-hover);
         border-radius: 8px;
         margin-bottom: 16px;
         position: relative;
         z-index: 10;
+    }
+    .file-info h3 { font-size: 13px; color: var(--text); margin-bottom: 4px; word-break: break-all; }
+    .file-info p { font-size: 11px; color: var(--text-secondary); }
+    .file-info button { position: relative; z-index: 20; pointer-events: auto; }
+
+    .actions-section {
+        margin-bottom: 16px;
+    }
+    .actions-section h3 {
+        font-size: 13px;
+        color: var(--text);
+        margin-bottom: 8px;
+    }
+
+    .page-item {
+        width: 160px;
+        background: var(--surface);
+        border: 3px solid var(--border);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        padding: 8px;
+    }
+    .page-item:hover {
+        border-color: var(--primary);
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .page-item.selected {
+        border-color: var(--primary);
+        background: var(--surface-hover);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .page-item.is-blank {
+        background: var(--surface-hover);
+        border-color: var(--border);
+    }
+    .page-item.is-replaced {
+        border-color: var(--primary);
+        background: var(--surface-hover);
     }
     .file-info h3 { font-size: 13px; color: #333; margin-bottom: 4px; word-break: break-all; }
     .file-info p { font-size: 11px; color: #666; }
@@ -104,7 +149,7 @@
         position: absolute;
         top: 6px;
         right: 6px;
-        background: #667eea;
+        background: var(--primary);
         color: white;
         width: 24px;
         height: 24px;
@@ -123,13 +168,13 @@
     .page-item .page-num {
         font-size: 14px;
         font-weight: 600;
-        color: #333;
+        color: var(--text);
     }
     .page-item .page-num-new {
         position: absolute;
         bottom: 6px;
         left: 6px;
-        background: #667eea;
+        background: var(--primary);
         color: white;
         padding: 2px 8px;
         border-radius: 4px;
@@ -139,24 +184,24 @@
 
     .selection-info {
         padding: 10px 16px;
-        background: #f5f7ff;
+        background: var(--surface-hover);
         border-radius: 8px;
         margin-bottom: 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         font-size: 14px;
-        color: #333;
+        color: var(--text);
     }
-    .selection-info strong { color: #667eea; }
+    .selection-info strong { color: var(--primary); }
 
     .instructions {
         padding: 12px;
-        background: #e8f5e9;
+        background: var(--surface-hover);
         border-radius: 8px;
         margin-bottom: 16px;
         font-size: 13px;
-        color: #2e7d32;
+        color: var(--text);
     }
 
     .loading {
@@ -165,11 +210,11 @@
         align-items: center;
         justify-content: center;
         flex: 1;
-        color: #666;
+        color: var(--text-secondary);
     }
     .spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #667eea;
+        border: 4px solid var(--border);
+        border-top: 4px solid var(--primary);
         border-radius: 50%;
         width: 50px;
         height: 50px;
@@ -217,7 +262,7 @@
         <div class="file-info" id="fileInfo" style="display:none;">
             <h3 id="fileName"></h3>
             <p id="fileSize"></p>
-            <button onclick="setTimeout(closeFile, 10)" id="closeFileBtn" style="display:none;margin-top:8px;padding:6px 12px;background:#f5f5f5;border:1px solid #ddd;border-radius:4px;cursor:pointer;font-size:12px;color:#d32f2f;width:100%;">
+            <button onclick="setTimeout(closeFile, 10)" id="closeFileBtn" style="display:none;margin-top:8px;padding:6px 12px;background:var(--surface-hover);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:12px;color:var(--primary);width:100%;">
                 <span class="text-en">Remove</span>
                 <span class="text-kh">លុប</span>
             </button>

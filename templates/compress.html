@@ -17,7 +17,7 @@
         display: block;
         font-weight: 600;
         margin-bottom: 10px;
-        color: #1e293b;
+        color: var(--text);
     }
     
     .quality-options {
@@ -30,19 +30,19 @@
         display: flex;
         align-items: center;
         padding: 12px;
-        border: 2px solid #e2e8f0;
+        border: 2px solid var(--border);
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
     }
     
     .quality-option:hover {
-        border-color: #2563eb;
+        border-color: var(--primary);
     }
     
     .quality-option.selected {
-        border-color: #2563eb;
-        background: #eff6ff;
+        border-color: var(--primary);
+        background: var(--surface-hover);
     }
     
     .quality-option input {
@@ -52,7 +52,7 @@
     .quality-radio {
         width: 20px;
         height: 20px;
-        border: 2px solid #2563eb;
+        border: 2px solid var(--primary);
         border-radius: 50%;
         margin-right: 12px;
         display: flex;
@@ -64,7 +64,7 @@
         content: '';
         width: 10px;
         height: 10px;
-        background: #2563eb;
+        background: var(--primary);
         border-radius: 50%;
     }
     
@@ -74,22 +74,22 @@
     
     .quality-name {
         font-weight: 600;
-        color: #1e293b;
+        color: var(--text);
         font-size: 14px;
     }
     
     .quality-desc {
         font-size: 12px;
-        color: #64748b;
+        color: var(--text-secondary);
     }
     
     .estimated-size {
         font-size: 13px;
-        color: #2563eb;
+        color: var(--primary);
         font-weight: 500;
         margin-top: 15px;
         padding: 10px;
-        background: #eff6ff;
+        background: var(--surface-hover);
         border-radius: 6px;
         text-align: center;
     }
@@ -105,32 +105,32 @@
         justify-content: space-between;
         align-items: center;
         padding: 10px 12px;
-        background: #f5f5f5;
+        background: var(--surface-hover);
         border-radius: 6px;
         margin-bottom: 8px;
     }
     
     .selected-file-name {
         font-size: 13px;
-        color: #333;
+        color: var(--text);
         word-break: break-all;
     }
     
     .selected-file-remove {
         background: none;
         border: none;
-        color: #d32f2f;
+        color: var(--primary);
         cursor: pointer;
         font-size: 18px;
     }
     
     .file-info {
         padding: 12px;
-        background: #e8f5e9;
+        background: var(--surface-hover);
         border-radius: 8px;
         margin-bottom: 16px;
         font-size: 13px;
-        color: #2e7d32;
+        color: var(--text);
     }
     
     .right-panel-inner {
@@ -165,12 +165,12 @@
                         <div class="quality-radio"></div>
                         <div class="quality-info">
                             <div class="quality-name">
-                                <span class="text-en">Low (Best压缩)</span>
-                                <span class="text-kh">ទាប (បង្រួមខ្លាំង)</span>
+                                <span class="text-en">Low (Best)</span>
+                                <span class="text-kh">កម្រិតទាប (បង្រួមខ្លាំង)</span>
                             </div>
                             <div class="quality-desc">
                                 <span class="text-en">Smallest file size, lower quality</span>
-                                <span class="text-kh">ទំហំតូចបំផុត គុណភាពទាប</span>
+                                <span class="text-kh">កម្រិតទំហំតូចបំផុត គុណភាពទាប</span>
                             </div>
                         </div>
                     </label>
@@ -179,12 +179,12 @@
                         <div class="quality-radio"></div>
                         <div class="quality-info">
                             <div class="quality-name">
-                                <span class="text-en">Recommended (平衡)</span>
-                                <span class="text-kh">ណែនាំ (តុល្យភាព)</span>
+                                <span class="text-en">Recommended (Balanced)</span>
+                                <span class="text-kh">ណែនាំ (ល្មម)</span>
                             </div>
                             <div class="quality-desc">
                                 <span class="text-en">Good balance between size and quality</span>
-                                <span class="text-kh">តុល្យភាពល្អរវាងទំហំ និងគុណភាព</span>
+                                <span class="text-kh">គុណភាពល្អរវាងកម្រិតទំហំ និងគុណភាព</span>
                             </div>
                         </div>
                     </label>
@@ -193,8 +193,8 @@
                         <div class="quality-radio"></div>
                         <div class="quality-info">
                             <div class="quality-name">
-                                <span class="text-en">High (最好质量)</span>
-                                <span class="text-kh">ខ្ពស់ (គុណភាពល្អបំផុត)</span>
+                                <span class="text-en">High (Best Quality)</span>
+                                <span class="text-kh">កម្រិតខ្ពស់ (គុណភាពល្អបំផុត)</span>
                             </div>
                             <div class="quality-desc">
                                 <span class="text-en">Best quality, larger file size</span>

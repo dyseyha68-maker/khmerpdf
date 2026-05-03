@@ -5,10 +5,10 @@
 {% block extra_css %}
 <style>
     .left-panel::-webkit-scrollbar-thumb {
-        background: #d32f2f;
+        background: var(--primary);
     }
 
-    .drop-zone:hover { border-color: #d32f2f; background: #fff5f5; }
+    .drop-zone:hover { border-color: var(--primary); background: var(--surface-hover); }
 
     .file-list {
         flex: 1;
@@ -20,7 +20,7 @@
         display: flex;
         align-items: center;
         padding: 10px;
-        background: #f5f5f5;
+        background: var(--surface-hover);
         border-radius: 6px;
         margin-bottom: 8px;
     }
@@ -28,12 +28,12 @@
     .file-item .file-name {
         flex: 1;
         font-size: 13px;
-        color: #333;
+        color: var(--text);
         word-break: break-all;
     }
     .file-item .file-size {
         font-size: 12px;
-        color: #666;
+        color: var(--text-secondary);
         margin-left: 8px;
     }
 
@@ -42,7 +42,7 @@
     }
     .ocr-options h3 {
         font-size: 14px;
-        color: #333;
+        color: var(--text);
         margin-bottom: 12px;
     }
 
@@ -50,28 +50,28 @@
         display: flex;
         align-items: center;
         padding: 10px;
-        border: 2px solid #e0e0e0;
+        border: 2px solid var(--border);
         border-radius: 8px;
         margin-bottom: 8px;
         cursor: pointer;
         transition: all 0.2s;
     }
-    .radio-option:hover { border-color: #d32f2f; }
+    .radio-option:hover { border-color: var(--primary); }
     .radio-option.selected {
-        border-color: #d32f2f;
-        background: #fff5f5;
+        border-color: var(--primary);
+        background: var(--surface-hover);
     }
     .radio-option input { display: none; }
     .radio-option .radio-circle {
         width: 18px;
         height: 18px;
-        border: 2px solid #ccc;
+        border: 2px solid var(--border);
         border-radius: 50%;
         margin-right: 10px;
         position: relative;
     }
     .radio-option.selected .radio-circle {
-        border-color: #d32f2f;
+        border-color: var(--primary);
     }
     .radio-option.selected .radio-circle::after {
         content: '';
@@ -80,14 +80,14 @@
         left: 3px;
         width: 8px;
         height: 8px;
-        background: #d32f2f;
+        background: var(--primary);
         border-radius: 50%;
     }
 
     .ocr-btn {
         width: 100%;
         padding: 14px 24px;
-        background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+        background: var(--primary);
         color: white;
         border: none;
         border-radius: 10px;
@@ -97,12 +97,12 @@
         font-family: 'Kantumruy Pro', sans-serif;
         transition: all 0.3s;
     }
-    .ocr-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(211,47,47,0.4); }
-    .ocr-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+    .ocr-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
+    .ocr-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
 
     .right-panel h2 {
         font-size: 18px;
-        color: #333;
+        color: var(--text);
         margin-bottom: 16px;
         text-align: center;
     }
@@ -115,7 +115,7 @@
     }
 
     .file-thumb {
-        background: #f5f5f5;
+        background: var(--surface-hover);
         border-radius: 8px;
         padding: 12px;
         text-align: center;
@@ -131,19 +131,19 @@
     }
     .file-thumb .file-name {
         font-size: 12px;
-        color: #333;
+        color: var(--text);
         word-break: break-all;
         margin-bottom: 4px;
     }
     .file-thumb .page-count {
         font-size: 11px;
-        color: #666;
+        color: var(--text-secondary);
     }
 
     .empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: #999;
+        color: var(--text-secondary);
     }
 
     @media (max-width: 900px) {
