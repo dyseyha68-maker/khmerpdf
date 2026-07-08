@@ -1,221 +1,264 @@
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank You - Khmer PDF Tools</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            --surface: #ffffff;
-            --text: #1e293b;
-            --text-secondary: #64748b;
-            --border: #e2e8f0;
-        }
-        
-        [data-theme="dark"] {
-            --primary: #e0e0e0;
-            --primary-dark: #ffffff;
-            --bg-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            --surface: #1a1a1a;
-            --text: #ffffff;
-            --text-secondary: #b0b0b0;
-            --border: #333333;
-        }
-        
-        * { margin:0; padding:0; box-sizing: border-box; }
-        body {
-            font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            transition: background 0.3s;
-        }
-        
-        .container {
-            background: var(--surface);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 40px;
-            max-width: 450px;
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "File Ready" %} - Khmer PDF Tools{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+    /* Override main-content layout to center the card */
+    .main-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* ── Card shell ─────────────────────────────────────────── */
+    .card {
+        background: var(--surface);
+        border-radius: 16px;
+        border: 0.5px solid var(--border);
+        width: 100%;
+        max-width: 700px;
+        overflow: hidden;
+        display: flex;
+        box-shadow: var(--shadow-md);
+    }
+
+    /* ── Left panel ─────────────────────────────────────────── */
+    .left {
+        flex: 1;
+        padding: 36px 32px;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #eaf3de;
+        color: #3b6d11;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 18px;
+        width: fit-content;
+    }
+    [data-theme="dark"] .status-badge { background: #173404; color: #c0dd97; }
+    .status-badge i { font-size: 13px; }
+
+    .card-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px;
+    }
+
+    .card-sub {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 18px;
+        line-height: 1.5;
+    }
+
+    .filename-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 9px 12px;
+        margin-bottom: 28px;
+    }
+    .filename-pill i { font-size: 16px; color: var(--text-secondary); flex-shrink: 0; }
+    .filename-pill span {
+        font-size: 12px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+
+    .spacer { flex: 1; }
+
+    .dl-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 14px 20px;
+        border-radius: var(--radius-sm);
+        background: var(--primary);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.15s, transform 0.1s;
+    }
+    .dl-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .dl-btn i { font-size: 18px; }
+
+    .home-link {
+        display: block;
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        margin-top: 12px;
+    }
+    .home-link:hover { color: var(--text); }
+
+    /* ── Right panel ────────────────────────────────────────── */
+    .right {
+        width: 290px;
+        flex-shrink: 0;
+        background: var(--surface-hover);
+        border-left: 1px solid var(--border);
+        padding: 28px 24px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .qr-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 14px;
+        text-align: center;
+    }
+
+    .qr-img {
+        width: 100%;
+        max-width: 242px;
+        height: auto;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .amount-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .chip {
+        padding: 5px 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        background: var(--surface);
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.12s;
+    }
+    .chip:hover { border-color: var(--primary); color: var(--primary); }
+    .chip.active {
+        background: #e6f1fb;
+        border-color: #b5d4f4;
+        color: #185fa5;
+    }
+    [data-theme="dark"] .chip.active {
+        background: #042c53;
+        border-color: #0c447c;
+        color: #b5d4f4;
+    }
+
+    .donate-hint {
+        font-size: 11px;
+        color: var(--text-secondary);
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 700px) {
+        .main-content { padding: 16px; }
+        .card { flex-direction: column; }
+        .left { padding: 24px 20px 20px; }
+        .right {
             width: 100%;
-            text-align: center;
-            transition: background 0.3s;
-        }
-        
-        .success-icon { font-size: 72px; margin-bottom: 20px; }
-        
-        .thank-you-text { 
-            font-size: 26px; 
-            color: var(--text); 
-            margin-bottom: 8px; 
-            font-weight: 700;
-        }
-        
-        .sub-text { 
-            color: var(--text-secondary); 
-            font-size: 15px; 
-            margin-bottom: 24px;
-        }
-        
-        .qr-section {
-            background: var(--surface);
-            border-radius: 12px;
+            border-left: none;
+            border-top: 1px solid var(--border);
             padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
+            flex-direction: row;
+            align-items: center;
+            gap: 16px;
         }
-        
-        .qr-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 12px;
-        }
-        
-        .qr-image {
-            width: 200px;
-            height: 240px;
-            margin-bottom: 12px;
-        }
-        
-        .amount-btns {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
-        
-        .amount-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Kantumruy Pro', sans-serif;
-        }
-        .amount-btn:hover { transform: scale(1.05); }
-        
-        .donate-text {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-        
-        .download-btn {
-            display: block;
-            background: var(--primary);
-            color: white;
-            padding: 16px 32px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-        .download-btn:hover { transform: translateY(-2px); }
-        
-        .home-btn {
-            display: inline-block;
-            background: var(--surface);
-            color: var(--text);
-            padding: 14px 28px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            border: 1px solid var(--border);
-        }
-        .home-btn:hover { background: var(--surface); }
-        
-        .text-en, .text-kh { display: none; }
-        body.lang-en .text-en { display: block; }
-        body.lang-kh .text-kh { display: block; }
-        
-        @media (max-width: 480px) {
-            .container { padding: 20px 15px; }
-            .amount-btn { padding: 8px 12px; font-size: 14px; }
-            .qr-section { padding: 12px; }
-            .qr-image { width: 160px; height: 190px; }
-            .download-btn { padding: 12px 20px; font-size: 14px; }
-            .home-btn { padding: 10px 16px; font-size: 13px; }
-            .success-icon { font-size: 48px; }
-            .thank-you-text { font-size: 20px; }
-        }
-        
-        @media (max-width: 350px) {
-            .container { padding: 15px 10px; }
-            .qr-image { width: 140px; height: 170px; }
-            .amount-btns { gap: 4px; }
-            .amount-btn { padding: 6px 10px; font-size: 12px; }
-        }
-    </style>
-    <script>
-        function setLang(lang) {
-            document.body.className = 'lang-' + lang;
-            localStorage.setItem('pdf_lang', lang);
-        }
-        const savedLang = localStorage.getItem('pdf_lang') || 'kh';
-        setLang(savedLang);
-        
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('pdf_theme', theme);
-        }
-        const savedTheme = localStorage.getItem('pdf_theme') || 'light';
-        setTheme(savedTheme);
-    </script>
-</head>
-<body class="lang-kh">
-    <div class="container">
-        <div class="success-icon">✅</div>
-        <h1 class="thank-you-text">
-            <span class="text-en">Thank You!</span>
-            <span class="text-kh">អរគុណ!</span>
-        </h1>
-        <p class="sub-text">
-            <span class="text-en">Your file has been processed successfully.</span>
-            <span class="text-kh">ឯកសាររបស់អ្នកត្រូវបានដំណើរការដោយជោគជ័យ។</span>
-        </p>
-        
-        <div class="qr-section">
-            <div class="qr-title">
-                <span class="text-en">Support Us with QR Code</span>
-                <span class="text-kh">គេហទំព័ររបស់យើងជាមួយ QR Code</span>
-            </div>
-{% load static %}
-            <img src="{% static 'khqr.jpg' %}" alt="QR Code" class="qr-image">
-            <div class="amount-btns">
-                <button class="amount-btn">$0.5</button>
-                <button class="amount-btn">$1</button>
-                <button class="amount-btn">$2</button>
-                <button class="amount-btn">$5</button>
-                <button class="amount-btn">$10</button>
-            </div>
-            <p class="donate-text">
-                <span class="text-en">Any donation is appreciated!</span>
-                <span class="text-kh">ដើម្បីជាការលើកទឹកចិត្តបន្ត</span>
-            </p>
+        .qr-img { width: 90px; max-width: 90px; margin-bottom: 0; flex-shrink: 0; }
+        .qr-donate-col { flex: 1; }
+        .qr-label { text-align: left; margin-bottom: 8px; }
+        .amount-chips { justify-content: flex-start; }
+        .donate-hint { text-align: left; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+
+    <!-- ── Left: success + download ─────────────────────────── -->
+    <div class="left">
+        <div class="status-badge">
+            <i class="ti ti-circle-check" aria-hidden="true"></i>
+            {% trans "Done" %}
         </div>
-        
-        <a href="{{ download_url }}" class="download-btn" download>
-            <span class="text-en">Download File</span>
-            <span class="text-kh">ទាញយកឯកសារ</span>
+
+        <h1 class="card-title">{% trans "Your file is ready" %}</h1>
+        <p class="card-sub">{% trans "Processed and ready to download." %}</p>
+
+        <div class="filename-pill">
+            <i class="ti ti-file-type-pdf" aria-hidden="true"></i>
+            <span title="{{ filename }}">{{ filename }}</span>
+        </div>
+
+        <div class="spacer"></div>
+
+        <a href="{{ download_url }}" class="dl-btn" download>
+            <i class="ti ti-download" aria-hidden="true"></i>
+            {% trans "Download file" %}
         </a>
-        
-        <a href="/" class="home-btn">
-            <span class="text-en"> Back to Home</span>
-            <span class="text-kh"> ត្រឡប់ទៅដើម</span>
-        </a>
+        <a href="/" class="home-link">{% trans "Back to home" %}</a>
     </div>
-</body>
-</html>
+
+    <!-- ── Right: QR donate ──────────────────────────────────── -->
+    <div class="right">
+        <p class="qr-label">{% trans "Support this tool" %}</p>
+        <img src="{% static 'khqr.jpg' %}" alt="{% trans 'KHQR donation code' %}" class="qr-img">
+        <div class="qr-donate-col">
+            <div class="amount-chips">
+                <button class="chip" onclick="selectChip(this)">$0.5</button>
+                <button class="chip active" onclick="selectChip(this)">$1</button>
+                <button class="chip" onclick="selectChip(this)">$2</button>
+                <button class="chip" onclick="selectChip(this)">$5</button>
+                <button class="chip" onclick="selectChip(this)">$10</button>
+            </div>
+            <p class="donate-hint">{% trans "Any amount is appreciated" %}</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function selectChip(el) {
+        el.closest('.amount-chips').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+    }
+</script>
+{% endblock %}

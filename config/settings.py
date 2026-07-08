@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'  # default True for dev; set DEBUG=False in production
 
 ALLOWED_HOSTS = ['*']
 
@@ -27,6 +27,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',   # ← i18n language detection
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -45,6 +46,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.i18n',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -58,6 +60,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 30,               # wait up to 30s for SQLite lock
+            'check_same_thread': False,  # allow background threads to write
+        },
     }
 }
 
@@ -68,16 +74,17 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'km'
+TIME_ZONE = 'Asia/Phnom_Penh'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+LANGUAGES = [
+    ('en', 'English'),
+    ('km', 'ខ្មែរ'),
+]
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -87,6 +94,13 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 400 * 1024 * 1024  # 400MB
 
 # File upload settings
 MAX_UPLOAD_SIZE = 350 * 1024 * 1024  # 350MB - allow large PDF files
+
+# Poppler path for pdf2image (Windows). Set to the bin folder inside your poppler download.
+# e.g. r"D:\poppler\Library\bin"  or  r"C:\poppler\bin"
+# Leave as None if poppler is already in system PATH (e.g. installed via apt on Linux/Docker).
+POPPLER_PATH = os.environ.get('POPPLER_PATH') or (
+    r"D:\08. Saas\poppler\Library\bin" if os.name == 'nt' else None
+)
 ALLOWED_EXTENSIONS = ['pdf']
 
 # Celery settings
@@ -102,6 +116,7 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
 
 # Django REST Framework settings
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],   # no session auth → no DRF CSRF check
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
@@ -109,8 +124,6 @@ REST_FRAMEWORK = {
 
 # Static and Media files
 import os
-
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -126,7 +139,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Create media directories if they don't exist
 os.makedirs(os.path.join(BASE_DIR, 'media', 'uploads'), exist_ok=True)
-os.makedirs(os.path.join(BASE_DIR, 'media', 'processed'), exist_ok=True)
-
-# Google Cloud Vision API (for OCR)
-GOOGLE_CLOUD_API_KEY = os.environ.get('GOOGLE_CLOUD_API_KEY', '')
+os.makedirs(os.path.join(BASE_DIR, 'media', 'processed'), exist_ok

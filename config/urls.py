@@ -1,13 +1,15 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.i18n import i18n_patterns
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
 from django.views.generic import RedirectView
-from apps.pdf.views import index, split_page, merge_page, compress_page, organize_page, calendar_page, khqr, ocr_page, pdf_to_image_page, image_to_pdf_page
+from apps.pdf.views import index, split_page, merge_page, compress_page, organize_page, calendar_page, khqr, ocr_page, pdf_to_image_page, image_to_pdf_page, download_file
 
 urlpatterns = [
+    path('i18n/', include('django.conf.urls.i18n')),  # set_language endpoint
     path('admin/', admin.site.urls),
     path('api/', include('apps.pdf.urls')),
     path('', index, name='index'),
@@ -17,6 +19,7 @@ urlpatterns = [
     path('pdf-organize/', organize_page, name='organize'),
     path('pdf-calendar/', calendar_page, name='calendar'),
     path('khqr/', khqr, name='khqr'),
+    path('download/', download_file, name='download_file'),
     path('pdf-ocr/', ocr_page, name='ocr'),
     path('pdf-to-image/', pdf_to_image_page, name='pdf_to_image'),
     path('image-to-pdf/', image_to_pdf_page, name='image_to_pdf'),
@@ -26,8 +29,10 @@ urlpatterns = [
     path('sitemap.xml', lambda r: RedirectView.as_view(url='/static/sitemap.xml', permanent=False)),
 ]
 
-# Serve media files in production
-if not settings.DEBUG:
+# Serve media files (dev uses django helper; prod uses explicit serve view)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
     urlpatterns += [
         re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     ]

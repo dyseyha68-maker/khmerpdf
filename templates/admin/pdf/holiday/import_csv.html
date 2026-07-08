@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Import Holidays from CSV{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;">
+
+  <h1 style="margin-bottom:24px;">📥 Import Holidays from CSV</h1>
+
+  <!-- Upload form -->
+  <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:24px;margin-bottom:24px;">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-weight:600;margin-bottom:8px;">CSV File</label>
+        <input type="file" name="csv_file" accept=".csv" required
+               style="display:block;padding:8px;border:1px solid #ccc;border-radius:6px;width:100%;">
+      </div>
+      <button type="submit"
+              style="background:#49D093;color:white;border:none;padding:10px 24px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;">
+        ⬆ Upload &amp; Import
+      </button>
+      &nbsp;
+      <a href="{% url 'admin:pdf_holiday_changelist' %}"
+         style="color:#666;font-size:14px;text-decoration:none;">Cancel</a>
+    </form>
+  </div>
+
+  <!-- CSV format guide -->
+  <div style="background:#f8f9fa;border:1px solid #e2e8f0;border-radius:8px;padding:20px;margin-bottom:20px;">
+    <h3 style="margin-bottom:12px;font-size:15px;">📋 CSV Format</h3>
+    <p style="margin-bottom:12px;font-size:13px;color:#555;">
+      First row must be the header. Columns (order matters):
+    </p>
+    <code style="display:block;background:#1e293b;color:#7eeac4;padding:12px 16px;border-radius:6px;font-size:13px;margin-bottom:16px;">
+      {{ csv_columns }}
+    </code>
+
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:#e2e8f0;">
+          <th style="padding:8px 12px;text-align:left;border:1px solid #ddd;">Column</th>
+          <th style="padding:8px 12px;text-align:left;border:1px solid #ddd;">Required</th>
+          <th style="padding:8px 12px;text-align:left;border:1px solid #ddd;">Format / Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:8px 12px;border:1px solid #ddd;"><code>name_en</code></td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">No</td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">English name</td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+          <td style="padding:8px 12px;border:1px solid #ddd;"><code>name_kh</code></td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">No</td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">Khmer name (UTF-8)</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;border:1px solid #ddd;"><code>start_date</code></td>
+          <td style="padding:8px 12px;border:1px solid #ddd;"><strong>Yes</strong></td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">YYYY-MM-DD or DD/MM/YYYY</td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+          <td style="padding:8px 12px;border:1px solid #ddd;"><code>end_date</code></td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">No</td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">Leave blank for single-day holidays</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;border:1px solid #ddd;"><code>is_public</code></td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">No</td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">1 / true / yes &nbsp;or&nbsp; 0 / false / no &nbsp;(default: 1)</td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+          <td style="padding:8px 12px;border:1px solid #ddd;"><code>is_lunar</code></td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">No</td>
+          <td style="padding:8px 12px;border:1px solid #ddd;">1 / true / yes &nbsp;or&nbsp; 0 / false / no &nbsp;(default: 0)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example -->
+  <div style="background:#f8f9fa;border:1px solid #e2e8f0;border-radius:8px;padding:20px;">
+    <h3 style="margin-bottom:12px;font-size:15px;">📄 Example CSV</h3>
+    <pre style="background:#1e293b;color:#7eeac4;padding:14px 16px;border-radius:6px;font-size:12px;overflow-x:auto;margin:0;">name_en,name_kh,start_date,end_date,is_public,is_lunar
+{% for row in example_rows %}{{ row }}
+{% endfor %}</pre>
+    <p style="margin-top:10px;font-size:12px;color:#888;">
+      Existing holidays with the same <code>start_date</code> will be <strong>updated</strong>, not duplicated.
+    </p>
+  </div>
+
+</div>
+{% endblock %}

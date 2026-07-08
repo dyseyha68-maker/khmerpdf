@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}Khmer PDF Tools - Free Online PDF Tools | ឧបករណ៍ PDF ខ្មែរ{% endblock %}
 
@@ -17,14 +18,15 @@
     }
     
     .hero h1 {
-        font-size: 40px;
+        font-size: 44px;
         font-weight: 700;
         color: var(--text);
         margin-bottom: 12px;
     }
     
     .hero p {
-        font-size: 18px;
+        font-size: 20px;
+        font-weight: 700;
         color: var(--text-secondary);
     }
     
@@ -71,20 +73,21 @@
         stroke-linecap: round;
         stroke-linejoin: round;
     }
+    .tool-icon i { font-size: 40px; line-height: 1; }
     
     .calendar-card .tool-icon {
         color: white;
     }
     
     .tool-card h3 {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
         color: var(--text);
         margin-bottom: 8px;
     }
     
     .tool-card p {
-        font-size: 14px;
+        font-size: 15px;
         color: var(--text-secondary);
     }
     
@@ -164,143 +167,123 @@
 {% block content %}
 <div class="hero">
     <h1>
-        <span class="text-en">Free Online PDF Tools</span>
-        <span class="text-kh">ឧបករណ៍ PDF ខ្មែរ ដោយឥតគិតថ្លៃ</span>
+        {% trans "Free Online PDF Tools" %}
     </h1>
     <p>
-        <span class="text-en">Compress, Merge, Split, Organize PDF Files and More</span>
-        <span class="text-kh">បង្រួម, បញ្ចូល, បំបែង, រៀបចំ PDF និងច្រើនទៀត</span>
+        {% trans "Compress, Merge, Split, Organize PDF Files and More" %}
     </p>
 </div>
 
 <div class="cards-container">
     <div class="tool-card" onclick="window.location.href='/pdf-compress/'">
         <div class="tool-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 22V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm16-10V4H4v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zm-10 4h4m-4 2h4m-4 2h4"/>
-            </svg>
+            <i class="ti ti-file-zip"></i>
         </div>
         <h3>
-            <span class="text-en">Compress PDF</span>
-            <span class="text-kh">បង្រួមឯកសារ PDF</span>
+            {% trans "Compress PDF" %}
         </h3>
         <p>
-            <span class="text-en">Reduce PDF file size</span>
-            <span class="text-kh">បន្ថយទំហំឯកសារ PDF</span>
+            {% trans "Reduce PDF file size" %}
         </p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-merge/'">
         <div class="tool-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 22V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm16-10V4H8v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zm-10 4h4m-4 0h4m-4 0h4"/>
-            </svg>
+            <i class="ti ti-files"></i>
         </div>
         <h3>
-            <span class="text-en">Merge PDF</span>
-            <span class="text-kh">បញ្ចូលឯកសារ PDF</span>
+            {% trans "Merge PDF" %}
         </h3>
         <p>
-            <span class="text-en">Combine multiple PDFs</span>
-            <span class="text-kh">បញ្ចូល PDF ច្រើនចូលគ្នា</span>
+            {% trans "Combine multiple PDFs" %}
         </p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-split/'">
         <div class="tool-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 22V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm16-10V4H8v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zm-10 4h4m-4 0h4m-4 0h4"/>
-            </svg>
+            <i class="ti ti-scissors"></i>
         </div>
         <h3>
-            <span class="text-en">Split PDF</span>
-            <span class="text-kh">បំបែងឯកសារ PDF</span>
+            {% trans "Split PDF" %}
         </h3>
         <p>
-            <span class="text-en">Extract pages</span>
-            <span class="text-kh">ការយកទំព័រចេញ</span>
+            {% trans "Extract pages" %}
         </p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-organize/'">
         <div class="tool-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
+            <i class="ti ti-layout-grid"></i>
         </div>
         <h3>
-            <span class="text-en">Organize PDF</span>
-            <span class="text-kh">រៀបចំឯកសារ PDF</span>
+            {% trans "Organize PDF" %}
         </h3>
         <p>
-            <span class="text-en">Reorder pages</span>
-            <span class="text-kh">សរុបលំដាប់ទំព័រឡើងវិញ</span>
+            {% trans "Reorder pages" %}
         </p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-to-image/'">
         <div class="tool-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 22V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm16-10V4H8v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zm-10 4h4m-4 0h4m-4 0h4"/>
-            </svg>
+            <i class="ti ti-photo"></i>
         </div>
         <h3>
-            <span class="text-en">PDF to Image</span>
-            <span class="text-kh">ការបំលែង PDF ទៅរូបភាព</span>
+            {% trans "PDF to Image" %}
         </h3>
         <p>
-            <span class="text-en">Convert PDF to images</span>
-            <span class="text-kh">ការបំលែង PDF ទៅរូបភាព</span>
+            {% trans "Convert PDF to images" %}
         </p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/image-to-pdf/'">
         <div class="tool-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 22V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm16-10V4H8v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zm-10 4h4m-4 0h4m-4 0h4"/>
-            </svg>
+            <i class="ti ti-file-upload"></i>
         </div>
         <h3>
-            <span class="text-en">Image to PDF</span>
-            <span class="text-kh">ការបំលែងរូបភាពទៅ PDF</span>
+            {% trans "Image to PDF" %}
         </h3>
         <p>
-            <span class="text-en">Convert images to PDF</span>
-            <span class="text-kh">ការបំលែងរូបភាពទៅ PDF</span>
+            {% trans "Convert images to PDF" %}
         </p>
     </div>
     
     <div class="tool-card" onclick="window.location.href='/pdf-ocr/'">
         <div class="tool-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 22V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm16-10V4H8v12a2 2 0 0 0 2 2h12a2 2 0 0 0-2-2zm-10 4h4m-4 0h4m-4 0h4"/>
-            </svg>
+            <i class="ti ti-scan"></i>
         </div>
         <h3>
-            <span class="text-en">OCR</span>
-            <span class="text-kh">ការបំលែងឯកសារស្កេនទៅអក្សរ</span>
+            {% trans "OCR" %}
         </h3>
         <p>
-            <span class="text-en">Make scanned PDF searchable</span>
-            <span class="text-kh">ឯកសារស្កេនរបស់លោកអ្នកកាន់តែអាចស្វែងរកឃើញ</span>
+            {% trans "Make scanned PDF searchable" %}
         </p>
     </div>
     
     <div class="tool-card calendar-card" onclick="window.location.href='/pdf-calendar/'">
         <div class="calendar-date">
-            <span class="cal-month">{{ current_month }}</span>
-            <span class="cal-day">{{ current_day }}</span>
+            <span class="cal-month" id="calMonthEl">{{ current_month }}</span>
+            <span class="cal-day" id="calDayEl">{{ current_day }}</span>
         </div>
         <div class="cal-text">
             <h3>
-                <span class="text-en">Calendar</span>
-                <span class="text-kh">ប្រតិទិន</span>
+                {% trans "Calendar" %}
             </h3>
             <p>
-                <span class="text-en">Cambodia holidays</span>
-                <span class="text-kh">ថ្ងៃឈបសងខ្មែរ</span>
+                {% trans "Cambodia holidays" %}
             </p>
         </div>
-    </div>
+      </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+    const KH_MONTHS = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+    const EN_MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const idx = {{ current_month_num }} - 1;
+    document.getElementById('calMonthEl').textContent = isKhmer ? 'ខែ' + KH_MONTHS[idx] : EN_MONTHS[idx];
+    document.getElementById('calDayEl').textContent = toKhNum({{ current_day }});
+})();
+</script>
 {% endblock %}

@@ -4,7 +4,7 @@ import time
 import uuid
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, Http404
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, parser_classes
@@ -49,7 +49,11 @@ from datetime import datetime
 def index(request):
     now = datetime.now()
     months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-    return render(request, 'upload.html', {'current_month': months[now.month - 1], 'current_day': now.day})
+    return render(request, 'upload.html', {
+        'current_month': months[now.month - 1],
+        'current_month_num': now.month,
+        'current_day': now.day,
+    })
 
 
 def split_page(request):
@@ -179,13 +183,46 @@ def image_to_pdf_page(request):
     return render(request, 'imagetopdf.html')
 
 
+def download_file(request):
+    """Serve a processed media file with the original filename as Content-Disposition."""
+    rel_path = request.GET.get('path', '')   # e.g. processed/processed_xxx.pdf
+    filename  = request.GET.get('filename', 'download.pdf')
+
+    # Security: only allow files inside MEDIA_ROOT/processed/
+    safe_path = os.path.normpath(os.path.join(settings.MEDIA_ROOT, rel_path))
+    allowed_root = os.path.normpath(os.path.join(settings.MEDIA_ROOT, 'processed'))
+    if not safe_path.startswith(allowed_root):
+        raise Http404
+
+    if not os.path.exists(safe_path):
+        raise Http404
+
+    # Sanitize filename (no path traversal in the suggested name)
+    filename = os.path.basename(filename) or 'download.pdf'
+
+    response = FileResponse(open(safe_path, 'rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
 def khqr(request):
     download_url = request.GET.get('download', '')
-    return render(request, 'khqr.html', {'download_url': download_url})
+    filename = request.GET.get('filename', 'download.pdf')
+    # Build a server-side download URL that forces the correct filename
+    # download_url is like /media/processed/processed_xxx.pdf
+    # → extract the relative path after MEDIA_URL
+    media_url = settings.MEDIA_URL  # '/media/'
+    if download_url.startswith(media_url):
+        rel_path = download_url[len(media_url):]
+        import urllib.parse
+        forced_url = '/download/?path=' + urllib.parse.quote(rel_path) + '&filename=' + urllib.parse.quote(filename)
+    else:
+        forced_url = download_url
+    return render(request, 'khqr.html', {'download_url': forced_url, 'filename': filename})
 
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def compress_api(request):
     import logging
@@ -219,40 +256,36 @@ def compress_api(request):
             job = Job.objects.create(files=file_ids, tool='compress', compression_level=compression_level)
         
         logger.info(f'Job created: {job.id}')
-        
-        # Run synchronously (CELERY_TASK_ALWAYS_EAGER=True)
+
+        # Run synchronously — progress bar animates via hyperbolic curve
+        # during the blocking fetch; no threading/SQLite issues.
         from apps.pdf.tasks import compress_pdf
         try:
             compress_pdf(str(job.id))
         except Exception as task_err:
-            logger.error(f'Task error: {task_err}')
-            job.status = 'failed'
-            job.error_message = str(task_err)
-            job.save()
-        
+            logger.error(f'Task error: {task_err}', exc_info=True)
+
         job.refresh_from_db()
-        
+
         if job.status == 'failed':
             return Response({
                 'error': job.error_message or 'Compression failed',
                 'job_id': str(job.id),
-                'status': job.status
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         return Response({
             'job_id': str(job.id),
             'status': job.status,
             'result_url': job.result.url if job.result else None,
-            'message': 'File compressed successfully'
         }, status=status.HTTP_201_CREATED)
-            
+
     except Exception as e:
         logger.error(f'Compress API error: {e}', exc_info=True)
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def merge_api(request):
     # Cleanup old files every time a job is created
@@ -273,7 +306,7 @@ def merge_api(request):
             return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
         job = Job.objects.create(file=f, tool='upload')
         file_ids.append(str(job.id))
-    
+
     job = Job.objects.create(files=file_ids, tool='merge')
     
     if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
@@ -288,7 +321,7 @@ def merge_api(request):
         }, status=status.HTTP_201_CREATED)
     else:
         merge_pdf.delay(str(job.id))
-        
+
         return Response({
             'job_id': str(job.id),
             'status': 'pending',
@@ -296,8 +329,8 @@ def merge_api(request):
         }, status=status.HTTP_201_CREATED)
 
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def split_api(request):
     # Cleanup old files every time a job is created
@@ -352,15 +385,15 @@ def job_status(request, job_id):
     if job.status == 'done' and job.result:
         data['result_url'] = job.result.url
         data['result_size'] = job.result.size
-    
+
     if job.status == 'failed':
         data['error'] = job.error_message
     
     return Response(data)
 
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def organize_api(request):
     import logging
@@ -400,7 +433,7 @@ def organize_api(request):
         file=file,
         tool='split',
         page_range=json.dumps(page_order),
-        compression_level='organize'
+        compression_level='organize',
     )
     
     if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
@@ -429,9 +462,9 @@ def organize_api(request):
         }, status=status.HTTP_201_CREATED)
 
 
+@csrf_exempt
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
-@csrf_exempt
 def ocr_api(request):
     import logging
     logger = logging.getLogger(__name__)
@@ -488,8 +521,8 @@ def ocr_api(request):
     }, status=status.HTTP_201_CREATED)
 
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def pdf_to_image_api(request):
     import logging
@@ -542,8 +575,8 @@ def pdf_to_image_api(request):
         }, status=status.HTTP_201_CREATED)
 
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def image_to_pdf_api(request):
     import logging

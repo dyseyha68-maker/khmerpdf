@@ -1,0 +1,324 @@
+# English (source language) for DAMSPEY
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+msgid "Compress"
+msgstr ""
+
+msgid "Merge"
+msgstr ""
+
+msgid "Split"
+msgstr ""
+
+msgid "Organize"
+msgstr ""
+
+msgid "Calendar"
+msgstr ""
+
+msgid "Today"
+msgstr ""
+
+msgid "Buddhist Era"
+msgstr ""
+
+msgid "Events"
+msgstr ""
+
+msgid "Public Holiday"
+msgstr ""
+
+msgid "Weekend"
+msgstr ""
+
+msgid "Holy / Precept Day"
+msgstr ""
+
+msgid "Day of Week"
+msgstr ""
+
+msgid "Lunar Date"
+msgstr ""
+
+msgid "No events this month"
+msgstr ""
+
+msgid "Day Info"
+msgstr ""
+
+msgid "Solar Date"
+msgstr ""
+
+# --- Tool pages ---
+msgid "Select PDF files or drop here"
+msgstr ""
+
+msgid "Select PDF file or drop here"
+msgstr ""
+
+msgid "Select PDF file"
+msgstr ""
+
+msgid "Select images or drop here"
+msgstr ""
+
+msgid "Compression Quality"
+msgstr ""
+
+msgid "Low (Best)"
+msgstr ""
+
+msgid "Smallest file size, lower quality"
+msgstr ""
+
+msgid "Recommended (Balanced)"
+msgstr ""
+
+msgid "Good balance between size and quality"
+msgstr ""
+
+msgid "High (Best Quality)"
+msgstr ""
+
+msgid "Best quality, larger file size"
+msgstr ""
+
+msgid "Estimated output: Calculating..."
+msgstr ""
+
+msgid "Compress PDF"
+msgstr ""
+
+msgid "👆 Add PDF files and click Compress."
+msgstr ""
+
+msgid "Compressing PDF files..."
+msgstr ""
+
+msgid "Merge PDF"
+msgstr ""
+
+msgid "👆 Add PDF files to merge. Click Merge to combine them."
+msgstr ""
+
+msgid "Merging PDF files..."
+msgstr ""
+
+msgid "Split PDF"
+msgstr ""
+
+msgid "Split Mode"
+msgstr ""
+
+msgid "Select Pages"
+msgstr ""
+
+msgid "Click pages to extract"
+msgstr ""
+
+msgid "By Range"
+msgstr ""
+
+msgid "Specify page ranges"
+msgstr ""
+
+msgid "Split Every N Pages"
+msgstr ""
+
+msgid "Split into files of N pages"
+msgstr ""
+
+msgid "Page Ranges"
+msgstr ""
+
+msgid "+ Add Another Range"
+msgstr ""
+
+msgid "Split every"
+msgstr ""
+
+msgid "pages"
+msgstr ""
+
+msgid "Selected:"
+msgstr ""
+
+msgid "Total:"
+msgstr ""
+
+msgid "👆 Click on the PDF file to load pages, then select pages to extract"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Select All"
+msgstr ""
+
+msgid "Deselect All"
+msgstr ""
+
+msgid "Add Blank Page"
+msgstr ""
+
+msgid "Replace Selected"
+msgstr ""
+
+msgid "Delete Selected"
+msgstr ""
+
+msgid "Extract Selected Pages"
+msgstr ""
+
+msgid "👆 Upload a PDF to reorder pages. Drag pages to rearrange. Click to select/deselect."
+msgstr ""
+
+msgid "No PDF loaded"
+msgstr ""
+
+msgid "Processing..."
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "OCR Language"
+msgstr ""
+
+msgid "OCR PDF"
+msgstr ""
+
+msgid "Make Scanned PDFs Searchable"
+msgstr ""
+
+msgid "Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages."
+msgstr ""
+
+msgid "👆 Upload a PDF to preview"
+msgstr ""
+
+msgid "Processing OCR..."
+msgstr ""
+
+msgid "Error loading preview"
+msgstr ""
+
+msgid "Convert to PDF"
+msgstr ""
+
+msgid "👆 Drag images to reorder. They will appear in PDF in this order."
+msgstr ""
+
+msgid "👆 Add images to preview. Drag to reorder."
+msgstr ""
+
+msgid "Converting images to PDF..."
+msgstr ""
+
+msgid "Format"
+msgstr ""
+
+msgid "Quality (DPI)"
+msgstr ""
+
+msgid "Convert to Images"
+msgstr ""
+
+msgid "👆 Add a PDF file to preview pages and convert to images."
+msgstr ""
+
+msgid "Converting PDF to images..."
+msgstr ""
+
+# --- Upload / Home page ---
+msgid "Free Online PDF Tools"
+msgstr ""
+
+msgid "Compress, Merge, Split, Organize PDF Files and More"
+msgstr ""
+
+msgid "Reduce PDF file size"
+msgstr ""
+
+msgid "Combine multiple PDFs"
+msgstr ""
+
+msgid "Extract pages"
+msgstr ""
+
+msgid "Organize PDF"
+msgstr ""
+
+msgid "Reorder pages"
+msgstr ""
+
+msgid "PDF to Image"
+msgstr ""
+
+msgid "Convert PDF to images"
+msgstr ""
+
+msgid "Image to PDF"
+msgstr ""
+
+msgid "Convert images to PDF"
+msgstr ""
+
+msgid "OCR"
+msgstr ""
+
+msgid "Make scanned PDF searchable"
+msgstr ""
+
+msgid "Cambodia holidays"
+msgstr ""
+
+# --- Thank you / result pages ---
+msgid "Thank You!"
+msgstr ""
+
+msgid "Your file has been processed successfully."
+msgstr ""
+
+msgid "Support Us with QR Code"
+msgstr ""
+
+msgid "Any donation is appreciated!"
+msgstr ""
+
+msgid "Download File"
+msgstr ""
+
+msgid "Back to Home"
+msgstr ""
+
+msgid "PDF Processing"
+msgstr ""
+
+msgid "Pending"
+msgstr ""
+
+msgid "Processing"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Error:"
+msgstr ""
+
+msgid "Try again"
+msgstr ""
+
+msgid "Please wait while your PDF is being processed..."
+msgstr ""
+
+msgid "Loading PDF pages..."
+msgstr ""

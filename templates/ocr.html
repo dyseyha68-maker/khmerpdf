@@ -1,161 +1,56 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}OCR PDF - Make Scanned PDFs Searchable{% endblock %}
 
 {% block extra_css %}
 <style>
-    .left-panel::-webkit-scrollbar-thumb {
-        background: var(--primary);
-    }
-
-    .drop-zone:hover { border-color: var(--primary); background: var(--surface-hover); }
-
-    .file-list {
-        flex: 1;
-        overflow-y: auto;
-        margin-bottom: 16px;
-    }
-
-    .file-item {
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        background: var(--surface-hover);
-        border-radius: 6px;
-        margin-bottom: 8px;
-    }
+    .drop-zone.drag-over { border-color: var(--primary); background: var(--surface-hover); }
+    .file-list { flex: 1; overflow-y: auto; margin-bottom: 16px; }
+    .file-item { display: flex; align-items: center; padding: 10px; background: var(--surface-hover); border-radius: 6px; margin-bottom: 8px; }
     .file-item .file-icon { font-size: 24px; margin-right: 10px; }
-    .file-item .file-name {
-        flex: 1;
-        font-size: 13px;
-        color: var(--text);
-        word-break: break-all;
-    }
-    .file-item .file-size {
-        font-size: 12px;
-        color: var(--text-secondary);
-        margin-left: 8px;
-    }
+    .file-item .file-name { flex: 1; font-size: 13px; color: var(--text); word-break: break-all; }
+    .file-item .file-size { font-size: 12px; color: var(--text-secondary); margin-left: 8px; }
 
-    .ocr-options {
-        margin-bottom: 16px;
-    }
-    .ocr-options h3 {
-        font-size: 14px;
-        color: var(--text);
-        margin-bottom: 12px;
-    }
-
+    .ocr-options { margin-bottom: 16px; }
+    .ocr-options h3 { font-size: 14px; color: var(--text); margin-bottom: 12px; }
     .radio-option {
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
+        display: flex; align-items: center; padding: 10px; border: 2px solid var(--border);
+        border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
     }
     .radio-option:hover { border-color: var(--primary); }
-    .radio-option.selected {
-        border-color: var(--primary);
-        background: var(--surface-hover);
-    }
-    .radio-option input { display: none; }
+    .radio-option.selected { border-color: var(--primary); background: var(--surface-hover); }
     .radio-option .radio-circle {
-        width: 18px;
-        height: 18px;
-        border: 2px solid var(--border);
-        border-radius: 50%;
-        margin-right: 10px;
-        position: relative;
+        width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 50%;
+        margin-right: 10px; position: relative; flex-shrink: 0;
     }
-    .radio-option.selected .radio-circle {
-        border-color: var(--primary);
-    }
+    .radio-option.selected .radio-circle { border-color: var(--primary); }
     .radio-option.selected .radio-circle::after {
-        content: '';
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 8px;
-        height: 8px;
-        background: var(--primary);
-        border-radius: 50%;
+        content: ''; position: absolute; top: 3px; left: 3px; width: 8px; height: 8px; background: var(--primary); border-radius: 50%;
     }
 
     .ocr-btn {
-        width: 100%;
-        padding: 14px 24px;
-        background: var(--primary);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: 'Kantumruy Pro', sans-serif;
-        transition: all 0.3s;
+        width: 100%; padding: 14px 24px; background: var(--primary); color: white; border: none;
+        border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;
+        font-family: 'Kantumruy Pro', sans-serif; transition: all 0.3s;
     }
     .ocr-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
     .ocr-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
 
-    .right-panel h2 {
-        font-size: 18px;
-        color: var(--text);
-        margin-bottom: 16px;
-        text-align: center;
-    }
-
-    .preview-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 16px;
-        margin-top: 20px;
-    }
-
-    .file-thumb {
-        background: var(--surface-hover);
-        border-radius: 8px;
-        padding: 12px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
+    .right-panel h2 { font-size: 18px; color: var(--text); margin-bottom: 16px; text-align: center; }
+    .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 20px; }
+    .file-thumb { background: var(--surface-hover); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
     .file-thumb:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-    .file-thumb img {
-        max-width: 100%;
-        max-height: 200px;
-        border-radius: 4px;
-        margin-bottom: 8px;
-    }
-    .file-thumb .file-name {
-        font-size: 12px;
-        color: var(--text);
-        word-break: break-all;
-        margin-bottom: 4px;
-    }
-    .file-thumb .page-count {
-        font-size: 11px;
-        color: var(--text-secondary);
-    }
+    .file-thumb img { max-width: 100%; max-height: 200px; border-radius: 4px; margin-bottom: 8px; }
+    .file-thumb .file-name { font-size: 12px; color: var(--text); word-break: break-all; margin-bottom: 4px; }
+    .file-thumb .page-count { font-size: 11px; color: var(--text-secondary); }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
 
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--text-secondary);
-    }
+    .progress-text { margin-top: 12px; font-size: 16px; font-weight: 600; color: #333; text-align: center; }
+    .progress-percent { font-size: 28px; color: #667eea; }
 
-    @media (max-width: 900px) {
-        .preview-grid { grid-template-columns: repeat(2, 1fr); }
-        .file-thumb img { max-height: 120px; }
-    }
-
-    @media (max-width: 600px) {
-        .preview-grid { grid-template-columns: 1fr; }
-        .main-content { padding: 8px; }
-        .left-panel, .right-panel { padding: 12px; }
-    }
+    @media (max-width: 900px) { .preview-grid { grid-template-columns: repeat(2, 1fr); } .file-thumb img { max-height: 120px; } }
+    @media (max-width: 600px) { .preview-grid { grid-template-columns: 1fr; } .main-content { padding: 8px; } .left-panel, .right-panel { padding: 12px; } }
 </style>
 {% endblock %}
 
@@ -163,233 +58,140 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 
-<div class="main-content">
+<div class="main-content" x-data="ocrApp()">
     <div class="left-panel">
-        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-zone"
+             :class="{ 'drag-over': dragging }"
+             @dragover.prevent="dragging = true"
+             @dragleave.prevent="dragging = false"
+             @drop.prevent="onDrop($event)"
+             @click="$refs.fileInput.click()">
             <div class="drop-zone-icon">📄</div>
-            <p>
-                <span class="text-en">Select PDF files or drop here</span>
-                <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
-            </p>
-            <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="addFiles()">
+            <p>{% trans "Select PDF files or drop here" %}</p>
+            <input type="file" x-ref="fileInput" accept=".pdf" style="display:none"
+                   @change="onFileChange($event)">
         </div>
-        
-        <div class="file-list" id="fileList"></div>
-        
+
+        <div class="file-list">
+            <div class="file-item" x-show="currentFile" x-cloak>
+                <span class="file-icon">📄</span>
+                <span class="file-name" x-text="currentFile ? currentFile.name : ''"></span>
+                <span class="file-size" x-text="currentFile ? toKhNum((currentFile.size/1024/1024).toFixed(2)) + ' MB' : ''"></span>
+            </div>
+        </div>
+
         <div class="ocr-options">
-            <h3>
-                <span class="text-en">OCR Language</span>
-                <span class="text-kh">ភាសា OCR</span>
-            </h3>
-            
-            <label class="radio-option selected" onclick="selectOcrLang(this, 'eng')">
-                <input type="radio" name="ocr_lang" value="eng" checked>
+            <h3>{% trans "OCR Language" %}</h3>
+            <label class="radio-option" :class="{ selected: ocrLang === 'eng' }" @click="ocrLang = 'eng'">
                 <span class="radio-circle"></span>
-                <div>
-                    <strong>English</strong>
-                </div>
+                <div><strong>English</strong></div>
             </label>
-            
-            <label class="radio-option" onclick="selectOcrLang(this, 'khm')">
-                <input type="radio" name="ocr_lang" value="khm">
+            <label class="radio-option" :class="{ selected: ocrLang === 'khm' }" @click="ocrLang = 'khm'">
                 <span class="radio-circle"></span>
-                <div>
-                    <strong>Khmer</strong>
-                </div>
+                <div><strong>Khmer</strong></div>
             </label>
-            
-            <label class="radio-option" onclick="selectOcrLang(this, 'eng+khm')">
-                <input type="radio" name="ocr_lang" value="eng+khm">
+            <label class="radio-option" :class="{ selected: ocrLang === 'eng+khm' }" @click="ocrLang = 'eng+khm'">
                 <span class="radio-circle"></span>
-                <div>
-                    <strong>English + Khmer</strong>
-                </div>
+                <div><strong>English + Khmer</strong></div>
             </label>
         </div>
-        
-        <button class="ocr-btn" id="ocrBtn" disabled onclick="processOcr()">
-            <span class="text-en">OCR PDF</span>
-            <span class="text-kh">OCR PDF</span>
+
+        <button class="ocr-btn" :disabled="!currentFile" @click="submit()">
+            {% trans "OCR PDF" %}
         </button>
     </div>
-    
+
     <div class="right-panel">
-        <h2>
-            <span class="text-en">Make Scanned PDFs Searchable</span>
-            <span class="text-kh">ធ្វើឱ្យ PDF ស្កេនអាចស្វែងរកបាន</span>
-        </h2>
-        <p style="color: #666; text-align: center; padding: 20px;">
-            <span class="text-en">Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages.</span>
-            <span class="text-kh">បង្ហាញ PDF ស្កេន ឬ ឯកសារ PDF ដោយផ្អែកលើរូបភាព ដើម្បីបំលែងទៅជា PDF ដែលអាចស្វែងរកបាន ជាមួយអត្ថបទជ្រើសរើស គាំទ្រភាសាអង់គ្លេស និង ខ្មែរ</span>
+        <h2>{% trans "Make Scanned PDFs Searchable" %}</h2>
+        <p style="color:var(--text-secondary);text-align:center;padding:20px;">
+            {% trans "Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages." %}
         </p>
         <div class="right-panel-inner">
             <div class="preview-grid" id="previewGrid">
-                <div class="empty-state">
-                    <span class="text-en">👆 Upload a PDF to preview</span>
-                    <span class="text-kh">👆 បង្ហាញ PDF ដើម្បីមើល</span>
-                </div>
+                <div class="empty-state">{% trans "👆 Upload a PDF to preview" %}</div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-        <h2>
-            <span class="text-en">Processing OCR...</span>
-            <span class="text-kh">កំពុងដំណើរការ OCR...</span>
-        </h2>
-        <div class="progress-container">
-            <div class="progress-bar-bg">
-                <div class="progress-bar" id="modalProgressBar"></div>
-            </div>
-            <div class="progress-text">
-                <span class="progress-percent" id="modalPercent">0</span>%
+    <!-- Modal -->
+    <div class="modal-overlay" x-show="modalVisible" x-cloak>
+        <div class="modal">
+            <h2>{% trans "Processing OCR..." %}</h2>
+            <div class="progress-container">
+                <div class="progress-bar-bg"></div>
+                <p style="font-size:13px;color:#888;margin-top:14px;text-align:center">
+                    <span x-text="isKhmer ? 'ពេលវេលា: ' : 'Elapsed: '"></span><span
+                        x-text="Math.floor(elapsed/60).toString().padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0')"></span>
+                </p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let currentFile = null;
-    let ocrLang = 'eng';
-    
-    function addFiles() {
-        const input = document.getElementById('fileInput');
-        if (input.files.length > 0) {
-            currentFile = input.files[0];
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '<div class="file-item"><span class="file-icon">📄</span><span class="file-name">' + currentFile.name + '</span><span class="file-size">' + (currentFile.size / 1024 / 1024).toFixed(2) + ' MB</span></div>';
-            document.getElementById('ocrBtn').disabled = false;
-            renderPreview();
-        }
-    }
-    
-    async function renderPreview() {
-        const grid = document.getElementById('previewGrid');
-        grid.innerHTML = '';
-        
-        try {
-            const arrayBuffer = await currentFile.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            const totalPages = pdf.numPages;
-            
-            for (let i = 1; i <= totalPages; i++) {
-                const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 0.5 });
-                
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                
-                await page.render({ canvasContext: context, viewport: viewport }).promise;
-                
-                const fileThumb = document.createElement('div');
-                fileThumb.className = 'file-thumb';
-                
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL();
-                
-                const name = document.createElement('div');
-                name.className = 'file-name';
-                name.textContent = 'Page ' + i;
-                
-                const count = document.createElement('div');
-                count.className = 'page-count';
-                count.textContent = totalPages + ' ' + (totalPages > 1 ? 
-                    (document.body.classList.contains('lang-kh') ? 'ទំព័រ' : 'pages') : 
-                    (document.body.classList.contains('lang-kh') ? 'ទំព័រ' : 'page'));
-                
-                fileThumb.appendChild(img);
-                fileThumb.appendChild(name);
-                fileThumb.appendChild(count);
-                grid.appendChild(fileThumb);
+function ocrApp() {
+    return baseToolApp({
+        currentFile: null,
+        ocrLang: 'eng',
+
+        handleFileList(list) {
+            if (list.length) {
+                this.currentFile = list[0];
+                this.renderPreview();
             }
-        } catch (e) {
-            grid.innerHTML = '<div class="empty-state"><span class="text-en">Error loading preview</span><span class="text-kh">កំហុសក្នុងការបង្ហាញ</span></div>';
-        }
-    }
-    
-    function selectOcrLang(el, lang) {
-        document.querySelectorAll('.ocr-options .radio-option').forEach(opt => opt.classList.remove('selected'));
-        el.classList.add('selected');
-        ocrLang = lang;
-    }
-    
-    function processOcr() {
-        if (!currentFile) return;
-        
-        const fd = new FormData();
-        fd.append('file', currentFile);
-        fd.append('ocr_lang', ocrLang);
-        
-        const btn = document.getElementById('ocrBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="text-en">Processing...</span><span class="text-kh">កំពុងដំណើរការ...</span>';
-        
-        const modalInterval = showModal();
-        
-        fetch('/api/ocr/', { method: 'POST', body: fd })
-            .then(r => r.json())
-            .then(d => {
-                if (d.job_id) {
-                    checkJobStatus(d.job_id, modalInterval);
-                } else {
-                    alert(d.error || 'Error: ' + JSON.stringify(d));
-                    btn.disabled = false;
-                    hideModal();
+        },
+        onDrop(e) {
+            this.dragging = false;
+            this.handleFileList(e.dataTransfer.files);
+        },
+        onFileChange(e) {
+            this.handleFileList(e.target.files);
+            e.target.value = '';
+        },
+
+        async submit() {
+            if (!this.currentFile) return;
+            this.showModal();
+            const fd = new FormData();
+            fd.append('file', this.currentFile);
+            fd.append('ocr_lang', this.ocrLang);
+            try {
+                const d = await fetch('/api/ocr/', { method: 'POST', body: fd }).then(r => r.json());
+                if (d.job_id) this.pollJob(d.job_id, 'ocr_' + (this.currentFile?.name || 'output.pdf'));
+                else { this.hideModal(); alert(d.error || 'Error'); }
+            } catch(err) {
+                this.hideModal(); alert('Error: ' + err.message);
+            }
+        },
+
+        async renderPreview() {
+            const grid = document.getElementById('previewGrid');
+            grid.innerHTML = '';
+            if (!this.currentFile) return;
+            try {
+                const ab = await this.currentFile.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+                const total = pdf.numPages;
+                for (let i = 1; i <= total; i++) {
+                    const page = await pdf.getPage(i);
+                    const vp = page.getViewport({ scale: 0.5 });
+                    const canvas = document.createElement('canvas');
+                    canvas.height = vp.height; canvas.width = vp.width;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                    const thumb = document.createElement('div'); thumb.className = 'file-thumb';
+                    const img = document.createElement('img'); img.src = canvas.toDataURL();
+                    const name = document.createElement('div'); name.className = 'file-name';
+                    name.textContent = (isKhmer ? 'ទំព័រ' : 'Page') + ' ' + toKhNum(i);
+                    const count = document.createElement('div'); count.className = 'page-count';
+                    count.textContent = toKhNum(total) + ' ' + (isKhmer ? 'ទំព័រ' : (total > 1 ? 'pages' : 'page'));
+                    thumb.appendChild(img); thumb.appendChild(name); thumb.appendChild(count);
+                    grid.appendChild(thumb);
                 }
-            })
-            .catch(e => {
-                console.error('OCR Error:', e);
-                alert('Error: ' + e.message);
-                btn.disabled = false;
-                hideModal();
-            });
-    }
-    
-    function checkJobStatus(jobId, modalInterval) {
-        const interval = setInterval(() => {
-            fetch('/api/job/' + jobId + '/')
-                .then(r => r.json())
-                .then(job => {
-                    if (job.status === 'done') {
-                        clearInterval(interval);
-                        clearInterval(modalInterval);
-                        hideModal();
-                        window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
-                    } else if (job.status === 'failed') {
-                        clearInterval(interval);
-                        clearInterval(modalInterval);
-                        hideModal();
-                        alert('Error: ' + (job.error || 'Processing failed'));
-                        document.getElementById('ocrBtn').disabled = false;
-                    }
-                });
-        }, 2000);
-    }
-    
-    function showModal() {
-        document.getElementById('modalOverlay').classList.add('active');
-        let progress = 0;
-        const progressBar = document.getElementById('modalProgressBar');
-        const percentEl = document.getElementById('modalPercent');
-        
-        const modalInterval = setInterval(() => {
-            progress += Math.random() * 5 + 1;
-            if (progress > 95) progress = 95;
-            progressBar.style.width = progress + '%';
-            percentEl.textContent = Math.round(progress);
-        }, 500);
-        
-        return modalInterval;
-    }
-    
-    function hideModal() {
-        document.getElementById('modalOverlay').classList.remove('active');
-        document.getElementById('modalProgressBar').style.width = '0%';
-        document.getElementById('modalPercent').textContent = '0';
-    }
+            } catch(e) {
+                grid.innerHTML = '<div class="empty-state">{% trans "Error loading preview" %}</div>';
+            }
+        },
+    });
+}
 </script>
 {% endblock %}

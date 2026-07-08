@@ -1,414 +1,247 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}Compress PDF - Khmer PDF Tools{% endblock %}
 
 {% block extra_css %}
 <style>
-    .left-panel {
-        display: flex;
-        flex-direction: column;
+    .left-panel { display: flex; flex-direction: column; }
+
+    /* ── ilovepdf-style quality cards ── */
+    .quality-section { margin-bottom: 20px; }
+    .quality-section > .quality-label {
+        display: block; font-weight: 600; margin-bottom: 12px; color: var(--text); font-size: 14px;
     }
-    
-    .quality-section {
-        margin-bottom: 20px;
+
+    .quality-cards { display: flex; gap: 10px; }
+
+    .quality-card {
+        flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;
+        padding: 16px 10px; border: 2px solid var(--border); border-radius: 12px;
+        cursor: pointer; transition: all 0.2s; background: var(--surface); user-select: none;
+        position: relative;
     }
-    
-    .quality-section label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 10px;
-        color: var(--text);
-    }
-    
-    .quality-options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .quality-option {
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .quality-option:hover {
+    .quality-card:hover { border-color: var(--primary); }
+    .quality-card.selected {
         border-color: var(--primary);
+        background: rgba(37,99,235,0.07);
     }
-    
-    .quality-option.selected {
-        border-color: var(--primary);
-        background: var(--surface-hover);
+    .quality-card.selected::after {
+        content: '✓'; position: absolute; top: 7px; right: 9px;
+        font-size: 12px; font-weight: 700; color: var(--primary);
     }
-    
-    .quality-option input {
-        display: none;
+
+    /* file-stack icon for each level */
+    .qc-icon {
+        display: flex; align-items: flex-end; justify-content: center;
+        gap: 3px; height: 46px; margin-bottom: 10px;
     }
-    
-    .quality-radio {
-        width: 20px;
-        height: 20px;
-        border: 2px solid var(--primary);
-        border-radius: 50%;
-        margin-right: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .qc-bar {
+        width: 12px; background: var(--border); border-radius: 3px 3px 0 0; transition: background 0.2s;
     }
-    
-    .quality-option.selected .quality-radio::after {
-        content: '';
-        width: 10px;
-        height: 10px;
-        background: var(--primary);
-        border-radius: 50%;
-    }
-    
-    .quality-info {
-        flex: 1;
-    }
-    
-    .quality-name {
-        font-weight: 600;
-        color: var(--text);
-        font-size: 14px;
-    }
-    
-    .quality-desc {
-        font-size: 12px;
-        color: var(--text-secondary);
-    }
-    
+    .quality-card.selected .qc-bar { background: var(--primary); }
+    .quality-card:hover .qc-bar { background: var(--primary); opacity: 0.7; }
+
+    .qc-name { font-weight: 700; color: var(--text); font-size: 13px; margin-bottom: 4px; line-height: 1.2; }
+    .qc-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+
     .estimated-size {
-        font-size: 13px;
-        color: var(--primary);
-        font-weight: 500;
-        margin-top: 15px;
-        padding: 10px;
-        background: var(--surface-hover);
-        border-radius: 6px;
-        text-align: center;
+        font-size: 13px; color: var(--primary); font-weight: 500; margin-top: 14px;
+        padding: 9px 12px; background: rgba(37,99,235,0.06); border-radius: 8px; text-align: center;
+        border: 1px solid rgba(37,99,235,0.15);
     }
-    
-    .selected-files {
-        max-height: 200px;
-        overflow-y: auto;
-        margin-bottom: 16px;
-    }
-    
+
+    .selected-files { max-height: 200px; overflow-y: auto; margin-bottom: 16px; }
     .selected-file {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 12px;
-        background: var(--surface-hover);
-        border-radius: 6px;
-        margin-bottom: 8px;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 12px; background: var(--surface-hover); border-radius: 6px; margin-bottom: 8px;
     }
-    
-    .selected-file-name {
-        font-size: 13px;
-        color: var(--text);
-        word-break: break-all;
-    }
-    
-    .selected-file-remove {
-        background: none;
-        border: none;
-        color: var(--primary);
-        cursor: pointer;
-        font-size: 18px;
-    }
-    
-    .file-info {
-        padding: 12px;
-        background: var(--surface-hover);
-        border-radius: 8px;
-        margin-bottom: 16px;
-        font-size: 13px;
-        color: var(--text);
-    }
-    
-    .right-panel-inner {
-        overflow: auto;
-        max-height: 100%;
-    }
+    .selected-file-name { font-size: 13px; color: var(--text); word-break: break-all; }
+    .selected-file-remove { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 18px; }
+
+    .drop-zone.drag-over { border-color: var(--primary); background: var(--surface-hover); }
+
+    .progress-text { margin-top: 12px; font-size: 16px; font-weight: 600; color: #333; text-align: center; }
+    .progress-percent { font-size: 28px; color: #667eea; }
 </style>
 {% endblock %}
 
 {% block content %}
-    <div class="main-content">
-        <div class="left-panel">
-            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                <div class="drop-zone-icon">📄</div>
-                <p>
-                    <span class="text-en">Select PDF files or drop here</span>
-                    <span class="text-kh">ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ</span>
-                </p>
-                <input type="file" id="fileInput" accept=".pdf" multiple style="display:none" onchange="compressSelectFile()">
-            </div>
-            
-            <div class="selected-files" id="compressFilesList"></div>
-            
-            <div class="quality-section">
-                <label>
-                    <span class="text-en">Compression Quality</span>
-                    <span class="text-kh">គុណភាពបង្រួម</span>
-                </label>
-                <div class="quality-options">
-                    <label class="quality-option selected" onclick="selectQuality(this, 'low')">
-                        <input type="radio" name="quality" value="low" checked>
-                        <div class="quality-radio"></div>
-                        <div class="quality-info">
-                            <div class="quality-name">
-                                <span class="text-en">Low (Best)</span>
-                                <span class="text-kh">កម្រិតទាប (បង្រួមខ្លាំង)</span>
-                            </div>
-                            <div class="quality-desc">
-                                <span class="text-en">Smallest file size, lower quality</span>
-                                <span class="text-kh">កម្រិតទំហំតូចបំផុត គុណភាពទាប</span>
-                            </div>
-                        </div>
-                    </label>
-                    <label class="quality-option" onclick="selectQuality(this, 'recommended')">
-                        <input type="radio" name="quality" value="recommended">
-                        <div class="quality-radio"></div>
-                        <div class="quality-info">
-                            <div class="quality-name">
-                                <span class="text-en">Recommended (Balanced)</span>
-                                <span class="text-kh">ណែនាំ (ល្មម)</span>
-                            </div>
-                            <div class="quality-desc">
-                                <span class="text-en">Good balance between size and quality</span>
-                                <span class="text-kh">គុណភាពល្អរវាងកម្រិតទំហំ និងគុណភាព</span>
-                            </div>
-                        </div>
-                    </label>
-                    <label class="quality-option" onclick="selectQuality(this, 'high')">
-                        <input type="radio" name="quality" value="high">
-                        <div class="quality-radio"></div>
-                        <div class="quality-info">
-                            <div class="quality-name">
-                                <span class="text-en">High (Best Quality)</span>
-                                <span class="text-kh">កម្រិតខ្ពស់ (គុណភាពល្អបំផុត)</span>
-                            </div>
-                            <div class="quality-desc">
-                                <span class="text-en">Best quality, larger file size</span>
-                                <span class="text-kh">គុណភាពល្អបំផុត ទំហំធំជាង</span>
-                            </div>
-                        </div>
-                    </label>
-                </div>
-                <div class="estimated-size" id="estimatedSize">
-                    <span class="text-en">Estimated output: Calculating...</span>
-                    <span class="text-kh">ទំហំប៉ារម៉ាស់: កំពុងគណនា...</span>
-                </div>
-            </div>
-            
-            <button class="action-btn" id="compressBtn" onclick="compressPdf()" disabled>
-                <span class="text-en">Compress PDF</span>
-                <span class="text-kh">បង្រួម PDF</span>
-            </button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<div class="main-content" x-data="compressApp()">
+    <div class="left-panel">
+        <!-- Drop zone -->
+        <div class="drop-zone"
+             :class="{ 'drag-over': dragging }"
+             @dragover.prevent="dragging = true"
+             @dragleave.prevent="dragging = false"
+             @drop.prevent="onDrop($event)"
+             @click="$refs.fileInput.click()">
+            <div class="drop-zone-icon">📄</div>
+            <p>{% trans "Select PDF files or drop here" %}</p>
+            <input type="file" x-ref="fileInput" accept=".pdf" multiple style="display:none"
+                   @change="onFileChange($event)">
         </div>
-        
-        <div class="right-panel">
-            <div class="instructions" id="instructions">
-                <span class="text-en">👆 Add PDF files and click Compress.</span>
-                <span class="text-kh">👆 បន្ថែមឯកសារ ហើយចុច Compress</span>
-            </div>
-            
-            <div class="right-panel-inner">
-                <div class="page-grid" id="pageGrid"></div>
-            </div>
+
+        <!-- File list -->
+        <div class="selected-files">
+            <template x-for="(file, i) in files" :key="file._aid">
+                <div class="selected-file">
+                    <span class="selected-file-name"
+                          x-text="`${file.name} (${toKhNum((file.size/1024/1024).toFixed(2))} MB)`"></span>
+                    <button class="selected-file-remove" @click.stop="removeFile(i)">×</button>
+                </div>
+            </template>
         </div>
+
+        <!-- Quality cards (ilovepdf style) -->
+        <div class="quality-section">
+            <span class="quality-label">{% trans "Compression Quality" %}</span>
+            <div class="quality-cards">
+
+                <!-- Extreme compression -->
+                <div class="quality-card" :class="{ selected: quality === 'low' }" @click="quality = 'low'">
+                    <div class="qc-icon">
+                        <div class="qc-bar" style="height:14px"></div>
+                        <div class="qc-bar" style="height:20px"></div>
+                        <div class="qc-bar" style="height:11px"></div>
+                    </div>
+                    <div class="qc-name">{% trans "Extreme" %}</div>
+                    <div class="qc-desc">{% trans "Max compression, lower quality" %}</div>
+                </div>
+
+                <!-- Recommended compression -->
+                <div class="quality-card" :class="{ selected: quality === 'recommended' }" @click="quality = 'recommended'">
+                    <div class="qc-icon">
+                        <div class="qc-bar" style="height:20px"></div>
+                        <div class="qc-bar" style="height:32px"></div>
+                        <div class="qc-bar" style="height:18px"></div>
+                    </div>
+                    <div class="qc-name">{% trans "Recommended" %}</div>
+                    <div class="qc-desc">{% trans "Good balance of size & quality" %}</div>
+                </div>
+
+                <!-- Less compression -->
+                <div class="quality-card" :class="{ selected: quality === 'high' }" @click="quality = 'high'">
+                    <div class="qc-icon">
+                        <div class="qc-bar" style="height:32px"></div>
+                        <div class="qc-bar" style="height:42px"></div>
+                        <div class="qc-bar" style="height:28px"></div>
+                    </div>
+                    <div class="qc-name">{% trans "Less" %}</div>
+                    <div class="qc-desc">{% trans "Best quality, larger file" %}</div>
+                </div>
+
+            </div>
+            <div class="estimated-size" x-text="estimatedSize"></div>
+        </div>
+
+        <button class="action-btn" :disabled="files.length === 0" @click="submit()">
+            {% trans "Compress PDF" %}
+        </button>
     </div>
-    
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h2>
-                <span class="text-en">Compressing PDF files...</span>
-                <span class="text-kh">កំពុងបង្រួម PDF...</span>
-            </h2>
-            
-            <div class="progress-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar" id="modalProgressBar"></div>
-                </div>
-                <div class="progress-text">
-                    <span class="progress-percent" id="modalPercent">0</span>%
-                </div>
-            </div>
+
+    <div class="right-panel">
+        <div class="instructions" id="instructions">
+            {% trans "👆 Add PDF files and click Compress." %}
+        </div>
+        <div class="right-panel-inner">
+            <div class="page-grid" id="pageGrid"></div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-    <script>
-        let currentFiles = [];
-        let pdfDoc = null;
-        let currentQuality = 'low';
-        
-        const qualityRates = {
-            'low': 0.2,
-            'recommended': 0.5,
-            'high': 0.8
-        };
-        
-        function selectQuality(element, quality) {
-            document.querySelectorAll('.quality-option').forEach(opt => opt.classList.remove('selected'));
-            element.classList.add('selected');
-            currentQuality = quality;
-            document.querySelector('input[name="quality"][value="' + quality + '"]').checked = true;
-            updateEstimatedSize();
-        }
-        
-        function updateEstimatedSize() {
-            const totalSize = currentFiles.reduce((sum, f) => sum + f.size, 0);
-            const rate = qualityRates[currentQuality];
-            const estimated = totalSize * rate;
-            
-            const mb = (estimated / 1024 / 1024).toFixed(2);
-            const el = document.getElementById('estimatedSize');
-            const isKh = document.body.classList.contains('lang-kh');
-            
-            if (isKh) {
-                el.innerHTML = `ទំហំប៉ារម៉ាស់: ប្រហែល ${mb} MB (${(rate * 100).toFixed(0)}% នៃទំហំដើម)`;
-            } else {
-                el.innerHTML = `Estimated output: ~${mb} MB (${(rate * 100).toFixed(0)}% of original)`;
+    <!-- Modal -->
+    <div class="modal-overlay" x-show="modalVisible" x-cloak>
+        <div class="modal">
+            <h2 x-text="isKhmer ? 'កំពុងបង្រួម PDF...' : 'Compressing PDF...'"></h2>
+            <div class="progress-container">
+                <div class="progress-bar-bg"></div>
+            </div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:14px;text-align:center">
+                <span x-text="isKhmer ? 'ពេលវេលា: ' : 'Elapsed: '"></span><span
+                    x-text="Math.floor(elapsed/60).toString().padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0')"></span>
+                &nbsp;·&nbsp;{% trans "Large files may take a moment..." %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function compressApp() {
+    return baseToolApp({
+        quality: 'low',
+        _pdfDoc: null,
+
+        qualityRates: { low: 0.2, recommended: 0.5, high: 0.8 },
+
+        get estimatedSize() {
+            const total = this.files.reduce((s, f) => s + f.size, 0);
+            if (!total) return '{% trans "Estimated output: Calculating..." %}';
+            const rate = this.qualityRates[this.quality];
+            const mb = ((total * rate) / 1024 / 1024).toFixed(2);
+            const pct = (rate * 100).toFixed(0);
+            return isKhmer
+                ? `ទំហំប៉ារម៉ាស់: ប្រហែល ${toKhNum(mb)} MB (${toKhNum(pct)}% នៃទំហំដើម)`
+                : `Estimated output: ~${toKhNum(mb)} MB (${toKhNum(pct)}% of original)`;
+        },
+
+        handleFileList(list) {
+            for (const f of list) {
+                if (f.name.toLowerCase().endsWith('.pdf')) this.pushFile(f);
             }
-        }
-        
-        function compressSelectFile() {
-            const input = document.getElementById('fileInput');
-            for (let i = 0; i < input.files.length; i++) {
-                currentFiles.push(input.files[i]);
+            this.renderPreview();
+        },
+
+        removeFile(i) {
+            this.files.splice(i, 1);
+            this.renderPreview();
+        },
+
+        async submit() {
+            if (!this.files.length) return;
+            this.showModal();
+            const fd = new FormData();
+            this.files.forEach(f => fd.append('files', f));
+            fd.append('compression_level', this.quality);
+            try {
+                const d = await fetch('/api/compress/', { method: 'POST', body: fd }).then(r => r.json());
+                if (d.job_id) this.pollJob(d.job_id, this.files[0]?.name || 'output.pdf');
+                else { this.hideModal(); alert(d.error || 'Error'); }
+            } catch (err) {
+                this.hideModal();
+                alert('Error: ' + err.message);
             }
-            renderFileList();
-            loadPdfPreview();
-            updateEstimatedSize();
-        }
-        
-        function renderFileList() {
-            const list = document.getElementById('compressFilesList');
-            list.innerHTML = '';
-            currentFiles.forEach((file, index) => {
-                const div = document.createElement('div');
-                div.className = 'selected-file';
-                div.innerHTML = `
-                    <span class="selected-file-name">${file.name} (${(file.size/1024/1024).toFixed(2)} MB)</span>
-                    <button class="selected-file-remove" onclick="removeFile(${index})">×</button>
-                `;
-                list.appendChild(div);
-            });
-            document.getElementById('compressBtn').disabled = currentFiles.length === 0;
-        }
-        
-        function removeFile(index) {
-            currentFiles.splice(index, 1);
-            renderFileList();
-            loadPdfPreview();
-            updateEstimatedSize();
-        }
-        
-        async function loadPdfPreview() {
-            if (currentFiles.length === 0) return;
-            const file = currentFiles[0];
-            const arrayBuffer = await file.arrayBuffer();
-            pdfDoc = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-            
-            const pageGrid = document.getElementById('pageGrid');
-            pageGrid.innerHTML = '';
-            
-            const totalPages = pdfDoc.numPages;
-            document.getElementById('instructions').innerHTML = `<span class="text-en">📄 ${file.name} - ${totalPages} pages</span><span class="text-kh">📄 ${file.name} - ${totalPages} ទំព័រ</span>`;
-            
-            for (let i = 1; i <= Math.min(totalPages, 50); i++) {
-                const page = await pdfDoc.getPage(i);
-                const viewport = page.getViewport({scale: 0.5});
+        },
+
+        async renderPreview() {
+            const grid = document.getElementById('pageGrid');
+            const instr = document.getElementById('instructions');
+            if (!this.files.length) {
+                grid.innerHTML = '';
+                instr.textContent = '{% trans "👆 Add PDF files and click Compress." %}';
+                return;
+            }
+            const file = this.files[0];
+            const ab = await file.arrayBuffer();
+            this._pdfDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+            grid.innerHTML = '';
+            const total = this._pdfDoc.numPages;
+            instr.textContent = `{% trans "📄" %} ${file.name} - ${toKhNum(total)} ${isKhmer ? 'ទំព័រ' : 'pages'}`;
+            for (let i = 1; i <= Math.min(total, 50); i++) {
+                const page = await this._pdfDoc.getPage(i);
+                const vp = page.getViewport({ scale: 0.5 });
                 const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                await page.render({canvasContext: context, viewport: viewport}).promise;
-                
+                canvas.height = vp.height; canvas.width = vp.width;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
                 const div = document.createElement('div');
                 div.className = 'page-item';
-                div.innerHTML = `<img src="${canvas.toDataURL()}"><span class="page-num">Page ${i}</span>`;
-                pageGrid.appendChild(div);
+                div.innerHTML = `<img src="${canvas.toDataURL()}"><span class="page-num">${isKhmer ? 'ទំព័រ' : 'Page'} ${toKhNum(i)}</span>`;
+                grid.appendChild(div);
             }
-        }
-        
-        function showModal() {
-            document.getElementById('modalOverlay').classList.add('active');
-            let progress = 0;
-            const progressBar = document.getElementById('modalProgressBar');
-            const percentEl = document.getElementById('modalPercent');
-            const interval = setInterval(() => {
-                progress += Math.random() * 15 + 5;
-                if (progress > 95) progress = 95;
-                progressBar.style.width = progress + '%';
-                percentEl.textContent = Math.round(progress);
-            }, 300);
-            return interval;
-        }
-        
-        function hideModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-            document.getElementById('modalProgressBar').style.width = '0%';
-            document.getElementById('modalPercent').textContent = '0';
-        }
-        
-        function compressPdf() {
-            if (currentFiles.length === 0) return;
-            const btn = document.getElementById('compressBtn');
-            btn.disabled = true;
-            const modalInterval = showModal();
-            
-            const fd = new FormData();
-            currentFiles.forEach(f => fd.append('files', f));
-            fd.append('compression_level', currentQuality);
-            
-            fetch('/api/compress/', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.job_id) {
-                        checkJobStatus(d.job_id, modalInterval, btn);
-                    } else {
-                        alert(d.error || 'Error');
-                        btn.disabled = false;
-                        hideModal();
-                    }
-                })
-                .catch(e => {
-                    alert('Error: ' + e.message);
-                    btn.disabled = false;
-                    hideModal();
-                });
-        }
-        
-        function checkJobStatus(jobId, modalInterval, btn) {
-            const interval = setInterval(() => {
-                fetch('/api/job/' + jobId + '/')
-                    .then(r => r.json())
-                    .then(job => {
-                        if (job.status === 'done') {
-                            clearInterval(interval);
-                            clearInterval(modalInterval);
-                            hideModal();
-                            window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
-                        } else if (job.status === 'failed') {
-                            clearInterval(interval);
-                            clearInterval(modalInterval);
-                            hideModal();
-                            alert('Error: ' + (job.error || 'Processing failed'));
-                            btn.disabled = false;
-                        }
-                    });
-            }, 2000);
-        }
-    </script>
+        },
+    });
+}
+</script>
 {% endblock %}

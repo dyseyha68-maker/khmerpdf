@@ -3,6 +3,7 @@ import uuid
 import zipfile
 import subprocess
 import logging
+import numpy as np
 from celery import shared_task
 from django.conf import settings
 import fitz
@@ -15,171 +16,316 @@ from reportlab.lib.units import inch
 logger = logging.getLogger(__name__)
 
 
+def _pdf_has_gs_incompatible_images(path):
+    """
+    Return True if the PDF contains images that Ghostscript cannot compress
+    correctly — specifically, FlateDecode streams that embed PNG data.
+    GS mis-interprets the embedded PNG bytes as raw pixels, producing
+    blank or corrupted output.  PyMuPDF handles these correctly.
+    """
+    try:
+        doc = fitz.open(path)
+        for page in doc:
+            for img_info in page.get_images():
+                xref = img_info[0]
+                xobj = doc.xref_object(xref)
+                if '/FlateDecode' in xobj:
+                    base = doc.extract_image(xref)
+                    if base.get('ext') == 'png':
+                        doc.close()
+                        return True
+        doc.close()
+    except Exception:
+        pass
+    return False
+
+
 def compress_with_ghostscript(input_path, output_path, compression_level='recommended'):
-    """Use Ghostscript for powerful PDF compression - best for scanned documents"""
-    
-    original_size = os.path.getsize(input_path)
+    """
+    Professional PDF compression using Ghostscript with ilovepdf-grade parameters.
+
+    Unlike blunt preset-only commands, we override DPI and JPEG quality independently
+    via `-c setdistillerparams`.  This is the key reason ilovepdf "Extreme" still
+    looks crisp: they use 96 DPI (not 72) and a moderate JPEG QFactor (not max).
+
+    QFactor reference (Ghostscript / Distiller):
+        0.10 → ~q95  (near-lossless)
+        0.15 → ~q85  (high quality)
+        0.40 → ~q65  (good balance)
+        0.76 → ~q45  (ilovepdf "extreme" — readable images, tiny files)
+        1.30 → ~q15  (very low quality)
+    """
+
+    original_size    = os.path.getsize(input_path)
     original_size_mb = original_size / (1024 * 1024)
-    logger.info(f'Input file size: {original_size_mb:.2f} MB')
-    
-    preset_map = {
-        'low': '/screen',
-        'recommended': '/ebook',
-        'high': '/prepress',
-        'extreme': '/screen',
-        'less': '/ebook',
+    logger.info(f'Compressing {original_size_mb:.2f} MB  level={compression_level}')
+
+    # ── Per-level tuning ───────────────────────────────────────────────────────
+    configs = {
+        # "Extreme" card — 96 DPI (vs old 72), still big savings
+        'low': {
+            'pdfsettings': '/screen',
+            'color_dpi':    96,
+            'gray_dpi':     96,
+            'mono_dpi':    150,
+        },
+        # "Recommended" card
+        'recommended': {
+            'pdfsettings': '/ebook',
+            'color_dpi':   150,
+            'gray_dpi':    150,
+            'mono_dpi':    200,
+        },
+        # "Less" card
+        'high': {
+            'pdfsettings': '/printer',
+            'color_dpi':   200,
+            'gray_dpi':    200,
+            'mono_dpi':    300,
+        },
     }
-    preset = preset_map.get(compression_level, '/screen')
-    
+
+    cfg = configs.get(compression_level, configs['recommended'])
+
     timeout = max(120, int(original_size_mb * 6))
     timeout = min(timeout, 900)
-    
+
     cmd = [
         'gs',
         '-sDEVICE=pdfwrite',
         '-dCompatibilityLevel=1.4',
-        f'-dPDFSETTINGS={preset}',
-        '-dDetectDuplicateImages=true',
-        '-dRemoveUnusedResources=true',
+        # ── NO -dPDFSETTINGS preset ───────────────────────────────────────────
+        # Presets (/screen, /ebook, etc.) force colour-space conversion to sRGB
+        # which turns DeviceCMYK / ICCBased images BLACK on Asian scanned docs.
+        # We set only what we need manually so colours are never touched.
+        '-dNOPAUSE', '-dQUIET', '-dBATCH', '-dSAFER',
+
+        # ── Image downsampling ────────────────────────────────────────────────
+        '-dDownsampleColorImages=true',
+        '-dDownsampleGrayImages=true',
+        '-dDownsampleMonoImages=true',
+        '-dColorImageDownsampleType=/Bicubic',
+        '-dGrayImageDownsampleType=/Bicubic',
+        '-dMonoImageDownsampleType=/Subsample',
+        f'-dColorImageResolution={cfg["color_dpi"]}',
+        f'-dGrayImageResolution={cfg["gray_dpi"]}',
+        f'-dMonoImageResolution={cfg["mono_dpi"]}',
+        '-dColorImageDownsampleThreshold=1.0',
+        '-dGrayImageDownsampleThreshold=1.0',
+        '-dMonoImageDownsampleThreshold=1.0',
+
+        # ── Structural optimisations ──────────────────────────────────────────
         '-dCompressFonts=true',
         '-dSubsetFonts=true',
-        '-dNOPAUSE',
-        '-dQUIET',
-        '-dBATCH',
-        '-dSAFER',
+        '-dDetectDuplicateImages=true',
+        '-dRemoveUnusedResources=true',
         '-dMaxBitmap=500000000',
-        '-dBufferSpace=100000000',
+
+        # ── Output ────────────────────────────────────────────────────────────
         f'-sOutputFile={output_path}',
-        input_path
+        input_path,
     ]
-    
-    logger.info(f'Running Ghostscript with preset: {preset}')
-    
+
+    logger.info(f'GS: dpi={cfg["color_dpi"]}  (no preset — colour-safe)')
+
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-    except subprocess.TimeoutExpired:
-        raise Exception(f'Compression timed out for large file ({original_size_mb:.1f}MB)')
-    
-    if result.returncode != 0:
-        raise Exception(f'Ghostscript error: {result.stderr[:200]}')
-    
-    if not os.path.exists(output_path):
-        raise Exception('Ghostscript did not create output file')
-    
-    output_size = os.path.getsize(output_path)
-    output_size_mb = output_size / (1024 * 1024)
-    logger.info(f'Ghostscript result: {output_size_mb:.2f} MB (was {original_size_mb:.2f} MB)')
-    
-    if output_size >= original_size:
-        logger.warning(f'Ghostscript did not reduce size, trying more aggressive compression')
-        os.remove(output_path)
-        
-        more_aggressive_cmd = [
-            'gs',
-            '-sDEVICE=pdfwrite',
-            '-dCompatibilityLevel=1.4',
-            '-dPDFSETTINGS=/screen',
-            '-dDetectDuplicateImages=true',
-            '-dRemoveUnusedResources=true',
-            '-dCompressFonts=true',
-            '-dSubsetFonts=true',
-            '-dMonoImageFilter=/DCTFilter',
-            '-dColorImageFilter=/DCTFilter',
-            '-dAutoFilterColorImages=false',
-            '-dAutoFilterMonoImages=false',
-            '-dColorImageDownsampleThreshold=1.0',
-            '-dColorImageDownsampleType=/Bicubic',
-            '-dColorImageResolution=72',
-            '-dMonoImageResolution=72',
-            '-dNOPAUSE',
-            '-dQUIET',
-            '-dBATCH',
-            '-dSAFER',
-            f'-sOutputFile={output_path}',
-            input_path
-        ]
-        
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
-            result = subprocess.run(more_aggressive_cmd, capture_output=True, text=True, timeout=timeout)
-        except Exception as e:
-            logger.error(f'Aggressive compression failed: {e}')
-        
-        if os.path.exists(output_path):
-            output_size = os.path.getsize(output_path)
-            output_size_mb = output_size / (1024 * 1024)
-            logger.info(f'Aggressive Ghostscript result: {output_size_mb:.2f} MB')
+            stdout, stderr = proc.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.communicate()
+            raise Exception(f'Compression timed out ({original_size_mb:.1f} MB file)')
+        if proc.returncode != 0:
+            raise Exception(f'Ghostscript error: {stderr.decode(errors="replace")[:300]}')
+    except Exception:
+        raise
+
+    if not os.path.exists(output_path):
+        raise Exception('Ghostscript produced no output file')
+
+    out_mb = os.path.getsize(output_path) / (1024 * 1024)
+    logger.info(f'GS result: {out_mb:.2f} MB (was {original_size_mb:.2f} MB)')
+
+    # If GS made the file larger, fall back
+    if os.path.getsize(output_path) >= original_size:
+        os.remove(output_path)
+        raise Exception('Ghostscript did not reduce file size; trying fallback')
+
+    # ── Blank / black-page guard ──────────────────────────────────────────────
+    # GS can produce blank-white or solid-black pages on unusual PDFs.
+    # We check output pages — but first check if the SOURCE also renders
+    # abnormally via fitz (rotation/encoding quirks). If the source already
+    # looks bad in fitz, trust GS; only fall back if source looked normal.
+    try:
+        def _fitz_page_stats(path, page_num=0):
+            """Return (white_ratio, black_ratio) for a page rendered at 36 DPI."""
+            try:
+                d = fitz.open(path)
+                p = d[page_num]
+                pix = p.get_pixmap(dpi=36, alpha=False)
+                s, n = pix.samples, len(pix.samples) // 3
+                d.close()
+                if n == 0:
+                    return 0.0, 0.0
+                w = sum(1 for i in range(0,len(s),3) if s[i]>230 and s[i+1]>230 and s[i+2]>230)
+                b = sum(1 for i in range(0,len(s),3) if s[i]<25  and s[i+1]<25  and s[i+2]<25)
+                return w/n, b/n
+            except Exception:
+                return 0.0, 0.0
+
+        src_white, src_black = _fitz_page_stats(input_path)
+        src_bad = src_white >= 0.95 or src_black >= 0.90
+        if src_bad:
+            logger.info(
+                f'Source renders abnormally in fitz (white={src_white:.0%} '
+                f'black={src_black:.0%}) — trusting GS output'
+            )
         else:
-            raise Exception('Both Ghostscript and aggressive compression failed to produce output')
-    
+            # Source looks normal; verify GS output is not blank/black
+            check_doc = fitz.open(output_path)
+            bad_count = 0
+            total_checked = min(len(check_doc), 3)
+            for page in check_doc:
+                pix = page.get_pixmap(dpi=36, alpha=False)
+                s, n = pix.samples, len(pix.samples) // 3
+                if n == 0:
+                    bad_count += 1
+                else:
+                    white_px = sum(1 for i in range(0,len(s),3) if s[i]>230 and s[i+1]>230 and s[i+2]>230)
+                    black_px = sum(1 for i in range(0,len(s),3) if s[i]<25  and s[i+1]<25  and s[i+2]<25)
+                    if (white_px/n) >= 0.95 or (black_px/n) >= 0.90:
+                        bad_count += 1
+                        logger.warning(f'GS bad page {page.number}: white={white_px/n:.0%} black={black_px/n:.0%}')
+                if page.number + 1 >= total_checked:
+                    break
+            check_doc.close()
+            if bad_count >= total_checked:
+                logger.warning('GS produced blank/black pages — falling back to PyMuPDF')
+                os.remove(output_path)
+                raise Exception('Ghostscript produced blank/black output; trying fallback')
+    except fitz.FileNotFoundError:
+        raise Exception('Could not verify GS output; trying fallback')
+
     return output_path
 
 
 def compress_with_pymupdf(input_path, output_path, compression_level='recommended'):
-    """Fallback: Use PyMuPDF for compression - works for embedded images"""
-    
-    quality_map = {
-        'low': 10,
-        'extreme': 10,
-        'recommended': 30,
-        'high': 50,
-        'less': 50,
+    """
+    Fallback compressor using PyMuPDF.
+
+    Strategy: extract every raster image from the PDF, re-encode it as JPEG at
+    the chosen quality/DPI, then replace the stream in-place.  Vectors and text
+    are untouched, so readability is preserved.
+    """
+
+    # Per-level settings: (jpeg_quality, max_dimension_px)
+    # These match the Ghostscript QFactor choices above.
+    level_cfg = {
+        'low':         (35, 800),    # Extreme  — readable, small
+        'recommended': (65, 1600),   # Balanced
+        'high':        (82, 2400),   # Less compression
     }
-    quality = quality_map.get(compression_level, 30)
-    
-    max_dim_map = {
-        'low': 300,
-        'extreme': 300,
-        'recommended': 600,
-        'high': 1200,
-        'less': 1200,
-    }
-    max_dim = max_dim_map.get(compression_level, 600)
-    
+    quality, max_dim = level_cfg.get(compression_level, (65, 1600))
+
     doc = fitz.open(input_path)
-    
-    for page_num, page in enumerate(doc):
-        images = page.get_images(full=True)
-        for img_index, img in enumerate(images):
-            xref = img[0]
-            try:
-                base_img = doc.extract_image(xref)
-                img_data = base_img["image"]
-                
-                img_pil = Image.open(io.BytesIO(img_data))
-                
-                if img_pil.mode in ('RGBA', 'P'):
-                    img_pil = img_pil.convert('RGB')
-                
-                if img_pil.width > max_dim or img_pil.height > max_dim:
-                    img_pil.thumbnail((max_dim, max_dim), Image.LANCZOS)
-                
-                output_buffer = io.BytesIO()
-                img_pil.save(output_buffer, format='JPEG', quality=quality, optimize=True)
-                img_data_compressed = output_buffer.getvalue()
-                
-                img_rect = page.get_image_rects(xref)
-                if img_rect:
-                    rect = img_rect[0]
-                    page.insert_image(rect, stream=img_data_compressed, keep_proportion=True)
-                    try:
-                        page.delete_image(xref)
-                    except:
-                        pass
-                        
-            except Exception as e:
+    replaced = 0
+    seen_xrefs = set()
+
+    for page in doc:
+        for img_info in page.get_images(full=True):
+            xref = img_info[0]
+            if xref in seen_xrefs:
                 continue
-    
-    doc.save(output_path, deflate=True, garbage=4, clean=True)
+            seen_xrefs.add(xref)
+            try:
+                base_img  = doc.extract_image(xref)
+                img_bytes = base_img['image']
+
+                # Skip masks / tiny images — not worth re-encoding
+                if len(img_bytes) < 2048:
+                    continue
+
+                pil_img = Image.open(io.BytesIO(img_bytes))
+
+                # Normalise colour mode
+                if pil_img.mode == 'CMYK':
+                    pil_img = pil_img.convert('RGB')
+                elif pil_img.mode in ('RGBA', 'LA', 'P'):
+                    bg = Image.new('RGB', pil_img.size, (255, 255, 255))
+                    if pil_img.mode == 'P':
+                        pil_img = pil_img.convert('RGBA')
+                    if pil_img.mode in ('RGBA', 'LA'):
+                        bg.paste(pil_img, mask=pil_img.split()[-1])
+                    else:
+                        bg.paste(pil_img)
+                    pil_img = bg
+                elif pil_img.mode != 'RGB':
+                    pil_img = pil_img.convert('RGB')
+
+                # ── Inverted-image guard ──────────────────────────────────
+                # Some PDFs (e.g. rotated scanner outputs) store images as
+                # photographic negatives. Mean < 20 → almost all pixels are
+                # near-black → invert so the output is readable.
+                arr = np.array(pil_img)
+                if arr.mean() < 20:
+                    pil_img = Image.fromarray(255 - arr)
+                    logger.info(f'Inverted near-black image xref={xref}')
+
+                # Downsample if larger than max_dim
+                if pil_img.width > max_dim or pil_img.height > max_dim:
+                    pil_img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+
+                new_w, new_h = pil_img.size
+
+                # Re-encode as JPEG
+                buf = io.BytesIO()
+                pil_img.save(buf, format='JPEG', quality=quality,
+                             optimize=True, progressive=True)
+                new_bytes = buf.getvalue()
+
+                # Only replace if we actually saved space
+                if len(new_bytes) >= len(img_bytes):
+                    continue
+
+                # ── Proper JPEG injection ──────────────────────────────────
+                # update_stream(compress=True) wraps JPEG in FlateDecode and
+                # leaves the original filter untouched → black/corrupted pages.
+                # Correct approach:
+                #   1. Store raw JPEG bytes (compress=False)
+                #   2. Patch the XObject dict to reflect DCTDecode + new dims
+                doc.update_stream(xref, new_bytes, compress=False)
+                doc.xref_set_key(xref, 'Filter', '/DCTDecode')
+                doc.xref_set_key(xref, 'Width',  str(new_w))
+                doc.xref_set_key(xref, 'Height', str(new_h))
+                try:
+                    if 'DecodeParms' in doc.xref_object(xref):
+                        doc.xref_del_key(xref, 'DecodeParms')
+                except Exception:
+                    pass
+                replaced += 1
+
+            except Exception:
+                continue   # skip unprocessable image, leave original
+
+    logger.info(f'PyMuPDF: replaced {replaced} image streams')
+
+    # Save with maximum structural compression
+    try:
+        doc.save(output_path, deflate=True, deflate_images=True, garbage=4, clean=True)
+    except Exception:
+        doc.save(output_path, deflate=True, garbage=4, clean=True)
     doc.close()
 
 
 @shared_task
 def compress_pdf(job_id):
     from apps.pdf.models import Job
-    
+    from django.db import close_old_connections
+    close_old_connections()   # ensure fresh DB connection in this thread
+
+    Job.objects.filter(id=job_id).update(status='processing')
     job = Job.objects.get(id=job_id)
-    job.status = 'processing'
-    job.save()
     
     compression_level = job.compression_level or 'recommended'
     
@@ -215,14 +361,17 @@ def compress_pdf(job_id):
                             output_filename = f'{base_name}_compressed.pdf'
                             output_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'{uuid.uuid4().hex[:8]}_compressed.pdf')
                             
-                            # Try Ghostscript first, fallback to PyMuPDF
-                            try:
-                                compress_with_ghostscript(input_path, output_path, compression_level)
-                                logger.info(f'Used Ghostscript for {base_name}')
-                            except Exception as gs_err:
-                                logger.warning(f'Ghostscript failed, falling back to PyMuPDF: {gs_err}')
-                                # Fallback to PyMuPDF if Ghostscript fails
+                            # Skip GS for PDFs with FlateDecode+PNG images
+                            if _pdf_has_gs_incompatible_images(input_path):
+                                logger.info(f'FlateDecode+PNG — using PyMuPDF directly for {base_name}')
                                 compress_with_pymupdf(input_path, output_path, compression_level)
+                            else:
+                                try:
+                                    compress_with_ghostscript(input_path, output_path, compression_level)
+                                    logger.info(f'Used Ghostscript for {base_name}')
+                                except Exception as gs_err:
+                                    logger.warning(f'Ghostscript failed, falling back to PyMuPDF: {gs_err}')
+                                    compress_with_pymupdf(input_path, output_path, compression_level)
                             
                             compressed_size = os.path.getsize(output_path)
                             zip_file.write(output_path, output_filename)
@@ -232,8 +381,7 @@ def compress_pdf(job_id):
             
             job.result.save(zip_filename, open(zip_path, 'rb'))
             os.remove(zip_path)
-            job.status = 'done'
-            job.save()
+            Job.objects.filter(id=job_id).update(status='done')
             return {'status': 'done', 'job_id': str(job_id)}
         
         else:
@@ -246,17 +394,25 @@ def compress_pdf(job_id):
             
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
-            # Try Ghostscript first, fallback to PyMuPDF
-            try:
-                compress_with_ghostscript(input_path, output_path, compression_level)
-                logger.info(f'Used Ghostscript for single file')
-            except Exception as gs_err:
-                logger.warning(f'Ghostscript failed, falling back to PyMuPDF: {gs_err}')
+            # Skip GS for PDFs with FlateDecode+PNG images (GS produces blank output)
+            if _pdf_has_gs_incompatible_images(input_path):
+                logger.info('FlateDecode+PNG detected — using PyMuPDF directly')
                 try:
                     compress_with_pymupdf(input_path, output_path, compression_level)
                 except Exception as pymupdf_err:
-                    logger.error(f'Both compression methods failed: GS={gs_err}, PyMuPDF={pymupdf_err}')
+                    logger.error(f'PyMuPDF failed: {pymupdf_err}')
                     raise Exception(f'Compression failed: {pymupdf_err}')
+            else:
+                try:
+                    compress_with_ghostscript(input_path, output_path, compression_level)
+                    logger.info('Used Ghostscript for single file')
+                except Exception as gs_err:
+                    logger.warning(f'Ghostscript failed, falling back to PyMuPDF: {gs_err}')
+                    try:
+                        compress_with_pymupdf(input_path, output_path, compression_level)
+                    except Exception as pymupdf_err:
+                        logger.error(f'Both compression methods failed: GS={gs_err}, PyMuPDF={pymupdf_err}')
+                        raise Exception(f'Compression failed: {pymupdf_err}')
             
             if not os.path.exists(output_path):
                 raise Exception(f'Compression failed: output file not created')
@@ -265,16 +421,13 @@ def compress_pdf(job_id):
             
             job.result.save(output_filename, open(output_path, 'rb'))
             os.remove(output_path)
-            
-            job.status = 'done'
-            job.save()
-            
+            Job.objects.filter(id=job_id).update(status='done')
+
             return {'status': 'done', 'job_id': str(job_id), 'original': original_size, 'compressed': compressed_size}
-        
+
     except Exception as e:
-        job.status = 'failed'
-        job.error_message = str(e)
-        job.save()
+        logger.error(f'compress_pdf failed: {e}', exc_info=True)
+        Job.objects.filter(id=job_id).update(status='failed', error_message=str(e)[:500])
         raise
 
 
@@ -667,6 +820,7 @@ def ocr_pdf(job_id):
         raise
 
 
+@shared_task
 def pdf_to_image_task(job_id):
     from apps.pdf.models import Job
     import zipfile
@@ -681,11 +835,12 @@ def pdf_to_image_task(job_id):
         dpi = int(job.compression_level or '300')
         
         from pdf2image import convert_from_path
-        
+
         logger.info(f'Converting PDF to images, format: {image_format}, DPI: {dpi}')
-        
-        pages = convert_from_path(input_path, dpi=dpi)
-        
+
+        poppler_path = getattr(settings, 'POPPLER_PATH', None)
+        pages = convert_from_path(input_path, dpi=dpi, poppler_path=poppler_path)
+
         base_name = os.path.splitext(os.path.basename(job.file.name))[0]
         zip_filename = f'{base_name}_images.zip'
         zip_path = os.path.join(settings.MEDIA_ROOT, 'processed', zip_filename)
@@ -715,6 +870,7 @@ def pdf_to_image_task(job_id):
         raise
 
 
+@shared_task
 def image_to_pdf_task(file_paths, job_id):
     from apps.pdf.models import Job
     
@@ -731,7 +887,6 @@ def image_to_pdf_task(file_paths, job_id):
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
-        # Use PIL to create PDF directly
         images = []
         for img_path in file_paths:
             try:

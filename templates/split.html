@@ -1,284 +1,86 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}Split PDF - Free Online PDF Splitter{% endblock %}
 
 {% block extra_css %}
 <style>
-    .left-panel {
-        width: 300px;
-    }
+    .left-panel { width: 300px; }
+    .drop-zone.drag-over { border-color: var(--primary); background: var(--surface-hover); }
 
-    .left-panel::-webkit-scrollbar-thumb {
-        background: var(--primary);
-    }
-
-    .drop-zone:hover { border-color: var(--primary); background: var(--surface-hover); }
-
-    .file-info {
-        padding: 12px;
-        background: var(--surface-hover);
-        border-radius: 8px;
-        margin-bottom: 16px;
-    }
+    .file-info { padding: 12px; background: var(--surface-hover); border-radius: 8px; margin-bottom: 16px; }
     .file-info h3 { font-size: 13px; color: var(--text); margin-bottom: 4px; word-break: break-all; }
     .file-info p { font-size: 11px; color: var(--text-secondary); }
 
-    .split-options {
-        margin-bottom: 16px;
-    }
-    .split-options h3 {
-        font-size: 13px;
-        color: var(--text);
-        margin-bottom: 8px;
-    }
+    .split-options { margin-bottom: 16px; }
+    .split-options h3 { font-size: 13px; color: var(--text); margin-bottom: 8px; }
 
     .radio-option {
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
+        display: flex; align-items: center; padding: 12px; border: 2px solid var(--border);
+        border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
     }
     .radio-option:hover { border-color: var(--primary); }
-    .radio-option.selected {
-        border-color: var(--primary);
-        background: var(--surface-hover);
-    }
-    .radio-option input { display: none; }
+    .radio-option.selected { border-color: var(--primary); background: var(--surface-hover); }
     .radio-option .radio-circle {
-        width: 20px;
-        height: 20px;
-        border: 2px solid var(--border);
-        border-radius: 50%;
-        margin-right: 12px;
-        position: relative;
+        width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 50%;
+        margin-right: 12px; position: relative; flex-shrink: 0;
     }
-    .radio-option.selected .radio-circle {
-        border-color: var(--primary);
-    }
+    .radio-option.selected .radio-circle { border-color: var(--primary); }
     .radio-option.selected .radio-circle::after {
-        content: '';
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        width: 8px;
-        height: 8px;
-        background: var(--primary);
-        border-radius: 50%;
+        content: ''; position: absolute; top: 4px; left: 4px;
+        width: 8px; height: 8px; background: var(--primary); border-radius: 50%;
     }
 
     .split-btn {
-        font-family: 'Kantumruy Pro', sans-serif;
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 16px;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        width: 100%;
+        font-family: 'Kantumruy Pro', sans-serif; background: var(--primary); color: white;
+        border: none; padding: 16px; border-radius: 8px; font-size: 16px; font-weight: 600;
+        cursor: pointer; width: 100%;
     }
     .split-btn:hover { transform: translateY(-2px); }
     .split-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
 
-    .range-row {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-    }
-    .range-input {
-        flex: 1;
-        padding: 10px;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        font-size: 14px;
-        background: var(--surface);
-        color: var(--text);
-    }
+    .range-row { display: flex; align-items: center; margin-bottom: 8px; }
+    .range-input { flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--surface); color: var(--text); }
     .range-input:focus { outline: none; border-color: var(--primary); }
-    .page-input { font-family: 'Kantumruy Pro', sans-serif; }
-
-    .range-label {
-        font-size: 12px;
-        color: var(--text-secondary);
-        margin-right: 8px;
-        min-width: 30px;
-    }
-
-    .remove-btn {
-        margin-left: 8px;
-        padding: 4px 8px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        cursor: pointer;
-        color: var(--primary);
-        font-size: 16px;
-    }
-
-    .add-range-btn {
-        margin-top: 8px;
-        padding: 8px 16px;
-        background: var(--surface-hover);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 13px;
-        color: var(--text);
-    }
-
-    .every-input input {
-        width: 80px;
-        padding: 10px;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        font-size: 14px;
-        background: var(--surface);
-        color: var(--text);
-    }
-
-    .section-title {
-        font-size: 14px;
-        color: var(--text);
-        margin-bottom: 12px;
-    }
-
-    .option-desc {
-        font-size: 12px;
-        color: var(--text-secondary);
-    }
-
-    .no-pdf-msg {
-        color: var(--text-secondary);
-        font-size: 16px;
-    }
-
-    .error-msg {
-        color: var(--primary);
-        text-align: center;
-    }
-
-    .right-panel-inner::-webkit-scrollbar-thumb {
-        background: var(--primary);
-    }
-    .right-panel-inner::-webkit-scrollbar-thumb:hover {
-        background: var(--primary-dark);
-    }
+    .range-label { font-size: 12px; color: var(--text-secondary); margin-right: 8px; min-width: 30px; }
+    .remove-btn { margin-left: 8px; padding: 4px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; color: var(--primary); font-size: 16px; }
+    .add-range-btn { margin-top: 8px; padding: 8px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .section-title { font-size: 14px; color: var(--text); margin-bottom: 12px; }
+    .option-desc { font-size: 12px; color: var(--text-secondary); }
 
     .page-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        justify-content: flex-start;
-        align-content: flex-start;
-        padding: 10px;
+        display: flex; flex-wrap: wrap; gap: 16px;
+        justify-content: flex-start; align-content: flex-start; padding: 10px;
     }
-
     .page-item {
-        width: 180px;
-        height: 240px;
-        background: var(--surface);
-        border: 3px solid var(--border);
-        border-radius: 8px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        position: relative;
-        padding: 12px;
+        width: 180px; height: 240px; background: var(--surface); border: 3px solid var(--border);
+        border-radius: 8px; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; cursor: pointer; transition: all 0.2s; position: relative; padding: 12px;
     }
-    .page-item:hover {
-        border-color: var(--primary);
-        transform: scale(1.02);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-    .page-item.selected {
-        border-color: var(--primary);
-        background: var(--surface-hover);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    .page-item.dragging {
-        opacity: 0.5;
-        transform: scale(0.95);
-    }
+    .page-item:hover { border-color: var(--primary); transform: scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    .page-item.selected { border-color: var(--primary); background: var(--surface-hover); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     .page-item.selected::after {
-        content: '✓';
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: var(--primary);
-        color: white;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        content: '✓'; position: absolute; top: 8px; right: 8px; background: var(--primary); color: white;
+        width: 28px; height: 28px; border-radius: 50%; font-size: 16px; display: flex; align-items: center; justify-content: center;
     }
-    .page-item img {
-        max-width: 150px;
-        max-height: 180px;
-        object-fit: contain;
-        margin-bottom: 8px;
-    }
-    .page-item .page-num {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text);
-    }
+    .page-item img { max-width: 150px; max-height: 180px; object-fit: contain; margin-bottom: 8px; }
+    .page-item .page-num { font-size: 16px; font-weight: 600; color: var(--text); }
 
     .selection-info {
-        padding: 12px;
-        background: var(--surface-hover);
-        border-radius: 8px;
-        margin-bottom: 16px;
-        text-align: center;
-        font-size: 14px;
-        color: var(--text-secondary);
+        padding: 12px; background: var(--surface-hover); border-radius: 8px;
+        margin-bottom: 16px; text-align: center; font-size: 14px; color: var(--text-secondary);
     }
     .selection-info strong { color: var(--primary); }
 
-    .loading {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        flex: 1;
-        color: var(--text-secondary);
-    }
-    .spinner {
-        border: 4px solid var(--border);
-        border-top: 4px solid var(--primary);
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-        margin-bottom: 16px;
-    }
+    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--text-secondary); }
+    .spinner { border: 4px solid var(--border); border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 16px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    @media (max-width: 900px) {
-        .page-item { width: 100px; height: 140px; }
-        .page-item img { max-width: 80px; max-height: 100px; }
-    }
-    @media (max-width: 600px) {
-        .page-grid { gap: 8px; }
-        .page-item { width: 80px; height: 110px; padding: 8px; }
-        .page-item img { max-width: 60px; max-height: 80px; }
-        .main-content { padding: 8px; gap: 12px; }
-    }
-    @media (max-width: 400px) {
-        .page-item { width: 65px; height: 90px; padding: 6px; }
-        .page-item img { max-width: 50px; max-height: 65px; }
-        .page-item .page-num { font-size: 11px; }
-    }
+    .progress-text { margin-top: 12px; font-size: 16px; font-weight: 600; color: #333; text-align: center; }
+    .progress-percent { font-size: 28px; color: #667eea; }
+
+    @media (max-width: 900px) { .page-item { width: 100px; height: 140px; } .page-item img { max-width: 80px; max-height: 100px; } }
+    @media (max-width: 600px) { .page-grid { gap: 8px; } .page-item { width: 80px; height: 110px; padding: 8px; } .page-item img { max-width: 60px; max-height: 80px; } .main-content { padding: 8px; gap: 12px; } }
 </style>
 {% endblock %}
 
@@ -286,489 +88,263 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 
-<div class="main-content">
+<div class="main-content" x-data="splitApp()">
     <div class="left-panel">
-        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <!-- Drop zone -->
+        <div class="drop-zone"
+             :class="{ 'drag-over': dragging }"
+             @dragover.prevent="dragging = true"
+             @dragleave.prevent="dragging = false"
+             @drop.prevent="onDropFile($event)"
+             @click="$refs.fileInput.click()">
             <div class="drop-zone-icon">📄</div>
-            <p>
-                <span class="text-en">Select PDF file</span>
-                <span class="text-kh">ជ្រើសរើសឯកសារ PDF</span>
-            </p>
-            <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="loadFile()">
+            <p>{% trans "Select PDF file" %}</p>
+            <input type="file" x-ref="fileInput" accept=".pdf" style="display:none"
+                   @change="onPickFile($event)">
         </div>
-        
-        <div class="file-info" id="fileInfo" style="display:none;">
-            <h3 id="fileName"></h3>
-            <p id="fileSize"></p>
+
+        <!-- File info -->
+        <div class="file-info" x-show="currentFile" x-cloak>
+            <h3 x-text="currentFile ? currentFile.name : ''"></h3>
+            <p x-text="currentFile ? formatSize(currentFile.size) : ''"></p>
         </div>
-        
+
+        <!-- Split mode -->
         <div class="split-options">
-            <h3>
-                <span class="text-en">Split Mode</span>
-                <span class="text-kh">ទម្រង់សម្រាប់ការបំបែក</span>
-            </h3>
-            
-            <label class="radio-option selected" onclick="selectMode(this, 'select')">
-                <input type="radio" name="splitMode" value="select" checked>
+            <h3>{% trans "Split Mode" %}</h3>
+
+            <label class="radio-option" :class="{ selected: splitMode === 'select' }" @click="setMode('select')">
                 <span class="radio-circle"></span>
                 <div>
-                    <strong>
-                        <span class="text-en">Select Pages</span>
-                        <span class="text-kh">ជ្រើសរើសទំព័រ</span>
-                    </strong>
-                    <div class="option-desc">
-                        <span class="text-en">Click pages to extract</span>
-                        <span class="text-kh">ចុចទំព័រដើម្បីទាញយកឯកសារ</span>
-                    </div>
+                    <strong>{% trans "Select Pages" %}</strong>
+                    <div class="option-desc">{% trans "Click pages to extract" %}</div>
                 </div>
             </label>
-            
-            <label class="radio-option" onclick="selectMode(this, 'range')">
-                <input type="radio" name="splitMode" value="range">
+
+            <label class="radio-option" :class="{ selected: splitMode === 'range' }" @click="setMode('range')">
                 <span class="radio-circle"></span>
                 <div>
-                    <strong>
-                        <span class="text-en">By Range</span>
-                        <span class="text-kh">តាមចន្លោះ</span>
-                    </strong>
-                    <div class="option-desc">
-                        <span class="text-en">Specify page ranges</span>
-                        <span class="text-kh">កំណត់ចន្លោះទំព័រឯកសារ</span>
-                    </div>
+                    <strong>{% trans "By Range" %}</strong>
+                    <div class="option-desc">{% trans "Specify page ranges" %}</div>
                 </div>
             </label>
-            
-            <label class="radio-option" onclick="selectMode(this, 'every')">
-                <input type="radio" name="splitMode" value="every">
+
+            <label class="radio-option" :class="{ selected: splitMode === 'every' }" @click="setMode('every')">
                 <span class="radio-circle"></span>
                 <div>
-                    <strong>
-                        <span class="text-en">Split Every N Pages</span>
-                        <span class="text-kh">បំបែកតាមចំនួនទំព័រ</span>
-                    </strong>
-                    <div class="option-desc">
-                        <span class="text-en">Split into files of N pages</span>
-                        <span class="text-kh">បំបែកចំនួនទំព័រក្នុងឯកសារ</span>
-                    </div>
-                </div>
-            </label>
-            
-            <label class="radio-option" onclick="selectMode(this, 'range')">
-                <input type="radio" name="splitMode" value="range">
-                <span class="radio-circle"></span>
-                <div>
-                    <strong>
-                        <span class="text-en">By Range</span>
-                        <span class="text-kh">តាមចន្លោះ</span>
-                    </strong>
-                    <div style="font-size:12px;color:#666;">
-                        <span class="text-en">Specify page ranges</span>
-                        <span class="text-kh">សូមបញ្ជាក់ចន្លោះទំព័រឯកសារ</span>
-                    </div>
-                </div>
-            </label>
-            
-            <label class="radio-option" onclick="selectMode(this, 'every')">
-                <input type="radio" name="splitMode" value="every">
-                <span class="radio-circle"></span>
-                <div>
-                    <strong>
-                        <span class="text-en">Split Every N Pages</span>
-                        <span class="text-kh">បំបែកតាមចំនួនទំព័រ</span>
-                    </strong>
-                    <div style="font-size:12px;color:#666;">
-                        <span class="text-en">Split into files of N pages</span>
-                        <span class="text-kh">បំបែកចំនួនទំព័រក្នុងមួយឯកសារ</span>
-                    </div>
+                    <strong>{% trans "Split Every N Pages" %}</strong>
+                    <div class="option-desc">{% trans "Split into files of N pages" %}</div>
                 </div>
             </label>
         </div>
-        
-        <div class="range-inputs" id="rangeInputs" style="margin-bottom:20px;">
-            <h3 class="section-title">
-                <span class="text-en">Page Ranges</span>
-                <span class="text-kh">ចន្លោះទំព័រ</span>
-            </h3>
+
+        <!-- Range inputs -->
+        <div x-show="splitMode === 'range'" x-cloak style="margin-bottom:20px;">
+            <h3 class="section-title">{% trans "Page Ranges" %}</h3>
             <div id="rangeList">
                 <div class="range-row" data-id="1">
                     <span class="range-label">01)</span>
-                    <input type="text" class="range-input" placeholder="e.g., 1-10 or 1,3,5" value="">
+                    <input type="text" class="range-input" placeholder="e.g., 1-10 or 1,3,5">
                     <button type="button" onclick="removeRangeRow(this)" class="remove-btn">×</button>
                 </div>
             </div>
             <button type="button" onclick="addRangeRow()" class="add-range-btn">
-                <span class="text-en">+ Add Another Range</span>
-                <span class="text-kh">+ បន្ថែមចន្លោះ</span>
+                {% trans "+ Add Another Range" %}
             </button>
         </div>
-        
-        <div class="every-input" id="everyInput" style="display:none;margin-bottom:20px;">
-            <h3 class="section-title">
-                <span class="text-en">Split every</span>
-                <span class="text-kh">បំបែករតាមទំព័រ</span>
-            </h3>
+
+        <!-- Every N pages -->
+        <div x-show="splitMode === 'every'" x-cloak style="margin-bottom:20px;">
+            <h3 class="section-title">{% trans "Split every" %}</h3>
             <div style="display:flex;align-items:center;gap:8px;">
-                <input type="number" id="everyPages" class="page-input" value="3" min="1" style="width:80px;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface);color:var(--text);">
-                <span class="option-desc">
-                    <span class="text-en">pages</span>
-                    <span class="text-kh">ទំព័រ</span>
-                </span>
+                <input type="number" id="everyPages" value="3" min="1"
+                       style="width:80px;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface);color:var(--text);">
+                <span class="option-desc">{% trans "pages" %}</span>
             </div>
         </div>
-        
-        <button class="action-btn" id="splitBtn" disabled onclick="splitPdf()">
-            <span class="text-en">Split PDF</span>
-            <span class="text-kh">បំបែកឯកសារ PDF</span>
+
+        <button class="action-btn" :disabled="!canSplit" @click="splitPdf()">
+            {% trans "Split PDF" %}
         </button>
     </div>
-    
+
     <div class="right-panel">
         <div class="right-panel-inner">
             <div class="instructions" id="instructions">
-                <span class="text-en">👆 Click on the PDF file to load pages, then select pages to extract</span>
-                <span class="text-kh">👆 ចុចលើឯកសារ PDF ដើម្បីភ្ជាប់ទំព័រ រួចជ្រើសរើសទំព័រដែលចង់ទាញយក</span>
+                {% trans "👆 Click on the PDF file to load pages, then select pages to extract" %}
             </div>
-            
-            <div class="selection-info" id="selectionInfo" style="display:none;">
-                <span class="text-en">Selected: <strong id="selectedCount">0</strong> pages</span>
-                <span class="text-kh">បានជ្រើស: <strong id="selectedCount">0</strong> ទំព័រ</span>
+
+            <div class="selection-info" x-show="pagesLoaded" x-cloak>
+                {% trans "Selected:" %} <strong x-text="toKhNum(selectedPages.length)">0</strong> {% trans "pages" %}
             </div>
-            
+
             <div class="page-grid" id="pageGrid">
-                <div class="loading" id="loading">
-                    <p class="no-pdf-msg">
-                        <span class="text-en">No PDF loaded</span>
-                        <span class="text-kh">មិនមាន PDF</span>
-                    </p>
+                <div class="loading" id="loadingMsg">
+                    <p style="color:var(--text-secondary);font-size:16px;">{% trans "No PDF loaded" %}</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" x-show="modalVisible" x-cloak>
+        <div class="modal">
+            <h2>{% trans "Splitting PDF..." %}</h2>
+            <div class="progress-container">
+                <div class="progress-bar-bg"></div>
+                <p style="font-size:13px;color:#888;margin-top:14px;text-align:center">
+                    <span x-text="isKhmer ? 'ពេលវេលា: ' : 'Elapsed: '"></span><span
+                        x-text="Math.floor(elapsed/60).toString().padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0')"></span>
+                </p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let currentFile = null;
-    let pdfPages = [];
-    let selectedPages = [];
-    let splitMode = 'select';
-    
-    function formatSize(b) {
-        if (b < 1024) return b + ' B';
-        if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
-        return (b/(1024*1024)).toFixed(1) + ' MB';
-    }
-    
-    function loadFile() {
-        const input = document.getElementById('fileInput');
-        if (input.files.length > 0) {
-            currentFile = input.files[0];
-            document.getElementById('fileName').textContent = currentFile.name;
-            document.getElementById('fileSize').textContent = formatSize(currentFile.size);
-            document.getElementById('fileInfo').style.display = 'block';
-            
-            loadPdfPages(currentFile);
-        }
-    }
-    
-    async function loadPdfPages(file) {
-        const grid = document.getElementById('pageGrid');
-        const loading = document.getElementById('loading');
-        loading.innerHTML = '<div class="spinner"></div><p><span class="text-en">Loading PDF pages...</span><span class="text-kh">កំពុងផ្ទុក...</span></p>';
-        loading.style.display = 'flex';
-        grid.innerHTML = '';
-        grid.appendChild(loading);
-        
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            const totalPages = pdf.numPages;
-            pdfPages = [];
-            
-            loading.style.display = 'none';
+// Vanilla JS helpers for page grid & range rows (DOM-heavy, stays vanilla)
+let _splitRef = null; // set by Alpine init
+
+function addRangeRow() {
+    const list = document.getElementById('rangeList');
+    const count = list.children.length + 1;
+    const cs = count < 10 ? '0' + count : count;
+    const div = document.createElement('div');
+    div.className = 'range-row';
+    div.innerHTML = `<span class="range-label">${cs})</span><input type="text" class="range-input" placeholder="e.g., 1-10 or 1,3,5"><button type="button" onclick="removeRangeRow(this)" class="remove-btn">×</button>`;
+    list.appendChild(div);
+}
+
+function removeRangeRow(btn) {
+    const list = document.getElementById('rangeList');
+    if (list.children.length > 1) btn.closest('.range-row').remove();
+    else btn.closest('.range-row').querySelector('input').value = '';
+}
+
+function getPageRanges() {
+    return [...document.querySelectorAll('.range-input')]
+        .map(i => i.value.trim()).filter(Boolean).join(',');
+}
+
+function splitApp() {
+    return baseToolApp({
+        currentFile: null,
+        pagesLoaded: false,
+        selectedPages: [],
+        pdfPages: [],
+        splitMode: 'select',
+        _draggedPage: null,
+
+        get canSplit() {
+            if (!this.currentFile) return false;
+            if (this.splitMode === 'select') return this.selectedPages.length > 0;
+            return this.pagesLoaded;
+        },
+
+        init() { _splitRef = this; },
+
+        formatSize(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+            return (b / (1024 * 1024)).toFixed(1) + ' MB';
+        },
+
+        onDropFile(e) {
+            this.dragging = false;
+            if (e.dataTransfer.files.length) this.loadFile(e.dataTransfer.files[0]);
+        },
+        onPickFile(e) {
+            if (e.target.files.length) this.loadFile(e.target.files[0]);
+            e.target.value = '';
+        },
+        loadFile(f) {
+            if (!f.name.toLowerCase().endsWith('.pdf')) return;
+            this.currentFile = f;
+            this.selectedPages = [];
+            this.pdfPages = [];
+            this.pagesLoaded = false;
+            this.loadPdfPages(f);
+        },
+
+        setMode(mode) {
+            this.splitMode = mode;
+            this.selectedPages = [];
+            this.updatePageStyles();
+        },
+
+        updatePageStyles() {
+            document.querySelectorAll('.page-item').forEach(el => {
+                const p = parseInt(el.dataset.page);
+                el.classList.toggle('selected', this.selectedPages.includes(p));
+                if (this.splitMode === 'select') {
+                    el.style.pointerEvents = 'auto'; el.style.opacity = '1';
+                } else {
+                    el.style.pointerEvents = 'none'; el.style.opacity = '0.5';
+                }
+            });
+        },
+
+        togglePage(num) {
+            const idx = this.selectedPages.indexOf(num);
+            if (idx > -1) this.selectedPages.splice(idx, 1);
+            else this.selectedPages.push(num);
+            this.updatePageStyles();
+        },
+
+        async loadPdfPages(file) {
+            const grid = document.getElementById('pageGrid');
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>{% trans "Loading PDF pages..." %}</p></div>';
+            const ab = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+            this.pdfPages = [];
             grid.innerHTML = '';
-            
-            for (let i = 1; i <= totalPages; i++) {
+            for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 0.5 });
-                
+                const vp = page.getViewport({ scale: 0.5 });
                 const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                
-                await page.render({ canvasContext: context, viewport: viewport }).promise;
-                
+                canvas.height = vp.height; canvas.width = vp.width;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+
                 const div = document.createElement('div');
                 div.className = 'page-item';
                 div.dataset.page = i;
-                div.draggable = true;
-                
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL();
-                
-                const num = document.createElement('span');
-                num.className = 'page-num';
-                num.textContent = 'Page ' + i;
-                
-                div.appendChild(img);
-                div.appendChild(num);
-                
-                div.addEventListener('click', () => togglePage(i));
-                div.addEventListener('dragstart', handleDragStart);
-                div.addEventListener('dragover', handleDragOver);
-                div.addEventListener('drop', handleDrop);
-                div.addEventListener('dragend', handleDragEnd);
-                
+                const img = document.createElement('img'); img.src = canvas.toDataURL();
+                const num = document.createElement('span'); num.className = 'page-num';
+                num.textContent = (isKhmer ? 'ទំព័រ' : 'Page') + ' ' + toKhNum(i);
+                div.appendChild(img); div.appendChild(num);
+                div.addEventListener('click', () => { if (this.splitMode === 'select') this.togglePage(i); });
                 grid.appendChild(div);
-                pdfPages.push({ num: i, el: div });
+                this.pdfPages.push({ num: i, el: div });
             }
-            
-        } catch (e) {
-            console.error(e);
-            grid.innerHTML = '<p class="error-msg">Error loading PDF</p>';
-        }
-    }
-    
-    function togglePage(pageNum) {
-        const idx = selectedPages.indexOf(pageNum);
-        if (idx > -1) {
-            selectedPages.splice(idx, 1);
-        } else {
-            selectedPages.push(pageNum);
-        }
-        updateSelection();
-    }
-    
-    function updateSelection() {
-        document.querySelectorAll('.page-item').forEach(el => {
-            const pageNum = parseInt(el.dataset.page);
-            if (selectedPages.includes(pageNum)) {
-                el.classList.add('selected');
+            this.pagesLoaded = true;
+        },
+
+        async splitPdf() {
+            if (!this.currentFile) return;
+            let pageRange = '';
+            if (this.splitMode === 'range') {
+                pageRange = getPageRanges();
+                if (!pageRange) { alert('Please enter at least one page range'); return; }
+            } else if (this.splitMode === 'every') {
+                pageRange = 'every:' + (document.getElementById('everyPages').value || 3);
             } else {
-                el.classList.remove('selected');
+                pageRange = this.selectedPages.join(',');
+                if (!pageRange) { alert('Please select at least one page'); return; }
             }
-        });
-        
-        document.getElementById('selectedCount').textContent = selectedPages.length;
-        document.getElementById('selectionInfo').style.display = 'block';
-        document.getElementById('splitBtn').disabled = selectedPages.length === 0;
-    }
-    
-    function selectMode(el, mode) {
-        splitMode = mode;
-        document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
-        el.classList.add('selected');
-        
-        document.getElementById('rangeInputs').style.display = mode === 'range' ? 'block' : 'none';
-        document.getElementById('everyInput').style.display = mode === 'every' ? 'block' : 'none';
-        
-        if (mode === 'select') {
-            selectedPages = [];
-            updateSelection();
-            document.querySelectorAll('.page-item').forEach(el => {
-                el.style.pointerEvents = 'auto';
-                el.style.opacity = '1';
-                el.style.cursor = 'pointer';
-                el.draggable = false;
-            });
-            document.getElementById('splitBtn').disabled = selectedPages.length === 0;
-        } else if (mode === 'range') {
-            document.getElementById('splitBtn').disabled = false;
-            document.querySelectorAll('.page-item').forEach(el => {
-                el.style.pointerEvents = 'none';
-                el.style.opacity = '0.5';
-            });
-        } else if (mode === 'every') {
-            document.getElementById('splitBtn').disabled = false;
-            document.querySelectorAll('.page-item').forEach(el => {
-                el.style.pointerEvents = 'none';
-                el.style.opacity = '0.5';
-            });
-        }
-    }
-    
-    function addRangeRow() {
-        const list = document.getElementById('rangeList');
-        const count = list.children.length + 1;
-        const countStr = count < 10 ? '0' + count : count;
-        const div = document.createElement('div');
-        div.className = 'range-row';
-        div.innerHTML = `
-            <span style="font-size:12px;color:#666;margin-right:8px;min-width:30px;">${countStr})</span>
-            <input type="text" class="range-input" placeholder="e.g., 1-10 or 1,3,5" value="">
-            <button type="button" onclick="removeRangeRow(this)" style="margin-left:8px;padding:4px 8px;background:#fff;border:1px solid #ddd;border-radius:4px;cursor:pointer;color:#d32f2f;font-size:16px;">×</button>
-        `;
-        list.appendChild(div);
-    }
-    
-    function removeRangeRow(btn) {
-        const row = btn.closest('.range-row');
-        const list = document.getElementById('rangeList');
-        if (list.children.length > 1) {
-            row.remove();
-            updateRangeLabels();
-        } else {
-            row.querySelector('input').value = '';
-        }
-    }
-    
-    function updateRangeLabels() {
-        document.querySelectorAll('.range-row').forEach((row, idx) => {
-            const countStr = (idx + 1) < 10 ? '0' + (idx + 1) : (idx + 1);
-            row.querySelector('span').textContent = countStr + ')';
-        });
-    }
-    
-    function getPageRanges() {
-        const ranges = [];
-        document.querySelectorAll('.range-input').forEach(input => {
-            if (input.value.trim()) {
-                ranges.push(input.value.trim());
+            this.showModal();
+            const fd = new FormData();
+            fd.append('file', this.currentFile);
+            fd.append('page_range', pageRange);
+            fd.append('split_mode', this.splitMode);
+            try {
+                const d = await fetch('/api/split/', { method: 'POST', body: fd }).then(r => r.json());
+                if (d.job_id) this.pollJob(d.job_id, 'split_' + (this.currentFile?.name || 'output.pdf'));
+                else { this.hideModal(); alert(d.error || 'Error'); }
+            } catch (err) {
+                this.hideModal(); alert('Error: ' + err.message);
             }
-        });
-        return ranges.join(',');
-    }
-    
-    let draggedPage = null;
-    
-    function handleDragStart(e) {
-        draggedPage = parseInt(e.target.dataset.page);
-        e.target.classList.add('dragging');
-    }
-    
-    function handleDragOver(e) {
-        e.preventDefault();
-    }
-    
-    function handleDrop(e) {
-        e.preventDefault();
-        const targetPage = parseInt(e.target.closest('.page-item').dataset.page);
-        if (draggedPage && draggedPage !== targetPage) {
-            const fromIdx = pdfPages.findIndex(p => p.num === draggedPage);
-            const toIdx = pdfPages.findIndex(p => p.num === targetPage);
-            
-            const [moved] = pdfPages.splice(fromIdx, 1);
-            pdfPages.splice(toIdx, 0, moved);
-            
-            renderPages();
-        }
-    }
-    
-    function handleDragEnd(e) {
-        e.target.classList.remove('dragging');
-        draggedPage = null;
-    }
-    
-    function renderPages() {
-        const grid = document.getElementById('pageGrid');
-        grid.innerHTML = '';
-        
-        pdfPages.forEach((p, idx) => {
-            const newNum = idx + 1;
-            const div = p.el.cloneNode(true);
-            div.dataset.page = newNum;
-            div.querySelector('.page-num').textContent = 'Page ' + newNum;
-            
-            div.addEventListener('click', () => togglePage(newNum));
-            div.addEventListener('dragstart', handleDragStart);
-            div.addEventListener('dragover', handleDragOver);
-            div.addEventListener('drop', handleDrop);
-            div.addEventListener('dragend', handleDragEnd);
-            
-            grid.appendChild(div);
-        });
-        
-        selectedPages = pdfPages.map(p => p.num);
-        updateSelection();
-    }
-    
-    function splitPdf() {
-        let pageRange = '';
-        
-        if (splitMode === 'range') {
-            pageRange = getPageRanges();
-            if (!pageRange) {
-                alert('Please enter at least one page range');
-                return;
-            }
-        } else if (splitMode === 'every') {
-            const n = document.getElementById('everyPages').value || 3;
-            pageRange = 'every:' + n;
-        } else if (splitMode === 'select') {
-            pageRange = selectedPages.join(',');
-            if (!pageRange) {
-                alert('Please select at least one page');
-                return;
-            }
-        }
-        
-        const fd = new FormData();
-        fd.append('file', currentFile);
-        fd.append('page_range', pageRange);
-        fd.append('split_mode', splitMode);
-        
-        const btn = document.getElementById('splitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="text-en">Processing...</span><span class="text-kh">កំពុងដំណើរការ...</span>';
-        
-        fetch('/api/split/', { method: 'POST', body: fd })
-            .then(r => r.json())
-            .then(d => {
-                if (d.job_id) {
-                    checkJobStatus(d.job_id);
-                } else {
-                    alert(d.error || 'Error');
-                    btn.disabled = false;
-                }
-            })
-            .catch(e => {
-                alert('Error: ' + e.message);
-                btn.disabled = false;
-            });
-    }
-    
-    function checkJobStatus(jobId) {
-        const modalInterval = showModal();
-        const interval = setInterval(() => {
-            fetch('/api/job/' + jobId + '/')
-                .then(r => r.json())
-                .then(job => {
-                    if (job.status === 'done') {
-                        clearInterval(interval);
-                        clearInterval(modalInterval);
-                        hideModal();
-                        window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '');
-                    } else if (job.status === 'failed') {
-                        clearInterval(interval);
-                        clearInterval(modalInterval);
-                        hideModal();
-                        alert('Error: ' + (job.error || 'Processing failed'));
-                        document.getElementById('splitBtn').disabled = false;
-                    }
-                });
-        }, 1000);
-    }
-    
-    function showModal() {
-        document.getElementById('modalOverlay').classList.add('active');
-        let progress = 0;
-        const progressBar = document.getElementById('modalProgressBar');
-        const percentEl = document.getElementById('modalPercent');
-        
-        const modalInterval = setInterval(() => {
-            progress += Math.random() * 8 + 2;
-            if (progress > 90) progress = 90;
-            progressBar.style.width = progress + '%';
-            percentEl.textContent = Math.round(progress);
-        }, 300);
-        
-        return modalInterval;
-    }
-    
-    function hideModal() {
-        document.getElementById('modalOverlay').classList.remove('active');
-        document.getElementById('modalProgressBar').style.width = '0%';
-        document.getElementById('modalPercent').textContent = '0';
-    }
+        },
+    });
+}
 </script>
 {% endblock %}

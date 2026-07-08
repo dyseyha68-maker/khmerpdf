@@ -1,5 +1,6 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="km">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,14 +23,16 @@
     
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
     {% load static %}
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
-            --primary: #49D093;
-            --primary-dark: #3ab878;
-            --primary-light: #7eeac4;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
             --secondary: #64748b;
             --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             --surface: #ffffff;
@@ -45,9 +48,9 @@
         }
         
         [data-theme="dark"] {
-            --primary: #7eeac4;
-            --primary-dark: #49D093;
-            --primary-light: #a7f4d4;
+            --primary: #60a5fa;
+            --primary-dark: #2563eb;
+            --primary-light: #93c5fd;
             --secondary: #94a3b8;
             --bg-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
             --surface: #1a1a1a;
@@ -76,15 +79,21 @@
         
         .header {
             background: var(--surface);
-            padding: 14px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            padding: 14px 24px;
             box-shadow: var(--shadow);
             position: sticky;
             top: 0;
             z-index: 100;
             transition: background 0.3s;
+        }
+
+        .header-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         
         .header-left {
@@ -101,10 +110,16 @@
             text-decoration: none;
         }
         
+        .logo-img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
         .logo-text {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
-            color: var(--text);
+            color: var(--primary);
         }
         
         .nav-links {
@@ -114,12 +129,19 @@
         
         .nav-links a {
             text-decoration: none;
-            color: var(--text-secondary);
+            color: var(--primary);
             padding: 10px 16px;
             border-radius: var(--radius-sm);
             font-size: 16px;
-            font-weight: 500;
+            font-weight: 700;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-links a i {
+            font-size: 18px;
+            line-height: 1;
         }
         
         .nav-links a:hover {
@@ -149,15 +171,25 @@
         .lang-toggle button {
             background: none;
             border: none;
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 6px;
             font-size: 13px;
             font-weight: 500;
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        
+
+        .lang-toggle button .fi {
+            width: 20px;
+            height: 15px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
         .lang-toggle button.active {
             background: var(--surface);
             color: var(--primary);
@@ -328,17 +360,13 @@
         }
         
         .modal-overlay {
-            display: none;
+            display: flex;
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.5);
             align-items: center;
             justify-content: center;
             z-index: 200;
-        }
-        
-        .modal-overlay.active {
-            display: flex;
         }
         
         .modal {
@@ -359,14 +387,37 @@
             background: var(--border);
             border-radius: 4px;
             overflow: hidden;
+            position: relative;
         }
-        
-        .progress-bar {
-            height: 100%;
+        /* Indeterminate sweeping bar — used during processing */
+        .progress-bar-bg::before,
+        .progress-bar-bg::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
             background: var(--primary);
-            width: 0%;
-            transition: width 0.3s;
+            border-radius: 4px;
+            animation-fill-mode: both;
         }
+        .progress-bar-bg::before {
+            animation: indeterminate1 2.1s cubic-bezier(0.65,0.815,0.735,0.395) infinite;
+        }
+        .progress-bar-bg::after {
+            animation: indeterminate2 2.1s cubic-bezier(0.165,0.84,0.44,1) infinite;
+            animation-delay: 1.15s;
+        }
+        @keyframes indeterminate1 {
+            0%   { left:-35%; right:100% }
+            60%  { left:100%; right:-90% }
+            100% { left:100%; right:-90% }
+        }
+        @keyframes indeterminate2 {
+            0%   { left:-200%; right:100% }
+            60%  { left:107%; right:-8% }
+            100% { left:107%; right:-8% }
+        }
+        /* Hide old deterministic bar — we don't use it during processing */
+        .progress-bar { display: none; }
         
         @media (max-width: 900px) {
             .main-content {
@@ -380,7 +431,11 @@
         }
     </style>
     {% block extra_css %}{% endblock %}
-    
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; }</style>
+
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -403,100 +458,56 @@
     }
     </script>
 </head>
-<body>
-    <header class="header">
+<body class="{% if LANGUAGE_CODE == 'km' %}lang-kh{% else %}lang-en{% endif %}">
+    <header class="header" x-data="{ navOpen: false }">
+      <div class="header-inner">
         <div class="header-left">
             <a href="/" class="logo">
-                <span class="logo-text">ដាំស្ពៃ | DAMSPEY </span>
+                <span class="logo-text">DAMSPEY</span>
             </a>
         </div>
-        
-        <nav class="nav-links" id="navLinks">
-            <a href="/pdf-compress/">
-                <span class="text-en">Compress</span>
-                <span class="text-kh" style="display:none;">បង្រួម</span>
-            </a>
-            <a href="/pdf-merge/">
-                <span class="text-en">Merge</span>
-                <span class="text-kh" style="display:none;">បញ្ចូល</span>
-            </a>
-            <a href="/pdf-split/">
-                <span class="text-en">Split</span>
-                <span class="text-kh" style="display:none;">បំបែង</span>
-            </a>
-            <a href="/pdf-organize/">
-                <span class="text-en">Organize</span>
-                <span class="text-kh" style="display:none;">រៀបចំ</span>
-            </a>
-            <a href="/pdf-calendar/">
-                <span class="text-en">Calendar</span>
-                <span class="text-kh" style="display:none;">ប្រតិទិន</span>
-            </a>
+
+        <nav class="nav-links" :class="{ 'open': navOpen }">
+            <a href="/pdf-compress/"><i class="ti ti-file-zip"></i>{% trans "Compress" %}</a>
+            <a href="/pdf-merge/"><i class="ti ti-files"></i>{% trans "Merge" %}</a>
+            <a href="/pdf-split/"><i class="ti ti-scissors"></i>{% trans "Split" %}</a>
+            <a href="/pdf-organize/"><i class="ti ti-layout-grid"></i>{% trans "Organize" %}</a>
+            <a href="/pdf-calendar/"><i class="ti ti-calendar"></i>{% trans "Calendar" %}</a>
         </nav>
-        
+
         <div class="header-controls">
+            {% get_current_language as CURRENT_LANG %}
             <div class="lang-toggle">
-                <button id="langEn" onclick="setLang('en')">EN</button>
-                <button id="langKh" onclick="setLang('kh')">KH</button>
+                <form method="post" action="{% url 'set_language' %}" style="display:contents;">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" name="language" value="km"
+                            class="{% if CURRENT_LANG == 'km' %}active{% endif %}">
+                        <span class="fi fi-kh"></span>KH
+                    </button>
+                    <button type="submit" name="language" value="en"
+                            class="{% if CURRENT_LANG == 'en' %}active{% endif %}">
+                        <span class="fi fi-us"></span>EN
+                    </button>
+                </form>
             </div>
-            
+
             <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
                 <span id="themeIcon">🌙</span>
             </button>
-            
-            <button class="hamburger" onclick="toggleNav()">
+
+            <button class="hamburger" @click="navOpen = !navOpen">
                 <span></span><span></span><span></span>
             </button>
         </div>
+      </div>
     </header>
     
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
     
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h2>Processing...</h2>
-            <div class="progress-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                <p><span id="progressPercent">0</span>%</p>
-            </div>
-        </div>
-    </div>
-    
     <script>
-        function toggleNav() {
-            document.getElementById('navLinks').classList.toggle('open');
-        }
-        
-        let currentLang = localStorage.getItem('pdf_lang') || 'en';
-        
-        function setLang(lang) {
-            currentLang = lang;
-            if (lang === 'kh') {
-                document.body.className = 'lang-kh';
-                document.getElementById('langKh').classList.add('active');
-                document.getElementById('langEn').classList.remove('active');
-            } else {
-                document.body.className = 'lang-en';
-                document.getElementById('langEn').classList.add('active');
-                document.getElementById('langKh').classList.remove('active');
-            }
-            localStorage.setItem('pdf_lang', lang);
-            updateTexts();
-        }
-        
-        function updateTexts() {
-            document.querySelectorAll('.text-en').forEach(el => {
-                el.style.display = currentLang === 'en' ? '' : 'none';
-            });
-            document.querySelectorAll('.text-kh').forEach(el => {
-                el.style.display = currentLang === 'kh' ? '' : 'none';
-            });
-        }
-        
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -518,9 +529,84 @@
         }
         
         initTheme();
-        setLang(currentLang);
+
+        // Khmer numeral conversion — available globally on every page
+        const isKhmer = document.documentElement.lang === 'km';
+        const _KH = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        function toKhNum(n) {
+            if (!isKhmer) return String(n);
+            return String(n).replace(/[0-9]/g, d => _KH[+d]);
+        }
     </script>
     
+    <script>
+        // Shared Alpine base for all tool pages
+        function baseToolApp(ext) {
+            const base = {
+                files: [],
+                dragging: false,
+                modalVisible: false,
+                progress: 0,
+                elapsed: 0,
+                _progressInterval: null,
+                _nextId: 0,
+
+                pushFile(f) { f._aid = this._nextId++; this.files.push(f); },
+
+                onDrop(e) {
+                    this.dragging = false;
+                    this.handleFileList(e.dataTransfer.files);
+                },
+                onFileChange(e) {
+                    this.handleFileList(e.target.files);
+                    e.target.value = '';
+                },
+                handleFileList(list) {
+                    for (const f of list) this.pushFile(f);
+                    if (this.renderPreview) this.renderPreview();
+                },
+
+                showModal() {
+                    this.progress = 0;
+                    this.elapsed = 0;
+                    this.modalVisible = true;
+                    this._startTime = Date.now();
+                    this._progressInterval = setInterval(() => {
+                        this.elapsed = Math.floor((Date.now() - this._startTime) / 1000);
+                    }, 1000);
+                },
+                hideModal() {
+                    clearInterval(this._progressInterval);
+                    this.modalVisible = false;
+                    this.progress = 0;
+                },
+
+                async pollJob(jobId, filename) {
+                    const dlName = filename || 'download.pdf';
+                    const iv = setInterval(async () => {
+                        const job = await fetch('/api/job/' + jobId + '/').then(r => r.json());
+                        if (job.status === 'done') {
+                            clearInterval(iv);
+                            clearInterval(this._progressInterval);
+                            this.progress = 100;
+                            setTimeout(() => {
+                                window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '')
+                                    + '&filename=' + encodeURIComponent(dlName);
+                            }, 300);
+                        } else if (job.status === 'failed') {
+                            clearInterval(iv);
+                            this.hideModal();
+                            alert('Error: ' + (job.error || 'Processing failed'));
+                        }
+                    }, 2000);
+                },
+            };
+            // Use defineProperties so getter descriptors from ext are copied intact
+            // (Object.assign would invoke getters at call time, causing TypeError)
+            return Object.defineProperties(base, Object.getOwnPropertyDescriptors(ext));
+        }
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
