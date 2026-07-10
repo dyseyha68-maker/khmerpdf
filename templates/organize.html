@@ -258,7 +258,7 @@ function organizeApp() {
 
         deleteSelected() {
             if (!this.selectedPages.length) return;
-            if (!confirm(`Delete ${this.selectedPages.length} selected page(s)?`)) return;
+            if (!confirm(window.I18N_JS.deleteConfirm.replace('%s', this.selectedPages.length))) return;
             const toDelete = [...this.selectedPages];
             this.pdfPages = this.pdfPages.filter(p => !toDelete.includes(p.num));
             this.selectedPages = [];
@@ -298,7 +298,7 @@ function organizeApp() {
                 const startIdx = Math.min(...this.selectedPages) - 1;
                 this.pdfPages.splice(startIdx, Math.min(this.selectedPages.length, newPages.length), ...newPages);
                 this.renderPages();
-            } catch(e) { alert('Error loading replacement PDF'); }
+            } catch(e) { alert(window.I18N_JS.replaceLoadError); }
             event.target.value = '';
         },
 
@@ -340,7 +340,7 @@ function organizeApp() {
         },
 
         async extractPdf() {
-            if (!this.pdfPages.length) { alert('No pages to save'); return; }
+            if (!this.pdfPages.length) { alert(window.I18N_JS.noPagesToSave); return; }
             const pageOrder = this.pdfPages.map((p, idx) => ({
                 original: p.original, isBlank: p.isBlank, isReplaced: p.isReplaced,
                 replacedFileIndex: p.replacedFileIndex !== undefined ? p.replacedFileIndex : null,
@@ -358,12 +358,6 @@ function organizeApp() {
                 if (!r.ok) throw new Error(await r.text());
                 const d = await r.json();
                 if (d.job_id) this.pollJob(d.job_id, this.currentFile?.name || 'output.pdf');
-                else { this.hideModal(); alert(d.error || 'Error'); }
+                else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch(e) {
-                this.hideModal(); alert('Error: ' + e.message);
-            }
-        },
-    });
-}
-</script>
-{% endblock %}
+                this.hideModal(); alert(window.I18N_JS.errorPrefix + ' ' + e.message);

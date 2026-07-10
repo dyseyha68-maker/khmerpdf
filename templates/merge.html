@@ -140,10 +140,10 @@ function mergeApp() {
             try {
                 const d = await fetch('/api/merge/', { method: 'POST', body: fd }).then(r => r.json());
                 if (d.job_id) this.pollJob(d.job_id, 'merged_' + (this.files[0]?.name || 'output.pdf'));
-                else { this.hideModal(); alert(d.error || 'Error'); }
+                else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch (err) {
                 this.hideModal();
-                alert('Error: ' + err.message);
+                alert(window.I18N_JS.errorPrefix + ' ' + err.message);
             }
         },
 
@@ -174,12 +174,7 @@ function mergeApp() {
                 if (total > 3) {
                     const more = document.createElement('div');
                     more.className = 'page-item';
-                    more.innerHTML = `<div class="page-num" style="font-size:12px;color:#666;">+${total - 3} more</div>`;
+                    more.innerHTML = `<div class="page-num" style="font-size:12px;color:#666;">+${total - 3} {% trans "more" %}</div>`;
                     grid.appendChild(more);
                 }
-            }
-        },
-    });
-}
-</script>
-{% endblock %}
+          

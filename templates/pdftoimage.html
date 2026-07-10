@@ -80,9 +80,9 @@
         <div class="options-section">
             <label>{% trans "Quality (DPI)" %}</label>
             <select x-model="dpi">
-                <option value="72">72 - Low</option>
-                <option value="150">150 - Medium</option>
-                <option value="300">300 - High</option>
+                <option value="72">72 - {% trans "Low" %}</option>
+                <option value="150">150 - {% trans "Medium" %}</option>
+                <option value="300">300 - {% trans "High" %}</option>
             </select>
         </div>
 
@@ -147,9 +147,9 @@ function pdfToImageApp() {
             try {
                 const d = await fetch('/api/pdf-to-image/', { method: 'POST', body: fd }).then(r => r.json());
                 if (d.job_id) this.pollJob(d.job_id, 'images_' + (this.currentFile?.name || 'output').replace(/\.pdf$/i,'') + '.zip');
-                else { this.hideModal(); alert(d.error || 'Error'); }
+                else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch(err) {
-                this.hideModal(); alert('Error: ' + err.message);
+                this.hideModal(); alert(window.I18N_JS.errorPrefix + ' ' + err.message);
             }
         },
 
@@ -170,10 +170,4 @@ function pdfToImageApp() {
                 await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
                 const div = document.createElement('div'); div.className = 'page-item';
                 div.innerHTML = `<img src="${canvas.toDataURL()}"><span class="page-num">${isKhmer ? 'ទំព័រ' : 'Page'} ${toKhNum(i)}</span>`;
-                grid.appendChild(div);
-            }
-        },
-    });
-}
-</script>
-{% endblock %}
+                grid.

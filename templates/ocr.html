@@ -84,15 +84,15 @@
             <h3>{% trans "OCR Language" %}</h3>
             <label class="radio-option" :class="{ selected: ocrLang === 'eng' }" @click="ocrLang = 'eng'">
                 <span class="radio-circle"></span>
-                <div><strong>English</strong></div>
+                <div><strong>{% trans "English" %}</strong></div>
             </label>
             <label class="radio-option" :class="{ selected: ocrLang === 'khm' }" @click="ocrLang = 'khm'">
                 <span class="radio-circle"></span>
-                <div><strong>Khmer</strong></div>
+                <div><strong>{% trans "Khmer" %}</strong></div>
             </label>
             <label class="radio-option" :class="{ selected: ocrLang === 'eng+khm' }" @click="ocrLang = 'eng+khm'">
                 <span class="radio-circle"></span>
-                <div><strong>English + Khmer</strong></div>
+                <div><strong>{% trans "English + Khmer" %}</strong></div>
             </label>
         </div>
 
@@ -158,9 +158,9 @@ function ocrApp() {
             try {
                 const d = await fetch('/api/ocr/', { method: 'POST', body: fd }).then(r => r.json());
                 if (d.job_id) this.pollJob(d.job_id, 'ocr_' + (this.currentFile?.name || 'output.pdf'));
-                else { this.hideModal(); alert(d.error || 'Error'); }
+                else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch(err) {
-                this.hideModal(); alert('Error: ' + err.message);
+                this.hideModal(); alert(window.I18N_JS.errorPrefix + ' ' + err.message);
             }
         },
 
@@ -188,10 +188,4 @@ function ocrApp() {
                     grid.appendChild(thumb);
                 }
             } catch(e) {
-                grid.innerHTML = '<div class="empty-state">{% trans "Error loading preview" %}</div>';
-            }
-        },
-    });
-}
-</script>
-{% endblock %}
+                grid.innerHTML = '<div class="empty-state">{% trans "Error loading pr

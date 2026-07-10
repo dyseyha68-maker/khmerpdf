@@ -492,7 +492,7 @@
                 </form>
             </div>
 
-            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="{% trans 'Toggle theme' %}">
                 <span id="themeIcon">🌙</span>
             </button>
 
@@ -539,6 +539,18 @@
         }
     </script>
     
+    <script>
+        // Shared translated strings for JS-side messages across all pages
+        window.I18N_JS = {
+            error: "{% trans 'Error' %}",
+            errorPrefix: "{% trans 'Error:' %}",
+            processingFailed: "{% trans 'Processing failed' %}",
+            deleteConfirm: "{% trans 'Delete %s selected page(s)?' %}",
+            replaceLoadError: "{% trans 'Error loading replacement PDF' %}",
+            noPagesToSave: "{% trans 'No pages to save' %}"
+        };
+    </script>
+
     <script>
         // Shared Alpine base for all tool pages
         function baseToolApp(ext) {
@@ -595,18 +607,4 @@
                             }, 300);
                         } else if (job.status === 'failed') {
                             clearInterval(iv);
-                            this.hideModal();
-                            alert('Error: ' + (job.error || 'Processing failed'));
-                        }
-                    }, 2000);
-                },
-            };
-            // Use defineProperties so getter descriptors from ext are copied intact
-            // (Object.assign would invoke getters at call time, causing TypeError)
-            return Object.defineProperties(base, Object.getOwnPropertyDescriptors(ext));
-        }
-    </script>
-
-    {% block scripts %}{% endblock %}
-</body>
-</html>
+                            this.hid

@@ -731,13 +731,13 @@
             html += '<span class="special-event holiday-badge">🏖️ ' + hName + '</span>';
         }
         if (lunar && lunar.is_holy) {
-            html += '<span class="special-event holy-badge">🙏 ថ្ងៃបុណ្យ</span>';
+            html += '<span class="special-event holy-badge">🙏 ' + (isKhmer ? 'ថ្ងៃបុណ្យ' : 'Holy Day') + '</span>';
         }
         if (lunar && lunar.is_full_moon) {
-            html += '<span class="special-event moon-badge">🌕 ពេញបូណ៌មី</span>';
+            html += '<span class="special-event moon-badge">🌕 ' + (isKhmer ? 'ពេញបូណ៌មី' : 'Full Moon') + '</span>';
         }
         if (lunar && lunar.is_new_moon) {
-            html += '<span class="special-event moon-badge">🌑 ខ្នើតខែ</span>';
+            html += '<span class="special-event moon-badge">🌑 ' + (isKhmer ? 'ខ្នើតខែ' : 'New Moon') + '</span>';
         }
         document.getElementById('specialEvents').innerHTML = html;
         document.getElementById('dayModal').classList.add('open');
@@ -853,12 +853,4 @@
                 const name = isKhmer ? (h.name_kh || h.name_en) : (h.name_en || h.name_kh);
                 return '<div class="event-item">' +
                     '<span class="event-date">' + toKhNum(h.day) + '/' + toKhNum(h.month) + '/' + toKhNum(currentYear) + '</span>' +
-                    name + '</div>';
-            }).join('');
-        }
-    }
-
-    renderHero();
-    render();
-</script>
-{% endblock %}
+                    name + '</

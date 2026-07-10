@@ -208,10 +208,10 @@ function compressApp() {
             try {
                 const d = await fetch('/api/compress/', { method: 'POST', body: fd }).then(r => r.json());
                 if (d.job_id) this.pollJob(d.job_id, this.files[0]?.name || 'output.pdf');
-                else { this.hideModal(); alert(d.error || 'Error'); }
+                else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch (err) {
                 this.hideModal();
-                alert('Error: ' + err.message);
+                alert(window.I18N_JS.errorPrefix + ' ' + err.message);
             }
         },
 
@@ -241,7 +241,3 @@ function compressApp() {
                 grid.appendChild(div);
             }
         },
-    });
-}
-</script>
-{% endblock %}
