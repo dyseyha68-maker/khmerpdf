@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}OCR PDF - Make Scanned PDFs Searchable{% endblock %}
+{% block title %}OCR PDF - Convert Scanned PDFs to Editable Word{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -102,9 +102,9 @@
     </div>
 
     <div class="right-panel">
-        <h2>{% trans "Make Scanned PDFs Searchable" %}</h2>
+        <h2>{% trans "Convert Scanned PDFs to Editable Word" %}</h2>
         <p style="color:var(--text-secondary);text-align:center;padding:20px;">
-            {% trans "Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages." %}
+            {% trans "Upload a scanned PDF or image-based PDF to convert it into an editable Word (.docx) document. Supports English and Khmer languages." %}
         </p>
         <div class="right-panel-inner">
             <div class="preview-grid" id="previewGrid">
@@ -157,7 +157,7 @@ function ocrApp() {
             fd.append('ocr_lang', this.ocrLang);
             try {
                 const d = await fetch('/api/ocr/', { method: 'POST', body: fd }).then(r => r.json());
-                if (d.job_id) this.pollJob(d.job_id, 'ocr_' + (this.currentFile?.name || 'output.pdf'));
+                if (d.job_id) this.pollJob(d.job_id, 'ocr_' + (this.currentFile?.name || 'output.pdf').replace(/\.pdf$/i, '') + '.docx');
                 else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch(err) {
                 this.hideModal(); alert(window.I18N_JS.errorPrefix + ' ' + err.message);

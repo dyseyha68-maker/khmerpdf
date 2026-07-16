@@ -101,6 +101,15 @@ MAX_UPLOAD_SIZE = 350 * 1024 * 1024  # 350MB - allow large PDF files
 POPPLER_PATH = os.environ.get('POPPLER_PATH') or (
     r"D:\08. Saas\poppler\Library\bin" if os.name == 'nt' else None
 )
+
+# Tesseract-OCR binary path (Windows). pytesseract only wraps the tesseract.exe
+# binary - it does not install it. Install from
+# https://github.com/UB-Mannheim/tesseract/wiki, then point this at tesseract.exe
+# (default install location shown below), or leave as None if tesseract is
+# already in system PATH (e.g. installed via apt on Linux/Docker).
+TESSERACT_CMD = os.environ.get('TESSERACT_CMD') or (
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe" if os.name == 'nt' else None
+)
 ALLOWED_EXTENSIONS = ['pdf']
 
 # Celery settings
