@@ -87,6 +87,29 @@ class CalendarEvent(models.Model):
         return self.title_kh or self.title_en
 
 
+class PageVisit(models.Model):
+    """Lightweight visitor log — one row per page view, written by
+    apps.pdf.middleware.VisitorTrackingMiddleware."""
+    path = models.CharField(max_length=255, db_index=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    user_agent = models.CharField(max_length=255, blank=True)
+    referrer = models.CharField(max_length=500, blank=True)
+    language = models.CharField(max_length=10, blank=True)
+    is_bot = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['created_at', 'path']),
+        ]
+        verbose_name = 'Page Visit'
+        verbose_name_plural = 'Page Visits'
+
+    def __str__(self):
+        return f'{self.path} — {self.ip_address} — {self.created_at:%Y-%m-%d %H:%M}'
+
+
 class Job(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),

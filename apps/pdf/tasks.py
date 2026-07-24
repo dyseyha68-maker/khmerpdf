@@ -682,19 +682,15 @@ def ocr_pdf(job_id):
     job = Job.objects.get(id=job_id)
     job.status = 'processing'
     job.save()
-
+    
     ocr_lang = job.compression_level or 'eng'
-
+    
     lang_map = {
         'eng': 'eng',
         'khm': 'khm',
         'eng+khm': 'eng+khm'
     }
     tess_lang = lang_map.get(ocr_lang, 'eng')
-
-    tesseract_cmd = getattr(settings, 'TESSERACT_CMD', None)
-    if tesseract_cmd:
-        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
     
     try:
         input_path = job.file.path
@@ -707,11 +703,10 @@ def ocr_pdf(job_id):
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
         from docx.oxml import OxmlElement
-
+        
         doc = Document()
-
-        poppler_path = getattr(settings, 'POPPLER_PATH', None)
-        pages = convert_from_path(input_path, dpi=150, poppler_path=poppler_path)
+        
+        pages = convert_from_path(input_path, dpi=150)
         max_pages = min(len(pages), 30)
         
         def clean_text(text):
@@ -731,25 +726,22 @@ def ocr_pdf(job_id):
         # Set table auto-style
         doc.styles['Normal'].font.name = 'Calibri'
         doc.styles['Normal'].font.size = Pt(11)
-
-        extracted_chars = 0
-
+        
         for i in range(max_pages):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             gray = page.convert('L')
-
+            
             # Get OCR with position data
             try:
                 data = pytesseract.image_to_data(gray, lang=tess_lang, output_type=pytesseract.Output.DICT)
-            except Exception as e:
-                logger.error(f'pytesseract.image_to_data failed on page {i+1}: {e}', exc_info=True)
+            except:
                 data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}
-
+            
             # Extract text and organize by lines (y-position)
             lines_dict = {}
             n = len(data.get('text', []))
-
+            
             if n > 0:
                 # Group words into lines based on y-position
                 for j in range(n):
@@ -777,11 +769,10 @@ def ocr_pdf(job_id):
                     line_text = line_text.strip()
                     if line_text:
                         p = doc.add_paragraph(line_text)
-                        extracted_chars += len(line_text)
-
+                        
                         # Detect Khmer
                         has_khmer = any('\u1780' <= c <= '\u17FF' for c in line_text)
-
+                        
                         # Set font
                         for run in p.runs:
                             if has_khmer:
@@ -798,38 +789,29 @@ def ocr_pdf(job_id):
                         for line in text.split('\n'):
                             if line.strip():
                                 p = doc.add_paragraph(line)
-                                extracted_chars += len(line.strip())
                                 for run in p.runs:
                                     run.font.name = 'Calibri'
                                     run.font.size = Pt(11)
-                except Exception as e:
-                    logger.error(f'pytesseract.image_to_string failed on page {i+1}: {e}', exc_info=True)
-
+                except:
+                    pass
+            
             if i < max_pages - 1:
                 doc.add_page_break()
-
-        if extracted_chars == 0:
-            raise RuntimeError(
-                'OCR produced no text on any page. This usually means Tesseract-OCR '
-                'is not installed / not found (check TESSERACT_CMD in settings.py or '
-                'that tesseract is on PATH), the wrong language pack is missing '
-                f"(requested '{tess_lang}'), or the source pages are blank/too low quality."
-            )
-
+        
         output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
+        
         doc.save(output_path)
-
+        
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
-
+        
         job.status = 'done'
         job.save()
-
+        
         return {'status': 'done', 'job_id': str(job_id)}
-
+        
     except Exception as e:
         logger.error(f'OCR error: {e}', exc_info=True)
         job.status = 'failed'

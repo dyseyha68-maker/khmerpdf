@@ -1,0 +1,120 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Visitor Statistics{% endblock %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+<div style="max-width:1000px;">
+  <h1 style="margin-bottom:24px;">📊 Visitor Statistics</h1>
+  <p style="font-size:12px;color:#888;margin-top:-16px;margin-bottom:24px;">
+    Bot / crawler traffic is excluded from all numbers below ({{ bot_count }} bot hit{{ bot_count|pluralize }} logged separately).
+  </p>
+
+  <!-- Summary cards -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;">
+    <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:18px;">
+      <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;">Today</div>
+      <div style="font-size:28px;font-weight:700;color:#1e293b;">{{ stats_today.visits }}</div>
+      <div style="font-size:12px;color:#666;">{{ stats_today.unique }} unique visitor{{ stats_today.unique|pluralize }}</div>
+    </div>
+    <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:18px;">
+      <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;">This Week</div>
+      <div style="font-size:28px;font-weight:700;color:#1e293b;">{{ stats_week.visits }}</div>
+      <div style="font-size:12px;color:#666;">{{ stats_week.unique }} unique visitor{{ stats_week.unique|pluralize }}</div>
+    </div>
+    <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:18px;">
+      <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;">This Month</div>
+      <div style="font-size:28px;font-weight:700;color:#1e293b;">{{ stats_month.visits }}</div>
+      <div style="font-size:12px;color:#666;">{{ stats_month.unique }} unique visitor{{ stats_month.unique|pluralize }}</div>
+    </div>
+    <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:18px;">
+      <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;">All Time</div>
+      <div style="font-size:28px;font-weight:700;color:#1e293b;">{{ stats_all.visits }}</div>
+      <div style="font-size:12px;color:#666;">{{ stats_all.unique }} unique visitor{{ stats_all.unique|pluralize }}</div>
+    </div>
+  </div>
+
+  <!-- Daily chart -->
+  <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:20px;margin-bottom:32px;">
+    <h3 style="margin-bottom:12px;font-size:15px;">Visits — Last 30 Days</h3>
+    <canvas id="dailyChart" height="90"></canvas>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <!-- Top pages -->
+    <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:20px;">
+      <h3 style="margin-bottom:12px;font-size:15px;">📄 Top Pages</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#f8f9fa;">
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid #eee;">Path</th>
+            <th style="padding:6px 8px;text-align:right;border-bottom:1px solid #eee;">Visits</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in top_pages %}
+          <tr>
+            <td style="padding:6px 8px;border-bottom:1px solid #f2f2f2;"><code>{{ p.path }}</code></td>
+            <td style="padding:6px 8px;text-align:right;border-bottom:1px solid #f2f2f2;">{{ p.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" style="padding:10px;color:#999;">No data yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Top referrers -->
+    <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:20px;">
+      <h3 style="margin-bottom:12px;font-size:15px;">🔗 Top Referrers</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#f8f9fa;">
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid #eee;">Referrer</th>
+            <th style="padding:6px 8px;text-align:right;border-bottom:1px solid #eee;">Visits</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in top_referrers %}
+          <tr>
+            <td style="padding:6px 8px;border-bottom:1px solid #f2f2f2;word-break:break-all;">{{ r.referrer|truncatechars:60 }}</td>
+            <td style="padding:6px 8px;text-align:right;border-bottom:1px solid #f2f2f2;">{{ r.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" style="padding:10px;color:#999;">No referrer data yet (mostly direct traffic).</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p style="margin-top:24px;">
+    <a href="{% url 'admin:pdf_pagevisit_changelist' %}" style="color:#666;font-size:13px;">← Back to raw visit log</a>
+  </p>
+</div>
+
+<script>
+new Chart(document.getElementById('dailyChart'), {
+  type: 'line',
+  data: {
+    labels: {{ chart_labels|safe }},
+    datasets: [{
+      label: 'Visits',
+      data: {{ chart_values|safe }},
+      borderColor: '#059669',
+      backgroundColor: 'rgba(5,150,105,0.1)',
+      fill: true,
+      tension: 0.25,
+      pointRadius: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+  }
+});
+</script>
+{% endblock %}
