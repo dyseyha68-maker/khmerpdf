@@ -607,4 +607,18 @@
                             }, 300);
                         } else if (job.status === 'failed') {
                             clearInterval(iv);
-                            this.hid
+                            this.hideModal();
+                            alert(window.I18N_JS.errorPrefix + ' ' + (job.error || window.I18N_JS.processingFailed));
+                        }
+                    }, 2000);
+                },
+            };
+            // Use defineProperties so getter descriptors from ext are copied intact
+            // (Object.assign would invoke getters at call time, causing TypeError)
+            return Object.defineProperties(base, Object.getOwnPropertyDescriptors(ext));
+        }
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

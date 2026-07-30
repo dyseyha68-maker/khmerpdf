@@ -853,4 +853,12 @@
                 const name = isKhmer ? (h.name_kh || h.name_en) : (h.name_en || h.name_kh);
                 return '<div class="event-item">' +
                     '<span class="event-date">' + toKhNum(h.day) + '/' + toKhNum(h.month) + '/' + toKhNum(currentYear) + '</span>' +
-                    name + '</
+                    name + '</div>';
+            }).join('');
+        }
+    }
+
+    renderHero();
+    render();
+</script>
+{% endblock %}

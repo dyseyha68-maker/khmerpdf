@@ -170,4 +170,10 @@ function pdfToImageApp() {
                 await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
                 const div = document.createElement('div'); div.className = 'page-item';
                 div.innerHTML = `<img src="${canvas.toDataURL()}"><span class="page-num">${isKhmer ? 'ទំព័រ' : 'Page'} ${toKhNum(i)}</span>`;
-                grid.
+                grid.appendChild(div);
+            }
+        },
+    });
+}
+</script>
+{% endblock %}

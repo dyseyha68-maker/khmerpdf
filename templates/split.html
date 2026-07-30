@@ -341,4 +341,10 @@ function splitApp() {
                 if (d.job_id) this.pollJob(d.job_id, 'split_' + (this.currentFile?.name || 'output.pdf'));
                 else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch (err) {
-                this.hideModal(); alert(window.I18N_JS.er
+                this.hideModal(); alert(window.I18N_JS.errorPrefix + ' ' + err.message);
+            }
+        },
+    });
+}
+</script>
+{% endblock %}
