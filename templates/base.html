@@ -224,6 +224,11 @@
             background: var(--surface-hover);
             transform: scale(1.05);
         }
+
+        .theme-toggle i {
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
         
         .hamburger {
             display: none;
@@ -549,7 +554,7 @@
             </div>
 
             <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="{% trans 'Toggle theme' %}">
-                <span id="themeIcon">🌙</span>
+                <i class="ti ti-moon" id="themeIcon" aria-hidden="true"></i>
             </button>
 
             <button class="hamburger" @click="navOpen = !navOpen">
@@ -575,7 +580,7 @@
         function updateThemeIcon() {
             const theme = document.documentElement.getAttribute('data-theme');
             const icon = document.getElementById('themeIcon');
-            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            icon.className = theme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
         }
         
         function initTheme() {
