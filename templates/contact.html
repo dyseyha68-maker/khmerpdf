@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Contact Us" %} - DAMSPEY{% endblock %}
+{% block meta_description %}{% trans "Get in touch with DAMSPEY, or support the project by becoming a sponsor." %}{% endblock %}
+{% block page_path %}/contact/{% endblock %}
+{% block og_path %}/contact/{% endblock %}
+{% block og_title %}{% trans "Contact Us" %} - DAMSPEY{% endblock %}
+{% block og_description %}{% trans "Get in touch with DAMSPEY, or support the project by becoming a sponsor." %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+    .page-main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        box-sizing: border-box;
+    }
+
+    .contact-card {
+        background: var(--surface);
+        border-radius: 16px;
+        border: 0.5px solid var(--border);
+        width: 100%;
+        max-width: 700px;
+        overflow: hidden;
+        display: flex;
+        box-shadow: var(--shadow-md);
+    }
+
+    /* ── Left: contact details ─────────────────────────────── */
+    .contact-left {
+        flex: 1;
+        padding: 36px 32px;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .contact-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px;
+    }
+
+    .contact-sub {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+
+    .contact-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .contact-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        text-decoration: none;
+        transition: border-color 0.15s;
+    }
+    .contact-row:hover { border-color: var(--primary); }
+
+    .contact-row .icon {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .contact-row .meta {
+        min-width: 0;
+    }
+
+    .contact-row .meta .label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+
+    .contact-row .meta .value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* ── Right: sponsor / KHQR ─────────────────────────────── */
+    .contact-right {
+        width: 290px;
+        flex-shrink: 0;
+        background: var(--surface-hover);
+        border-left: 1px solid var(--border);
+        padding: 28px 24px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sponsor-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .sponsor-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 14px;
+        text-align: center;
+    }
+
+    .qr-img {
+        width: 100%;
+        max-width: 242px;
+        height: auto;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    .sponsor-hint {
+        font-size: 11px;
+        color: var(--text-secondary);
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 700px) {
+        .contact-card { flex-direction: column; }
+        .contact-left { padding: 28px 24px 24px; }
+        .contact-right {
+            width: 100%;
+            border-left: none;
+            border-top: 1px solid var(--border);
+            padding: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contact-card">
+
+    <!-- ── Left: contact details ─────────────────────────────── -->
+    <div class="contact-left">
+        <h1 class="contact-title">{% trans "Contact Us" %}</h1>
+        <p class="contact-sub">{% trans "Questions, feedback, or business inquiries — reach out through any of the channels below." %}</p>
+
+        <div class="contact-list">
+            <a href="https://t.me/seyhady" target="_blank" rel="noopener" class="contact-row">
+                <span class="icon"><i class="ti ti-brand-telegram" aria-hidden="true"></i></span>
+                <span class="meta">
+                    <span class="label">{% trans "Telegram" %}</span>
+                    <span class="value">Seyha DY | DC (140055)</span>
+                </span>
+            </a>
+
+            <a href="tel:+85586569666" class="contact-row">
+                <span class="icon"><i class="ti ti-phone" aria-hidden="true"></i></span>
+                <span class="meta">
+                    <span class="label">{% trans "Phone" %}</span>
+                    <span class="value">086 569 666</span>
+                </span>
+            </a>
+
+            <a href="mailto:dyseyha@live.com" class="contact-row">
+                <span class="icon"><i class="ti ti-mail" aria-hidden="true"></i></span>
+                <span class="meta">
+                    <span class="label">{% trans "Email" %}</span>
+                    <span class="value">dyseyha@live.com</span>
+                </span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Right: sponsor / KHQR ──────────────────────────────── -->
+    <div class="contact-right">
+        <p class="sponsor-label">{% trans "Become a" %}</p>
+        <p class="sponsor-title">{% trans "Sponsor" %}</p>
+        <img src="{% static 'khqr.jpg' %}" alt="{% trans 'KHQR sponsor code' %}" class="qr-img">
+        <p class="sponsor-hint">{% trans "Scan with any banking app to support this project" %}</p>
+    </div>
+
+</div>
+{% endblock %}

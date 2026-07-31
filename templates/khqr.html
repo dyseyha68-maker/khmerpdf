@@ -10,11 +10,18 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
-    /* Override outer page wrapper layout to center the card */
+    /* Override outer page wrapper layout to center the card, both
+       horizontally and vertically. .page-main already has flex:1 from
+       base.html (body is a flex column), so it fills all space below
+       the header — justify-content:center then centers the card in
+       that space vertically, matching align-items:center horizontally. */
     .page-main {
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
+        padding: 24px;
+        box-sizing: border-box;
     }
 
     /* ── Card shell ─────────────────────────────────────────── */

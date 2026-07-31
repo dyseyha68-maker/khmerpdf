@@ -210,6 +210,10 @@ def khqr(request):
     return render(request, 'khqr.html', {'download_url': forced_url, 'filename': filename})
 
 
+def contact_page(request):
+    return render(request, 'contact.html')
+
+
 @csrf_exempt
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])

@@ -467,3 +467,33 @@ msgstr ""
 
 msgid "No lunar data available for this date"
 msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "Contact Us"
+msgstr ""
+
+msgid "Get in touch with DAMSPEY, or support the project by becoming a sponsor."
+msgstr ""
+
+msgid "Questions, feedback, or business inquiries — reach out through any of the channels below."
+msgstr ""
+
+msgid "Telegram"
+msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Become a"
+msgstr ""
+
+msgid "Sponsor"
+msgstr ""
+
+msgid "Scan with any banking app to support this project"
+msgstr ""

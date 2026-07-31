@@ -470,3 +470,34 @@ msgstr "ថ្ងៃនេះមិនមានក្នុងខែនេះទ
 
 msgid "No lunar data available for this date"
 msgstr "មិនមានទិន្នន័យចន្ទគតិសម្រាប់ថ្ងៃនេះទេ"
+
+# Contact page
+msgid "Contact"
+msgstr "ទំនាក់ទំនង"
+
+msgid "Contact Us"
+msgstr "ទាក់ទងមកយើងខ្ញុំ"
+
+msgid "Get in touch with DAMSPEY, or support the project by becoming a sponsor."
+msgstr "ទាក់ទងមក DAMSPEY ឬគាំទ្រគម្រោងនេះដោយក្លាយជាអ្នកឧបត្ថម្ភ។"
+
+msgid "Questions, feedback, or business inquiries — reach out through any of the channels below."
+msgstr "សំណួរ មតិយោបល់ ឬការទាក់ទងអាជីវកម្ម — សូមទាក់ទងតាមរយៈមធ្យោបាយខាងក្រោម។"
+
+msgid "Telegram"
+msgstr "តេឡេក្រាម"
+
+msgid "Phone"
+msgstr "លេខទូរស័ព្ទ"
+
+msgid "Email"
+msgstr "អ៊ីមែល"
+
+msgid "Become a"
+msgstr "ក្លាយជា"
+
+msgid "Sponsor"
+msgstr "អ្នកឧបត្ថម្ភ"
+
+msgid "Scan with any banking app to support this project"
+msgstr "ស្កេនតាមកម្មវិធីធនាគារណាមួយ ដើម្បីគាំទ្រគម្រោងនេះ"
