@@ -1,7 +1,7 @@
 import csv
 import io
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from django import forms
 from django.contrib import admin
@@ -361,6 +361,22 @@ _KHMER_DAY_CHOICES = [
 
 
 class LunarDateForm(forms.ModelForm):
+    # Solar (Gregorian) date entered as three separate, editable number boxes
+    # instead of a date picker — and, unlike before, this is no longer
+    # read-only, so existing entries can be corrected and new ones added.
+    solar_day = forms.IntegerField(
+        min_value=1, max_value=31, label='Day (solar)',
+        widget=forms.NumberInput(attrs={'style': 'width:70px'}),
+    )
+    solar_month = forms.IntegerField(
+        min_value=1, max_value=12, label='Month (solar)',
+        widget=forms.NumberInput(attrs={'style': 'width:70px'}),
+    )
+    solar_year = forms.IntegerField(
+        min_value=1900, max_value=2100, label='Year (solar)',
+        widget=forms.NumberInput(attrs={'style': 'width:90px'}),
+    )
+
     lunar_month = forms.ChoiceField(
         choices=_LUNAR_MONTH_CHOICES,
         label='Lunar Month',
@@ -377,13 +393,45 @@ class LunarDateForm(forms.ModelForm):
 
     class Meta:
         model = LunarDate
-        fields = '__all__'
+        exclude = ['solar_date']  # replaced by solar_day / solar_month / solar_year above
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.solar_date:
+            self.fields['solar_day'].initial = self.instance.solar_date.day
+            self.fields['solar_month'].initial = self.instance.solar_date.month
+            self.fields['solar_year'].initial = self.instance.solar_date.year
 
     def clean_lunar_month(self):
         val = self.cleaned_data.get('lunar_month', '')
         if not val:
             raise forms.ValidationError('Please select a lunar month.')
         return int(val)
+
+    def clean(self):
+        cleaned = super().clean()
+        d, m, y = cleaned.get('solar_day'), cleaned.get('solar_month'), cleaned.get('solar_year')
+        if d and m and y:
+            try:
+                new_date = date(y, m, d)
+            except ValueError:
+                raise forms.ValidationError(f'{y}-{m:02d}-{d:02d} is not a valid calendar date.')
+
+            qs = LunarDate.objects.filter(solar_date=new_date)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError(f'A lunar date entry for {new_date} already exists — edit that entry instead.')
+
+            cleaned['solar_date'] = new_date
+        return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.solar_date = self.cleaned_data['solar_date']
+        if commit:
+            instance.save()
+        return instance
 
 
 @admin.register(LunarDate)
@@ -395,14 +443,14 @@ class LunarDateAdmin(admin.ModelAdmin):
     list_filter        = [LunarYearFilter, LunarMonthFilter, 'is_holy_day', 'is_full_moon', 'is_new_moon']
     search_fields      = ['khmer_month_name', 'khmer_day_name']
     ordering           = ['-solar_date']
-    readonly_fields    = ['solar_date']
     actions            = [run_populate_calendar, delete_all_lunar]
     list_per_page      = 31   # one month at a time
     date_hierarchy     = 'solar_date'            # drill Year → Month → Day
 
     fieldsets = (
         ('Solar Date', {
-            'fields': ('solar_date',),
+            'fields': (('solar_day', 'solar_month', 'solar_year'),),
+            'description': 'Enter the Gregorian day, month, and year this lunar entry belongs to. Editable — use this to add a missing date or correct an existing one.',
         }),
         ('Lunar Date', {
             'fields': ('lunar_month', 'lunar_day', 'lunar_year'),
