@@ -10,8 +10,9 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
-    /* Override main-content layout to center the card */
-    .main-content {
+    /* Override outer page wrapper layout to center the card */
+    .page-main {
+        display: flex;
         flex-direction: column;
         align-items: center;
     }
@@ -191,7 +192,7 @@
 
     /* ── Responsive ─────────────────────────────────────────── */
     @media (max-width: 700px) {
-        .main-content { padding: 16px; }
+        .page-main { padding: 16px; }
         .card { flex-direction: column; }
         .left { padding: 24px 20px 20px; }
         .right {

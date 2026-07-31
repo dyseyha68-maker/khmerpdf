@@ -265,6 +265,19 @@
             }
         }
         
+        /* Outer semantic wrapper — plain block, no layout opinions.
+           Kept separate from .main-content (the actual two-column tool
+           layout below) so the two never collide: previously both the
+           wrapper and the tool's own flex row shared the name
+           "main-content", which made any extra sibling (like
+           .page-seo-header) become a flex-row item instead of stacking
+           above the tool UI, squeezing everything into a narrow column. */
+        .page-main {
+            flex: 1;
+            display: block;
+            width: 100%;
+        }
+
         .main-content {
             flex: 1;
             padding: 24px;
@@ -546,7 +559,7 @@
       </div>
     </header>
     
-    <main class="main-content">
+    <main class="page-main">
         {% block content %}{% endblock %}
     </main>
     
