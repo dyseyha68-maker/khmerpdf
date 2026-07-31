@@ -7,7 +7,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-pro
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'  # default True for dev; set DEBUG=False in production
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['18.143.195.44', '127.0.0.1', 'localhost', 'damspey.com', 'www.damspey.com']
 
 CSRF_TRUSTED_ORIGINS = ['https://*.railway.app', 'https://damspey.com', 'https://www.damspey.com']
 
