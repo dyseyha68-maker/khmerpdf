@@ -198,6 +198,74 @@
         font-weight: 600;
     }
 
+    /* ── Date Lookup (editable day/month/year) ──────────────────── */
+    .date-lookup h3 {
+        color: var(--text-secondary);
+        margin: 0 0 8px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .date-lookup-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1.3fr;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .date-lookup-inputs input {
+        width: 100%;
+        padding: 8px 4px;
+        border-radius: 7px;
+        border: 1.5px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        font-family: inherit;
+        text-align: center;
+        -moz-appearance: textfield;
+    }
+
+    .date-lookup-inputs input::-webkit-outer-spin-button,
+    .date-lookup-inputs input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .date-lookup-inputs input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .date-lookup-btn {
+        width: 100%;
+        padding: 9px;
+        border-radius: 7px;
+        border: none;
+        background: var(--primary);
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
+    }
+
+    .date-lookup-btn:hover { background: var(--primary-dark); }
+
+    .date-lookup-result {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-align: center;
+        min-height: 16px;
+        font-family: 'Kantumruy Pro', sans-serif;
+    }
+
+    .date-lookup-result.error { color: #dc2626; }
+
     /* ── Events list ─────────────────────────────────────────────── */
     .events-section h3 {
         color: var(--text-secondary);
@@ -608,6 +676,17 @@
 
             <div class="month-grid" id="monthGrid"></div>
 
+            <div class="date-lookup">
+                <h3>🔎 {% trans "Find a Date" %}</h3>
+                <div class="date-lookup-inputs">
+                    <input type="number" id="lookupDay" min="1" max="31" placeholder="{% trans 'Day' %}" inputmode="numeric">
+                    <input type="number" id="lookupMonth" min="1" max="12" placeholder="{% trans 'Month' %}" inputmode="numeric">
+                    <input type="number" id="lookupYear" min="1900" max="2100" placeholder="{% trans 'Year' %}" value="{{ current_year }}" inputmode="numeric">
+                </div>
+                <button class="date-lookup-btn" onclick="goToDate()">{% trans "Show Lunar Date" %}</button>
+                <div class="date-lookup-result" id="lookupResult"></div>
+            </div>
+
             <div class="events-section">
                 <h3>📅 {% trans "Events" %}</h3>
                 <div class="events-list" id="eventsList"></div>
@@ -668,6 +747,9 @@
         publicHoliday: "{% trans 'Public Holiday' %}",
         weekend: "{% trans 'Weekend' %}",
         holyDay: "{% trans 'Holy / Precept Day' %}",
+        invalidDate: "{% trans 'Please enter a valid date' %}",
+        dayNotInMonth: "{% trans 'That day does not exist in this month' %}",
+        noLunarData: "{% trans 'No lunar data available for this date' %}",
     };
     const khmerMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
     const englishMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -771,6 +853,51 @@
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') document.getElementById('dayModal').classList.remove('open');
+    });
+
+    function lunarResultText(day, month, year) {
+        const lunar = getLunarDate(day, month);
+        if (!lunar) return null;
+        return lunar.khmer_month + ' ទី' + calToKhNum(lunar.lunar_day) + ' · ' + calToKhNum(lunar.lunar_year) + ' ព.ស';
+    }
+
+    function goToDate() {
+        const d = parseInt(document.getElementById('lookupDay').value, 10);
+        const m = parseInt(document.getElementById('lookupMonth').value, 10);
+        const y = parseInt(document.getElementById('lookupYear').value, 10);
+        const resultEl = document.getElementById('lookupResult');
+
+        if (!d || !m || !y || m < 1 || m > 12 || d < 1 || d > 31 || y < 1900 || y > 2100) {
+            resultEl.textContent = I18N.invalidDate;
+            resultEl.classList.add('error');
+            return;
+        }
+
+        const daysInMonth = new Date(y, m, 0).getDate();
+        if (d > daysInMonth) {
+            resultEl.textContent = I18N.dayNotInMonth;
+            resultEl.classList.add('error');
+            return;
+        }
+
+        resultEl.classList.remove('error');
+
+        if (y === currentYear) {
+            currentMonth = m - 1;
+            selectedDay = d;
+            render();
+            showDayInfo(d, m - 1, y);
+            resultEl.textContent = lunarResultText(d, m, y) || I18N.noLunarData;
+        } else {
+            // Different year — reload so the server sends that year's lunar data
+            window.location.href = '/pdf-calendar/?year=' + y + '&month=' + m + '&day=' + d;
+        }
+    }
+
+    ['lookupDay', 'lookupMonth', 'lookupYear'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') goToDate();
+        });
     });
 
     function render() {
@@ -878,7 +1005,25 @@
         }
     }
 
+    // Deep-linked date lookup (?year=&month=&day=) — set before render() so
+    // the target cell gets the "selected" outline on first paint.
+    const _dayParam = parseInt(new URLSearchParams(window.location.search).get('day'), 10);
+    if (_dayParam >= 1 && _dayParam <= 31) {
+        selectedDay = _dayParam;
+    }
+
     renderHero();
     render();
+
+    if (_dayParam >= 1 && _dayParam <= 31) {
+        document.getElementById('lookupDay').value = _dayParam;
+        document.getElementById('lookupMonth').value = currentMonth + 1;
+        document.getElementById('lookupYear').value = currentYear;
+        showDayInfo(_dayParam, currentMonth, currentYear);
+        const resultEl = document.getElementById('lookupResult');
+        const text = lunarResultText(_dayParam, currentMonth + 1, currentYear);
+        resultEl.classList.toggle('error', !text);
+        resultEl.textContent = text || I18N.noLunarData;
+    }
 </script>
 {% endblock %}

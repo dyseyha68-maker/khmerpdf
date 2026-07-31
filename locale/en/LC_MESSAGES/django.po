@@ -442,3 +442,28 @@ msgstr ""
 
 msgid "Log in"
 msgstr ""
+
+# Calendar - date lookup
+msgid "Find a Date"
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Month"
+msgstr ""
+
+msgid "Year"
+msgstr ""
+
+msgid "Show Lunar Date"
+msgstr ""
+
+msgid "Please enter a valid date"
+msgstr ""
+
+msgid "That day does not exist in this month"
+msgstr ""
+
+msgid "No lunar data available for this date"
+msgstr ""

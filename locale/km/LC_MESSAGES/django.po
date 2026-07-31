@@ -445,3 +445,28 @@ msgstr "មានគណនីរួចហើយមែនទេ?"
 
 msgid "Log in"
 msgstr "ចូល"
+
+# Calendar - date lookup
+msgid "Find a Date"
+msgstr "រកកាលបរិច្ឆេទ"
+
+msgid "Day"
+msgstr "ថ្ងៃ"
+
+msgid "Month"
+msgstr "ខែ"
+
+msgid "Year"
+msgstr "ឆ្នាំ"
+
+msgid "Show Lunar Date"
+msgstr "បង្ហាញកាលបរិច្ឆេទចន្ទគតិ"
+
+msgid "Please enter a valid date"
+msgstr "សូមបញ្ចូលកាលបរិច្ឆេទឱ្យត្រឹមត្រូវ"
+
+msgid "That day does not exist in this month"
+msgstr "ថ្ងៃនេះមិនមានក្នុងខែនេះទេ"
+
+msgid "No lunar data available for this date"
+msgstr "មិនមានទិន្នន័យចន្ទគតិសម្រាប់ថ្ងៃនេះទេ"
