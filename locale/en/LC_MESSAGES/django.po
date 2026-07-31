@@ -322,3 +322,28 @@ msgstr ""
 
 msgid "Loading PDF pages..."
 msgstr ""
+
+# --- Download / file-ready page (khqr.html) ---
+msgid "File Ready"
+msgstr ""
+
+msgid "Your file is ready"
+msgstr ""
+
+msgid "Processed and ready to download."
+msgstr ""
+
+msgid "Download file"
+msgstr ""
+
+msgid "Back to home"
+msgstr ""
+
+msgid "Support this tool"
+msgstr ""
+
+msgid "KHQR donation code"
+msgstr ""
+
+msgid "Any amount is appreciated"
+msgstr ""

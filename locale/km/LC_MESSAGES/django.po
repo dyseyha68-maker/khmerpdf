@@ -325,3 +325,28 @@ msgstr "សូមរង់ចាំ ឯកសារ PDF របស់អ្នក
 
 msgid "Loading PDF pages..."
 msgstr "កំពុងដំណើរការផ្ទុកទំព័រ..."
+
+# --- Download / file-ready page (khqr.html) ---
+msgid "File Ready"
+msgstr "ឯកសារបានរួចរាល់"
+
+msgid "Your file is ready"
+msgstr "ឯកសាររបស់អ្នកបានរួចរាល់ហើយ"
+
+msgid "Processed and ready to download."
+msgstr "បានប្រតិបត្តិការរួចរាល់ ត្រៀមខ្លួនសម្រាប់ទាញយក។"
+
+msgid "Download file"
+msgstr "ទាញយកឯកសារ"
+
+msgid "Back to home"
+msgstr "ត្រឡប់ទៅទំព័រដើម"
+
+msgid "Support this tool"
+msgstr "គាំទ្រឧបករណ៍នេះ"
+
+msgid "KHQR donation code"
+msgstr "កូដ KHQR សម្រាប់បរិច្ចាគ"
+
+msgid "Any amount is appreciated"
+msgstr "សូមអរគុណសម្រាប់ចំនួនទឹកប្រាក់ណាមួយ"
