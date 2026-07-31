@@ -326,23 +326,43 @@ def _to_kh_num(n):
 _LUNAR_MONTH_CHOICES = (
     [('', '--- select ---')] +
     [(str(i), f'{_to_kh_num(i)} កើត') for i in range(1, 16)] +
-    [(str(i), f'{_to_kh_num(i)} រោច') for i in range(16, 31)]
+    # stored value is 16-30, but the day-within-fortnight is (value - 15) —
+    # e.g. stored 17 = "២ រោច", previously mislabeled as "១៧ រោច"
+    [(str(i), f'{_to_kh_num(i - 15)} រោច') for i in range(16, 31)]
 )
 
 _KHMER_MONTH_CHOICES = [
     ('', '--- select ---'),
-    ('មករា',              'មករា  (January)'),
-    ('កុម្ភៈ',           'កុម្ភៈ  (February)'),
-    ('មីនា',             'មីនា  (March)'),
-    ('មេសា',             'មេសា  (April)'),
-    ('ឧសភា',             'ឧសភា  (May)'),
-    ('មិថុនា',           'មិថុនា  (June)'),
-    ('កក្កដា',           'កក្កដា  (July)'),
-    ('សីហា',             'សីហា  (August)'),
-    ('កញ្ញា',            'កញ្ញា  (September)'),
-    ('តុលា',             'តុលា  (October)'),
-    ('វិចិ្ឆកា',         'វិចិ្ឆកា  (November)'),
-    ('ធ្នូ',             'ធ្នូ  (December)'),
+    # Traditional Khmer lunar months — use these for accurate entries.
+    # ទុតិយាសាឍ ("second Asadh") only occurs in an athikameas (leap) year,
+    # which adds an extra month between អាសាឍ and ស្រាពណ៍.
+    ('មិគសិរ',    'មិគសិរ  (lunar month 1)'),
+    ('បុស្ស',     'បុស្ស  (lunar month 2)'),
+    ('មាឃ',       'មាឃ  (lunar month 3)'),
+    ('ផល្គុន',   'ផល្គុន  (lunar month 4)'),
+    ('ចេត្រ',     'ចេត្រ  (lunar month 5)'),
+    ('ពិសាខ',    'ពិសាខ  (lunar month 6)'),
+    ('ជេស្ឋ',     'ជេស្ឋ  (lunar month 7)'),
+    ('អាសាឍ',    'អាសាឍ  (lunar month 8)'),
+    ('ទុតិយាសាឍ', 'ទុតិយាសាឍ  (leap month — 2nd Asadh)'),
+    ('ស្រាពណ៍',  'ស្រាពណ៍  (lunar month 9)'),
+    ('ភទ្របទ',   'ភទ្របទ  (lunar month 10)'),
+    ('អស្សុជ',    'អស្សុជ  (lunar month 11)'),
+    ('កត្តិក',    'កត្តិក  (lunar month 12)'),
+    # Legacy solar-named values — kept so older auto-generated rows still
+    # display correctly in this dropdown; prefer the traditional names above.
+    ('មករា',              'មករា  (January, legacy)'),
+    ('កុម្ភៈ',           'កុម្ភៈ  (February, legacy)'),
+    ('មីនា',             'មីនា  (March, legacy)'),
+    ('មេសា',             'មេសា  (April, legacy)'),
+    ('ឧសភា',             'ឧសភា  (May, legacy)'),
+    ('មិថុនា',           'មិថុនា  (June, legacy)'),
+    ('កក្កដា',           'កក្កដា  (July, legacy)'),
+    ('សីហា',             'សីហា  (August, legacy)'),
+    ('កញ្ញា',            'កញ្ញា  (September, legacy)'),
+    ('តុលា',             'តុលា  (October, legacy)'),
+    ('វិចិ្ឆកា',         'វិចិ្ឆកា  (November, legacy)'),
+    ('ធ្នូ',             'ធ្នូ  (December, legacy)'),
     ('បុណ្យចូលឆ្នាំ',   'បុណ្យចូលឆ្នាំ'),
     ('មាឃបូជា',          'មាឃបូជា'),
     ('ពិធីបុណ្យចូលបិណ្យ','ពិធីបុណ្យចូលបិណ្យ'),
