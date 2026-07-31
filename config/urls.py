@@ -25,8 +25,8 @@ urlpatterns = [
     path('image-to-pdf/', image_to_pdf_page, name='image_to_pdf'),
     
     # SEO files
-    path('robots.txt', lambda r: RedirectView.as_view(url='/static/robots.txt', permanent=False)),
-    path('sitemap.xml', lambda r: RedirectView.as_view(url='/static/sitemap.xml', permanent=False)),
+    path('robots.txt', RedirectView.as_view(url='/static/robots.txt', permanent=False)),
+    path('sitemap.xml', RedirectView.as_view(url='/static/sitemap.xml', permanent=False)),
 ]
 
 # Serve media files (dev uses django helper; prod uses explicit serve view)
