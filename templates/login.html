@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Log In" %} - DAMSPEY{% endblock %}
+{% block meta_robots %}noindex, follow{% endblock %}
+{% block meta_description %}{% trans "Log in to your DAMSPEY account." %}{% endblock %}
+{% block page_path %}/login/{% endblock %}
+{% block og_path %}/login/{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+    .page-main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .auth-card {
+        background: var(--surface);
+        border-radius: 16px;
+        border: 0.5px solid var(--border);
+        width: 100%;
+        max-width: 380px;
+        padding: 36px 32px;
+        box-shadow: var(--shadow-md);
+    }
+
+    .auth-logo {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 4px;
+    }
+
+    .auth-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text);
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .auth-field {
+        margin-bottom: 16px;
+    }
+
+    .auth-field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+    }
+
+    .auth-field input {
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.15s;
+    }
+    .auth-field input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .auth-error {
+        background: #fdecea;
+        color: #b3261e;
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+    [data-theme="dark"] .auth-error { background: #3a1a17; color: #f3a49c; }
+
+    .auth-submit {
+        width: 100%;
+        padding: 13px 20px;
+        border-radius: var(--radius-sm);
+        background: var(--primary);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        border: none;
+        cursor: pointer;
+        margin-top: 4px;
+        transition: background 0.15s;
+    }
+    .auth-submit:hover { background: var(--primary-dark); }
+
+    .auth-switch {
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 18px;
+    }
+    .auth-switch a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .auth-switch a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+        .auth-card { padding: 28px 22px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+    <div class="auth-logo">DAMSPEY</div>
+    <div class="auth-title">{% trans "Log in to your account" %}</div>
+
+    {% if form.non_field_errors %}
+        <div class="auth-error">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div class="auth-field">
+            <label for="id_username">{% trans "Username" %}</label>
+            <input type="text" name="username" id="id_username" autofocus required
+                   value="{{ form.username.value|default_if_none:'' }}">
+        </div>
+
+        <div class="auth-field">
+            <label for="id_password">{% trans "Password" %}</label>
+            <input type="password" name="password" id="id_password" required>
+        </div>
+
+        <button type="submit" class="auth-submit">{% trans "Log In" %}</button>
+    </form>
+
+    <div class="auth-switch">
+        {% trans "Don't have an account?" %} <a href="{% url 'register' %}">{% trans "Sign up" %}</a>
+    </div>
+</div>
+{% endblock %}

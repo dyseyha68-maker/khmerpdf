@@ -396,3 +396,49 @@ msgstr ""
 
 msgid "Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia."
 msgstr ""
+
+# Auth (login / register / logout)
+msgid "Log In"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
+
+msgid "Log in to your DAMSPEY account."
+msgstr ""
+
+msgid "Log in to your account"
+msgstr ""
+
+msgid "Username"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Don't have an account?"
+msgstr ""
+
+msgid "Sign up"
+msgstr ""
+
+msgid "Sign Up"
+msgstr ""
+
+msgid "Create a free DAMSPEY account."
+msgstr ""
+
+msgid "Create your account"
+msgstr ""
+
+msgid "Confirm password"
+msgstr ""
+
+msgid "At least 8 characters. Not too common, not all numbers."
+msgstr ""
+
+msgid "Already have an account?"
+msgstr ""
+
+msgid "Log in"
+msgstr ""

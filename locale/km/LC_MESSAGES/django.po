@@ -399,3 +399,49 @@ msgstr "ប្រតិទិនចន្ទគតិខ្មែរ និង�
 
 msgid "Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia."
 msgstr "ពិនិត្យមើលកាលបរិច្ឆេទចន្ទគតិខ្មែរ ឆ្នាំពុទ្ធសករាជ និងថ្ងៃឈប់សម្រាកនៅកម្ពុជា។"
+
+# Auth (login / register / logout)
+msgid "Log In"
+msgstr "ចូលគណនី"
+
+msgid "Log Out"
+msgstr "ចាកចេញ"
+
+msgid "Log in to your DAMSPEY account."
+msgstr "ចូលទៅគណនី DAMSPEY របស់អ្នក។"
+
+msgid "Log in to your account"
+msgstr "ចូលទៅគណនីរបស់អ្នក"
+
+msgid "Username"
+msgstr "ឈ្មោះអ្នកប្រើប្រាស់"
+
+msgid "Password"
+msgstr "ពាក្យសម្ងាត់"
+
+msgid "Don't have an account?"
+msgstr "មិនទាន់មានគណនីមែនទេ?"
+
+msgid "Sign up"
+msgstr "ចុះឈ្មោះ"
+
+msgid "Sign Up"
+msgstr "ចុះឈ្មោះ"
+
+msgid "Create a free DAMSPEY account."
+msgstr "បង្កើតគណនី DAMSPEY ដោយឥតគិតថ្លៃ។"
+
+msgid "Create your account"
+msgstr "បង្កើតគណនីរបស់អ្នក"
+
+msgid "Confirm password"
+msgstr "បញ្ជាក់ពាក្យសម្ងាត់"
+
+msgid "At least 8 characters. Not too common, not all numbers."
+msgstr "យ៉ាងហោចណាស់ ៨ តួអក្សរ។ មិនធម្មតាពេក និងមិនមែនជាលេខទាំងអស់។"
+
+msgid "Already have an account?"
+msgstr "មានគណនីរួចហើយមែនទេ?"
+
+msgid "Log in"
+msgstr "ចូល"

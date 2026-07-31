@@ -259,7 +259,46 @@
             font-size: 18px;
             color: var(--text-secondary);
         }
-        
+
+        .account-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .account-username {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .account-username i { font-size: 16px; }
+
+        .account-btn {
+            display: inline-flex;
+            align-items: center;
+            background: var(--surface-hover);
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .account-btn:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        @media (max-width: 480px) {
+            .account-username-text { display: none; }
+            .account-btn { padding: 8px 10px; }
+        }
+
         .hamburger {
             display: none;
             background: none;
@@ -582,6 +621,15 @@
                         <span class="fi fi-us"></span>EN
                     </button>
                 </form>
+            </div>
+
+            <div class="account-area">
+                {% if user.is_authenticated %}
+                    <span class="account-username"><i class="ti ti-user-circle" aria-hidden="true"></i><span class="account-username-text">{{ user.username }}</span></span>
+                    <a href="{% url 'logout' %}" class="account-btn">{% trans "Log Out" %}</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="account-btn">{% trans "Log In" %}</a>
+                {% endif %}
             </div>
 
             <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="{% trans 'Toggle theme' %}">
