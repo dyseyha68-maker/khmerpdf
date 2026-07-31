@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Calendar" %}{% endblock %}
+{% block title %}Khmer Lunar Calendar - ប្រតិទិនចន្ទគតិខ្មែរ | DAMSPEY{% endblock %}
+{% block meta_description %}Khmer lunar calendar with Buddhist Era years and Cambodia public holidays. ប្រតិទិនចន្ទគតិខ្មែរ ឆ្នាំពុទ្ធសករាជ និងថ្ងៃឈប់សម្រាកនៅកម្ពុជា។{% endblock %}
+{% block page_path %}/pdf-calendar/{% endblock %}
+{% block og_path %}/pdf-calendar/{% endblock %}
+{% block og_title %}Khmer Lunar Calendar - ប្រតិទិនចន្ទគតិខ្មែរ{% endblock %}
+{% block og_description %}Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia.{% endblock %}
+{% block twitter_title %}Khmer Lunar Calendar - ប្រតិទិនចន្ទគតិខ្មែរ{% endblock %}
+{% block twitter_description %}Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -557,6 +564,11 @@
 
 {{ holidays|json_script:"holidays-data" }}
 {{ lunar_dates|json_script:"lunar-dates-data" }}
+
+<div class="page-seo-header">
+    <h1>{% trans "Khmer Lunar Calendar & Cambodia Holidays" %}</h1>
+    <p>{% trans "Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia." %}</p>
+</div>
 
 <div class="calendar-page">
 

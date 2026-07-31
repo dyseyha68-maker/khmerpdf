@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}PDF to Image - Khmer PDF Tools{% endblock %}
+{% block title %}PDF to Image Free - បម្លែង PDF ទៅរូបភាព | DAMSPEY{% endblock %}
+{% block meta_description %}Convert PDF pages into JPG or PNG images online for free. បម្លែងទំព័រ PDF ទៅជារូបភាព JPG ឬ PNG ឥតគិតថ្លៃ។{% endblock %}
+{% block page_path %}/pdf-to-image/{% endblock %}
+{% block og_path %}/pdf-to-image/{% endblock %}
+{% block og_title %}PDF to Image Free - បម្លែង PDF ទៅរូបភាព{% endblock %}
+{% block og_description %}Turn PDF pages into JPG or PNG images online, instantly and for free.{% endblock %}
+{% block twitter_title %}PDF to Image Free - បម្លែង PDF ទៅរូបភាព{% endblock %}
+{% block twitter_description %}Turn PDF pages into JPG or PNG images online, instantly and for free.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -46,6 +53,11 @@
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<div class="page-seo-header">
+    <h1>{% trans "Convert PDF to Image" %}</h1>
+    <p>{% trans "Turn PDF pages into JPG or PNG images instantly." %}</p>
+</div>
 
 <div class="main-content" x-data="pdfToImageApp()">
     <div class="left-panel">

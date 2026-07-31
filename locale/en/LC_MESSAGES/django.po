@@ -347,3 +347,52 @@ msgstr ""
 
 msgid "Any amount is appreciated"
 msgstr ""
+
+# --- SEO page headers (h1 + intro on each tool page) ---
+msgid "Compress PDF Files Online"
+msgstr ""
+
+msgid "Reduce your PDF file size for free — fast, secure, and no signup required."
+msgstr ""
+
+msgid "Merge PDF Files Online"
+msgstr ""
+
+msgid "Combine multiple PDF files into one document in seconds."
+msgstr ""
+
+msgid "Split PDF Files Online"
+msgstr ""
+
+msgid "Extract or separate pages from your PDF document easily."
+msgstr ""
+
+msgid "Organize PDF Pages"
+msgstr ""
+
+msgid "Reorder, rotate, or delete pages in your PDF file."
+msgstr ""
+
+msgid "OCR PDF to Word - Khmer & English"
+msgstr ""
+
+msgid "Convert scanned PDF files into editable Word documents with Khmer and English OCR."
+msgstr ""
+
+msgid "Convert PDF to Image"
+msgstr ""
+
+msgid "Turn PDF pages into JPG or PNG images instantly."
+msgstr ""
+
+msgid "Convert Image to PDF"
+msgstr ""
+
+msgid "Combine JPG or PNG images into a single PDF file."
+msgstr ""
+
+msgid "Khmer Lunar Calendar & Cambodia Holidays"
+msgstr ""
+
+msgid "Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia."
+msgstr ""

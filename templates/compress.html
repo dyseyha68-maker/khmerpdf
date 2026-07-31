@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Compress PDF - Khmer PDF Tools{% endblock %}
+{% block title %}Compress PDF Free - បង្រួម PDF | DAMSPEY{% endblock %}
+{% block meta_description %}Compress PDF files online for free — reduce file size fast without losing quality. បង្រួមទំហំ PDF ឥតគិតថ្លៃ លឿន និងគ្មានការចុះឈ្មោះ។{% endblock %}
+{% block page_path %}/pdf-compress/{% endblock %}
+{% block og_path %}/pdf-compress/{% endblock %}
+{% block og_title %}Compress PDF Free - បង្រួម PDF{% endblock %}
+{% block og_description %}Reduce your PDF file size online for free, fast and secure — no signup required.{% endblock %}
+{% block twitter_title %}Compress PDF Free - បង្រួម PDF{% endblock %}
+{% block twitter_description %}Reduce your PDF file size online for free, fast and secure — no signup required.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -69,6 +76,11 @@
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<div class="page-seo-header">
+    <h1>{% trans "Compress PDF Files Online" %}</h1>
+    <p>{% trans "Reduce your PDF file size for free — fast, secure, and no signup required." %}</p>
+</div>
 
 <div class="main-content" x-data="compressApp()">
     <div class="left-panel">

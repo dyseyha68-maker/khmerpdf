@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Image to PDF - Khmer PDF Tools{% endblock %}
+{% block title %}Image to PDF Free - បម្លែងរូបភាពទៅ PDF | DAMSPEY{% endblock %}
+{% block meta_description %}Convert JPG or PNG images into a PDF file online for free. បម្លែងរូបភាព JPG ឬ PNG ទៅជា PDF ឥតគិតថ្លៃ។{% endblock %}
+{% block page_path %}/image-to-pdf/{% endblock %}
+{% block og_path %}/image-to-pdf/{% endblock %}
+{% block og_title %}Image to PDF Free - បម្លែងរូបភាពទៅ PDF{% endblock %}
+{% block og_description %}Combine JPG or PNG images into a single PDF file online, free and fast.{% endblock %}
+{% block twitter_title %}Image to PDF Free - បម្លែងរូបភាពទៅ PDF{% endblock %}
+{% block twitter_description %}Combine JPG or PNG images into a single PDF file online, free and fast.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -34,6 +41,11 @@
 {% endblock %}
 
 {% block content %}
+<div class="page-seo-header">
+    <h1>{% trans "Convert Image to PDF" %}</h1>
+    <p>{% trans "Combine JPG or PNG images into a single PDF file." %}</p>
+</div>
+
 <div class="main-content" x-data="imageToPdfApp()">
     <div class="left-panel">
         <div class="drop-zone"

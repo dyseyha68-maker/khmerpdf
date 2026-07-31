@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}OCR PDF - Convert Scanned PDFs to Editable Word{% endblock %}
+{% block title %}OCR PDF to Word Free - បម្លែង PDF ស្កេន | DAMSPEY{% endblock %}
+{% block meta_description %}Convert scanned PDF files into editable Word documents online, free — supports Khmer and English OCR. បម្លែង PDF ស្កេនទៅជា Word គាំទ្រភាសាខ្មែរ។{% endblock %}
+{% block page_path %}/pdf-ocr/{% endblock %}
+{% block og_path %}/pdf-ocr/{% endblock %}
+{% block og_title %}OCR PDF to Word Free - Khmer & English{% endblock %}
+{% block og_description %}Convert scanned PDFs into editable Word documents online, free, with Khmer and English OCR support.{% endblock %}
+{% block twitter_title %}OCR PDF to Word Free - Khmer & English{% endblock %}
+{% block twitter_description %}Convert scanned PDFs into editable Word documents online, free, with Khmer and English OCR support.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -57,6 +64,11 @@
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<div class="page-seo-header">
+    <h1>{% trans "OCR PDF to Word - Khmer & English" %}</h1>
+    <p>{% trans "Convert scanned PDF files into editable Word documents with Khmer and English OCR." %}</p>
+</div>
 
 <div class="main-content" x-data="ocrApp()">
     <div class="left-panel">

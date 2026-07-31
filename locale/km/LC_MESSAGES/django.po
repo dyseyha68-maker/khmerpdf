@@ -350,3 +350,52 @@ msgstr "កូដ KHQR សម្រាប់បរិច្ចាគ"
 
 msgid "Any amount is appreciated"
 msgstr "សូមអរគុណសម្រាប់ចំនួនទឹកប្រាក់ណាមួយ"
+
+# --- SEO page headers (h1 + intro on each tool page) ---
+msgid "Compress PDF Files Online"
+msgstr "បង្រួមទំហំ PDF លើអនឡាញ"
+
+msgid "Reduce your PDF file size for free — fast, secure, and no signup required."
+msgstr "កាត់បន្ថយទំហំឯកសារ PDF របស់អ្នកដោយឥតគិតថ្លៃ លឿន សុវត្ថិភាព និងមិនចាំបាច់ចុះឈ្មោះ។"
+
+msgid "Merge PDF Files Online"
+msgstr "បញ្ចូល PDF ជាមួយគ្នាលើអនឡាញ"
+
+msgid "Combine multiple PDF files into one document in seconds."
+msgstr "បញ្ចូលឯកសារ PDF ច្រើនទៅជាឯកសារតែមួយក្នុងរយៈពេលប៉ុន្មានវិនាទី។"
+
+msgid "Split PDF Files Online"
+msgstr "បំបែក PDF លើអនឡាញ"
+
+msgid "Extract or separate pages from your PDF document easily."
+msgstr "ដកចេញ ឬបំបែកទំព័រចេញពីឯកសារ PDF របស់អ្នកយ៉ាងងាយស្រួល។"
+
+msgid "Organize PDF Pages"
+msgstr "រៀបចំទំព័រ PDF"
+
+msgid "Reorder, rotate, or delete pages in your PDF file."
+msgstr "តម្រៀបលំដាប់ បង្វិល ឬលុបទំព័រនៅក្នុងឯកសារ PDF របស់អ្នក។"
+
+msgid "OCR PDF to Word - Khmer & English"
+msgstr "បម្លែង PDF ស្កេនទៅជា Word (OCR) - ខ្មែរ និងអង់គ្លេស"
+
+msgid "Convert scanned PDF files into editable Word documents with Khmer and English OCR."
+msgstr "បម្លែងឯកសារ PDF ដែលបានស្កេនទៅជាឯកសារ Word ដែលអាចកែសម្រួលបាន គាំទ្រភាសាខ្មែរ និងអង់គ្លេស។"
+
+msgid "Convert PDF to Image"
+msgstr "បម្លែង PDF ទៅជារូបភាព"
+
+msgid "Turn PDF pages into JPG or PNG images instantly."
+msgstr "បម្លែងទំព័រ PDF ទៅជារូបភាព JPG ឬ PNG ភ្លាមៗ។"
+
+msgid "Convert Image to PDF"
+msgstr "បម្លែងរូបភាពទៅជា PDF"
+
+msgid "Combine JPG or PNG images into a single PDF file."
+msgstr "បញ្ចូលរូបភាព JPG ឬ PNG ទៅជាឯកសារ PDF តែមួយ។"
+
+msgid "Khmer Lunar Calendar & Cambodia Holidays"
+msgstr "ប្រតិទិនចន្ទគតិខ្មែរ និងថ្ងៃឈប់សម្រាកកម្ពុជា"
+
+msgid "Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia."
+msgstr "ពិនិត្យមើលកាលបរិច្ឆេទចន្ទគតិខ្មែរ ឆ្នាំពុទ្ធសករាជ និងថ្ងៃឈប់សម្រាកនៅកម្ពុជា។"

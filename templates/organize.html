@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Organize PDF - Free Online PDF Organizer{% endblock %}
+{% block title %}Organize PDF Free - រៀបចំ PDF | DAMSPEY{% endblock %}
+{% block meta_description %}Reorder, rotate, or delete pages in your PDF file online for free. រៀបចំលំដាប់ បង្វិល ឬលុបទំព័រ PDF ឥតគិតថ្លៃ លឿន និងសុវត្ថិភាព។{% endblock %}
+{% block page_path %}/pdf-organize/{% endblock %}
+{% block og_path %}/pdf-organize/{% endblock %}
+{% block og_title %}Organize PDF Free - រៀបចំ PDF{% endblock %}
+{% block og_description %}Reorder, rotate, or delete pages in your PDF file online, free and fast.{% endblock %}
+{% block twitter_title %}Organize PDF Free - រៀបចំ PDF{% endblock %}
+{% block twitter_description %}Reorder, rotate, or delete pages in your PDF file online, free and fast.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -67,6 +74,11 @@
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<div class="page-seo-header">
+    <h1>{% trans "Organize PDF Pages" %}</h1>
+    <p>{% trans "Reorder, rotate, or delete pages in your PDF file." %}</p>
+</div>
 
 <div class="main-content" x-data="organizeApp()">
     <div class="left-panel">

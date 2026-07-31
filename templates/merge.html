@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Merge PDF - Free Online PDF Merger{% endblock %}
+{% block title %}Merge PDF Free - បញ្ចូល PDF | DAMSPEY{% endblock %}
+{% block meta_description %}Merge multiple PDF files into one document online for free. បញ្ចូលឯកសារ PDF ច្រើនទៅជាមួយឥតគិតថ្លៃ លឿន និងសុវត្ថិភាព។{% endblock %}
+{% block page_path %}/pdf-merge/{% endblock %}
+{% block og_path %}/pdf-merge/{% endblock %}
+{% block og_title %}Merge PDF Free - បញ្ចូល PDF{% endblock %}
+{% block og_description %}Combine multiple PDF files into one document online, free and fast.{% endblock %}
+{% block twitter_title %}Merge PDF Free - បញ្ចូល PDF{% endblock %}
+{% block twitter_description %}Combine multiple PDF files into one document online, free and fast.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -46,6 +53,11 @@
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<div class="page-seo-header">
+    <h1>{% trans "Merge PDF Files Online" %}</h1>
+    <p>{% trans "Combine multiple PDF files into one document in seconds." %}</p>
+</div>
 
 <div class="main-content" x-data="mergeApp()">
     <div class="left-panel">

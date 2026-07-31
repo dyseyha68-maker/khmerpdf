@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Split PDF - Free Online PDF Splitter{% endblock %}
+{% block title %}Split PDF Free - បំបែក PDF | DAMSPEY{% endblock %}
+{% block meta_description %}Split or extract pages from a PDF file online for free. បំបែក ឬដកទំព័រចេញពីឯកសារ PDF ឥតគិតថ្លៃ លឿន និងសុវត្ថិភាព។{% endblock %}
+{% block page_path %}/pdf-split/{% endblock %}
+{% block og_path %}/pdf-split/{% endblock %}
+{% block og_title %}Split PDF Free - បំបែក PDF{% endblock %}
+{% block og_description %}Extract or separate pages from your PDF document online, free and fast.{% endblock %}
+{% block twitter_title %}Split PDF Free - បំបែក PDF{% endblock %}
+{% block twitter_description %}Extract or separate pages from your PDF document online, free and fast.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -87,6 +94,11 @@
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<div class="page-seo-header">
+    <h1>{% trans "Split PDF Files Online" %}</h1>
+    <p>{% trans "Extract or separate pages from your PDF document easily." %}</p>
+</div>
 
 <div class="main-content" x-data="splitApp()">
     <div class="left-panel">

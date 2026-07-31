@@ -4,23 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Khmer PDF Tools - ឧបករណ៍ PDF ខ្មែរ{% endblock %}</title>
-    <meta name="description" content="Free online PDF tools for Cambodia. Compress, merge, split PDF files easily. ឧបករណ៍ PDF អនន្ដរាយ។ បង្រួម បំបែង បង្កើត PDF ។">
-    <meta name="keywords" content="PDF tools Cambodia, Khmer PDF tools, compress PDF Cambodia, merge PDF Khmer, split PDF Cambodia, PDF organizer Cambodia, ឧបករណ៍ PDF ខ្មែរ, បង្រួម PDF, បំបែង PDF">
+    <title>{% block title %}DAMSPEY - Free Khmer PDF Tools | ឧបករណ៍ PDF ខ្មែរ{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Free online PDF tools built for Cambodia — compress, merge, split, organize, and OCR PDF files instantly, no signup required. ឧបករណ៍ PDF ឥតគិតថ្លៃសម្រាប់ខ្មែរ។{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}PDF tools Cambodia, Khmer PDF tools, compress PDF Cambodia, merge PDF Khmer, split PDF Cambodia, PDF organizer Cambodia, OCR Khmer PDF, ឧបករណ៍ PDF ខ្មែរ, បង្រួម PDF, បំបែក PDF, បញ្ចូល PDF{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
     <meta name="geo.region" content="KH">
     <meta name="geo.placename" content="Phnom Penh, Cambodia">
     <meta name="geo.position" content="11.5564;104.9282">
     <meta name="ICBM" content="11.5564, 104.9282">
-    
-    <meta property="og:locale" content="km_KH">
-    <meta property="og:locale:alternate" content="en_US">
-    <meta property="og:site_name" content="DAMSPEY - Khmer PDF Tools">
+
+    <link rel="canonical" href="https://damspey.com{% block page_path %}/{% endblock %}">
+
     <meta property="og:type" content="website">
-    
-    <link rel="alternate" hreflang="km" href="https://damspey.com/">
-    <link rel="alternate" hreflang="en" href="https://damspey.com/">
-    <link rel="canonical" href="https://damspey.com/">
-    
+    <meta property="og:locale" content="{% if LANGUAGE_CODE == 'km' %}km_KH{% else %}en_US{% endif %}">
+    <meta property="og:locale:alternate" content="{% if LANGUAGE_CODE == 'km' %}en_US{% else %}km_KH{% endif %}">
+    <meta property="og:site_name" content="DAMSPEY - Khmer PDF Tools">
+    <meta property="og:title" content="{% block og_title %}DAMSPEY - Free Khmer PDF Tools{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Free online PDF tools built for Cambodia — compress, merge, split, organize, and OCR PDFs instantly.{% endblock %}">
+    <meta property="og:url" content="https://damspey.com{% block og_path %}/{% endblock %}">
+    <meta property="og:image" content="https://damspey.com/static/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="DAMSPEY - Free Khmer PDF Tools">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}DAMSPEY - Free Khmer PDF Tools{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Free online PDF tools built for Cambodia — compress, merge, split, organize, and OCR PDFs instantly.{% endblock %}">
+    <meta name="twitter:image" content="https://damspey.com/static/og-image.jpg">
+
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
@@ -263,7 +274,30 @@
             margin: 0 auto;
             width: 100%;
         }
-        
+
+        /* ── SEO page header (h1 + one-line intro above each tool) ── */
+        .page-seo-header {
+            max-width: 1400px;
+            margin: 20px auto 0;
+            padding: 0 24px;
+            width: 100%;
+        }
+        .page-seo-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 4px;
+        }
+        .page-seo-header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        @media (max-width: 700px) {
+            .page-seo-header { padding: 0 16px; margin-top: 16px; }
+            .page-seo-header h1 { font-size: 17px; }
+        }
+
         .left-panel {
             width: 340px;
             background: var(--surface);
@@ -439,21 +473,30 @@
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
-        "@type": "LocalBusiness",
+        "@type": "WebApplication",
         "name": "DAMSPEY",
-        "description": "Free online PDF tools for Cambodia. Compress, merge, split, organize PDF files.",
+        "alternateName": "ឧបករណ៍ PDF ខ្មែរ",
+        "description": "Free online PDF tools for Cambodia: compress, merge, split, organize, and OCR PDF files instantly.",
         "url": "https://damspey.com/",
-        "logo": "https://damspey.com/static/favicon.ico",
+        "image": "https://damspey.com/static/og-image.jpg",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any (Web-based)",
+        "browserRequirements": "Requires JavaScript",
+        "inLanguage": ["km", "en"],
+        "isAccessibleForFree": true,
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
         "areaServed": {
             "@type": "Country",
             "name": "Cambodia"
         },
-        "availableIn": "km-KH",
-        "priceRange": "$$",
-        "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "Phnom Penh",
-            "addressCountry": "KH"
+        "publisher": {
+            "@type": "Organization",
+            "name": "DAMSPEY",
+            "logo": "https://damspey.com/static/logo.png"
         }
     }
     </script>
