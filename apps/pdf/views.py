@@ -74,9 +74,9 @@ def organize_page(request):
 
 
 def calendar_page(request):
-    from .models import Holiday, LunarDate, CalendarEvent
+    from .models import Holiday, CalendarEvent
     from datetime import datetime, timedelta
-    
+
     year = request.GET.get('year')
     month = request.GET.get('month')
     
@@ -129,26 +129,6 @@ def calendar_page(request):
     except:
         pass
     
-    # Get lunar dates for the year
-    lunar_dates = []
-    try:
-        lunar_objs = LunarDate.objects.filter(solar_date__year=year)
-        for ld in lunar_objs:
-            lunar_dates.append({
-                'day': ld.solar_date.day,
-                'month': ld.solar_date.month,
-                'lunar_month': ld.lunar_month,
-                'lunar_day': ld.lunar_day,
-                'lunar_year': ld.lunar_year,
-                'khmer_month': ld.khmer_month_name,
-                'khmer_day': ld.khmer_day_name,
-                'is_holy': ld.is_holy_day,
-                'is_full_moon': ld.is_full_moon,
-                'is_new_moon': ld.is_new_moon,
-            })
-    except:
-        pass
-    
     # Get events
     events = []
     try:
@@ -167,7 +147,6 @@ def calendar_page(request):
         'current_year': year,
         'current_month': month,
         'holidays': holidays,
-        'lunar_dates': lunar_dates,
         'events': events
     })
 

@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Khmer Lunar Calendar - ប្រតិទិនចន្ទគតិខ្មែរ | DAMSPEY{% endblock %}
-{% block meta_description %}Khmer lunar calendar with Buddhist Era years and Cambodia public holidays. ប្រតិទិនចន្ទគតិខ្មែរ ឆ្នាំពុទ្ធសករាជ និងថ្ងៃឈប់សម្រាកនៅកម្ពុជា។{% endblock %}
+{% block title %}Cambodia Calendar & Public Holidays | DAMSPEY{% endblock %}
+{% block meta_description %}Cambodia calendar with Buddhist Era years and public holidays. ប្រតិទិនកម្ពុជា ឆ្នាំពុទ្ធសករាជ និងថ្ងៃឈប់សម្រាកនៅកម្ពុជា។{% endblock %}
 {% block page_path %}/pdf-calendar/{% endblock %}
 {% block og_path %}/pdf-calendar/{% endblock %}
-{% block og_title %}Khmer Lunar Calendar - ប្រតិទិនចន្ទគតិខ្មែរ{% endblock %}
-{% block og_description %}Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia.{% endblock %}
-{% block twitter_title %}Khmer Lunar Calendar - ប្រតិទិនចន្ទគតិខ្មែរ{% endblock %}
-{% block twitter_description %}Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia.{% endblock %}
+{% block og_title %}Cambodia Calendar & Public Holidays{% endblock %}
+{% block og_description %}Check the calendar and public holidays in Cambodia.{% endblock %}
+{% block twitter_title %}Cambodia Calendar & Public Holidays{% endblock %}
+{% block twitter_description %}Check the calendar and public holidays in Cambodia.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -68,13 +68,6 @@
         text-transform: uppercase;
         letter-spacing: 0.8px;
         margin-bottom: 4px;
-    }
-
-    .today-hero .hero-lunar {
-        font-family: 'Kantumruy Pro', sans-serif;
-        font-size: 15px;
-        opacity: 0.85;
-        margin-top: 4px;
     }
 
     .today-hero .hero-be {
@@ -198,74 +191,6 @@
         font-weight: 600;
     }
 
-    /* ── Date Lookup (editable day/month/year) ──────────────────── */
-    .date-lookup h3 {
-        color: var(--text-secondary);
-        margin: 0 0 8px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .date-lookup-inputs {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1.3fr;
-        gap: 6px;
-        margin-bottom: 8px;
-    }
-
-    .date-lookup-inputs input {
-        width: 100%;
-        padding: 8px 4px;
-        border-radius: 7px;
-        border: 1.5px solid var(--border);
-        background: var(--surface);
-        color: var(--text);
-        font-size: 13px;
-        font-family: inherit;
-        text-align: center;
-        -moz-appearance: textfield;
-    }
-
-    .date-lookup-inputs input::-webkit-outer-spin-button,
-    .date-lookup-inputs input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    .date-lookup-inputs input:focus {
-        outline: none;
-        border-color: var(--primary);
-    }
-
-    .date-lookup-btn {
-        width: 100%;
-        padding: 9px;
-        border-radius: 7px;
-        border: none;
-        background: var(--primary);
-        color: white;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: inherit;
-        transition: background 0.15s;
-    }
-
-    .date-lookup-btn:hover { background: var(--primary-dark); }
-
-    .date-lookup-result {
-        margin-top: 8px;
-        font-size: 12px;
-        color: var(--text-secondary);
-        text-align: center;
-        min-height: 16px;
-        font-family: 'Kantumruy Pro', sans-serif;
-    }
-
-    .date-lookup-result.error { color: #dc2626; }
-
     /* ── Events list ─────────────────────────────────────────────── */
     .events-section h3 {
         color: var(--text-secondary);
@@ -327,12 +252,6 @@
         color: var(--text);
     }
 
-    .calendar-header .khmer-month {
-        font-family: 'Kantumruy Pro', sans-serif;
-        font-size: 14px;
-        color: var(--text-secondary);
-    }
-
     /* ── Calendar Grid ───────────────────────────────────────────── */
     .calendar-grid {
         display: grid;
@@ -384,13 +303,6 @@
         color: var(--text);
     }
 
-    .calendar-day .lunar-num {
-        font-size: 11px;
-        line-height: 1;
-        font-family: 'Kantumruy Pro', sans-serif;
-        color: var(--text-secondary);
-    }
-
     /* TODAY — primary fill, white text */
     .calendar-day.today {
         background: var(--primary);
@@ -398,7 +310,6 @@
         box-shadow: var(--shadow-md);
     }
     .calendar-day.today .solar-num { color: white; font-size: 15px; font-weight: 700; }
-    .calendar-day.today .lunar-num { color: rgba(255,255,255,0.8); }
 
     /* PUBLIC HOLIDAY — light green tint + green border */
     .calendar-day.holiday {
@@ -406,7 +317,6 @@
         border: 1.5px solid #86efac;
     }
     .calendar-day.holiday .solar-num { color: #15803d; }
-    .calendar-day.holiday .lunar-num { color: #4ade80; }
 
     /* WEEKEND — light red tint */
     .calendar-day.weekend {
@@ -414,14 +324,6 @@
         border-color: #fecaca;
     }
     .calendar-day.weekend .solar-num { color: #dc2626; }
-
-    /* HOLY / PRECEPT DAY — amber tint */
-    .calendar-day.holy-day {
-        background: #fffbeb;
-        border: 1.5px solid #fcd34d;
-    }
-    .calendar-day.holy-day .solar-num { color: #92400e; }
-    .calendar-day.holy-day .lunar-num { color: #d97706; }
 
     /* SELECTED */
     .calendar-day.selected {
@@ -438,9 +340,6 @@
         border-radius: 50%;
     }
     .day-dot.holiday-dot { background: #22c55e; }
-    .day-dot.holy-dot    { background: #f59e0b; }
-    .day-dot.full-moon   { background: #6366f1; }
-    .day-dot.new-moon    { background: #94a3b8; }
 
     /* ── Legend ──────────────────────────────────────────────────── */
     .cal-legend {
@@ -469,7 +368,6 @@
     .ls-today    { background: var(--primary); }
     .ls-holiday  { background: #f0fdf4; border: 1.5px solid #86efac; }
     .ls-weekend  { background: #fff5f5; border: 1.5px solid #fecaca; }
-    .ls-holy     { background: #fffbeb; border: 1.5px solid #fcd34d; }
 
     /* ── Day Info Modal ──────────────────────────────────────────── */
     .modal-overlay {
@@ -528,13 +426,6 @@
         color: var(--text);
     }
 
-    .modal-lunar {
-        font-family: 'Kantumruy Pro', sans-serif;
-        font-size: 14px;
-        color: var(--text-secondary);
-        margin-top: 2px;
-    }
-
     .modal-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -578,8 +469,6 @@
     }
 
     .special-event.holiday-badge { background: #dcfce7; color: #15803d; border-color: #86efac; }
-    .special-event.holy-badge    { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-    .special-event.moon-badge    { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
 
     /* ── Dark mode overrides for semantic colors ────────────────── */
     [data-theme="dark"] .day-header.weekend-hdr { color: #f87171; }
@@ -589,20 +478,12 @@
         border-color: rgba(134, 239, 172, 0.25);
     }
     [data-theme="dark"] .calendar-day.holiday .solar-num { color: #4ade80; }
-    [data-theme="dark"] .calendar-day.holiday .lunar-num { color: #86efac; }
 
     [data-theme="dark"] .calendar-day.weekend {
         background: rgba(220, 38, 38, 0.08);
         border-color: rgba(254, 202, 202, 0.2);
     }
     [data-theme="dark"] .calendar-day.weekend .solar-num { color: #f87171; }
-
-    [data-theme="dark"] .calendar-day.holy-day {
-        background: rgba(251, 191, 36, 0.08);
-        border-color: rgba(252, 211, 77, 0.25);
-    }
-    [data-theme="dark"] .calendar-day.holy-day .solar-num { color: #fbbf24; }
-    [data-theme="dark"] .calendar-day.holy-day .lunar-num { color: #f59e0b; }
 
     [data-theme="dark"] .event-item {
         background: rgba(34, 197, 94, 0.1);
@@ -613,16 +494,9 @@
 
     [data-theme="dark"] .ls-holiday { background: rgba(34, 197, 94, 0.12); border-color: rgba(134, 239, 172, 0.3); }
     [data-theme="dark"] .ls-weekend { background: rgba(220, 38, 38, 0.12); border-color: rgba(254, 202, 202, 0.2); }
-    [data-theme="dark"] .ls-holy    { background: rgba(251, 191, 36, 0.12); border-color: rgba(252, 211, 77, 0.3); }
 
     [data-theme="dark"] .special-event.holiday-badge {
         background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(134, 239, 172, 0.3);
-    }
-    [data-theme="dark"] .special-event.holy-badge {
-        background: rgba(251, 191, 36, 0.15); color: #fbbf24; border-color: rgba(252, 211, 77, 0.3);
-    }
-    [data-theme="dark"] .special-event.moon-badge {
-        background: rgba(139, 92, 246, 0.15); color: #a78bfa; border-color: rgba(196, 181, 253, 0.3);
     }
 
     /* ── Responsive ──────────────────────────────────────────────── */
@@ -639,11 +513,10 @@
 {% block content %}
 
 {{ holidays|json_script:"holidays-data" }}
-{{ lunar_dates|json_script:"lunar-dates-data" }}
 
 <div class="page-seo-header">
-    <h1>{% trans "Khmer Lunar Calendar & Cambodia Holidays" %}</h1>
-    <p>{% trans "Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia." %}</p>
+    <h1>{% trans "Cambodia Calendar & Public Holidays" %}</h1>
+    <p>{% trans "Browse the calendar and check public holidays in Cambodia." %}</p>
 </div>
 
 <div class="calendar-page">
@@ -653,7 +526,6 @@
         <div>
             <div class="hero-label">{% trans "Today" %}</div>
             <div class="hero-solar" id="heroSolar">—</div>
-            <div class="hero-lunar" id="heroLunar">—</div>
         </div>
         <div class="hero-be">
             <div class="be-year" id="heroBE">—</div>
@@ -676,17 +548,6 @@
 
             <div class="month-grid" id="monthGrid"></div>
 
-            <div class="date-lookup">
-                <h3>🔎 {% trans "Find a Date" %}</h3>
-                <div class="date-lookup-inputs">
-                    <input type="number" id="lookupDay" min="1" max="31" placeholder="{% trans 'Day' %}" inputmode="numeric">
-                    <input type="number" id="lookupMonth" min="1" max="12" placeholder="{% trans 'Month' %}" inputmode="numeric">
-                    <input type="number" id="lookupYear" min="1900" max="2100" placeholder="{% trans 'Year' %}" value="{{ current_year }}" inputmode="numeric">
-                </div>
-                <button class="date-lookup-btn" onclick="goToDate()">{% trans "Show Lunar Date" %}</button>
-                <div class="date-lookup-result" id="lookupResult"></div>
-            </div>
-
             <div class="events-section">
                 <h3>📅 {% trans "Events" %}</h3>
                 <div class="events-list" id="eventsList"></div>
@@ -697,7 +558,6 @@
         <div class="right-panel">
             <div class="calendar-header">
                 <div class="month-year" id="currentMonthYear"></div>
-                <div class="khmer-month" id="currentLunarMonth"></div>
             </div>
 
             <div class="calendar-grid" id="calendarGrid"></div>
@@ -707,7 +567,6 @@
                 <div class="legend-item"><span class="legend-swatch ls-today"></span>{% trans "Today" %}</div>
                 <div class="legend-item"><span class="legend-swatch ls-holiday"></span>{% trans "Public Holiday" %}</div>
                 <div class="legend-item"><span class="legend-swatch ls-weekend"></span>{% trans "Weekend" %}</div>
-                <div class="legend-item"><span class="legend-swatch ls-holy"></span>{% trans "Holy / Precept Day" %}</div>
             </div>
         </div>
 
@@ -720,7 +579,6 @@
         <button class="modal-close" onclick="document.getElementById('dayModal').classList.remove('open')">✕</button>
         <div class="modal-date-header">
             <div class="modal-solar" id="infoSolar">—</div>
-            <div class="modal-lunar" id="infoLunar">—</div>
         </div>
         <div class="modal-grid">
             <div class="modal-item">
@@ -746,10 +604,6 @@
         today: "{% trans 'Today' %}",
         publicHoliday: "{% trans 'Public Holiday' %}",
         weekend: "{% trans 'Weekend' %}",
-        holyDay: "{% trans 'Holy / Precept Day' %}",
-        invalidDate: "{% trans 'Please enter a valid date' %}",
-        dayNotInMonth: "{% trans 'That day does not exist in this month' %}",
-        noLunarData: "{% trans 'No lunar data available for this date' %}",
     };
     const khmerMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
     const englishMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -768,7 +622,6 @@
     }
 
     const holidays = JSON.parse(document.getElementById('holidays-data').textContent);
-    const lunarDates = JSON.parse(document.getElementById('lunar-dates-data').textContent);
 
     let currentYear = {{ current_year }};
     let currentMonth = {{ current_month|default:1 }} - 1;
@@ -793,10 +646,6 @@
         window.location.href = '/pdf-calendar/?year=' + currentYear + '&month=' + (m + 1);
     }
 
-    function getLunarDate(day, month) {
-        return lunarDates.find(ld => ld.day === day && ld.month === month) || null;
-    }
-
     function getHoliday(day, month) {
         return holidays.find(h => h.day === day && h.month === month) || null;
     }
@@ -805,41 +654,22 @@
         const today = new Date();
         const td = today.getDate(), tm = today.getMonth(), ty = today.getFullYear();
         document.getElementById('heroSolar').textContent = calToKhNum(td) + ' ' + months[tm] + ' ' + calToKhNum(ty);
-
-        const lunar = getLunarDate(td, tm + 1);
-        if (lunar) {
-            document.getElementById('heroLunar').textContent = lunar.khmer_month + ' ទី' + calToKhNum(lunar.lunar_day);
-            document.getElementById('heroBE').textContent = calToKhNum(lunar.lunar_year);
-        } else {
-            document.getElementById('heroLunar').textContent = months[tm] + ' ' + calToKhNum(td);
-            document.getElementById('heroBE').textContent = calToKhNum(ty + 543);
-        }
+        document.getElementById('heroBE').textContent = calToKhNum(ty + 543);
     }
 
     function showDayInfo(day, month, year) {
         const dow = new Date(year, month, day).getDay();
         const dowIdx = dow === 0 ? 6 : dow - 1;
-        const lunar = getLunarDate(day, month + 1);
         const holiday = getHoliday(day, month + 1);
 
         document.getElementById('infoSolar').textContent = calToKhNum(day) + ' ' + months[month] + ' ' + calToKhNum(year);
-        document.getElementById('infoLunar').textContent = lunar ? lunar.khmer_month + ' ទី' + calToKhNum(lunar.lunar_day) : months[month] + ' ' + calToKhNum(day);
         document.getElementById('infoDay').textContent = calIsKhmer ? khmerDays[dowIdx] : (khmerDays[dowIdx] + ' / ' + englishDays[dowIdx]);
-        document.getElementById('infoYear').textContent = calToKhNum(lunar ? lunar.lunar_year : (year + 543)) + ' ព.ស';
+        document.getElementById('infoYear').textContent = calToKhNum(year + 543) + ' ព.ស';
 
         let html = '';
         if (holiday) {
             const hName = calIsKhmer ? (holiday.name_kh || holiday.name_en) : (holiday.name_en || holiday.name_kh);
             html += '<span class="special-event holiday-badge">🏖️ ' + hName + '</span>';
-        }
-        if (lunar && lunar.is_holy) {
-            html += '<span class="special-event holy-badge">🙏 ' + (calIsKhmer ? 'ថ្ងៃបុណ្យ' : 'Holy Day') + '</span>';
-        }
-        if (lunar && lunar.is_full_moon) {
-            html += '<span class="special-event moon-badge">🌕 ' + (calIsKhmer ? 'ពេញបូណ៌មី' : 'Full Moon') + '</span>';
-        }
-        if (lunar && lunar.is_new_moon) {
-            html += '<span class="special-event moon-badge">🌑 ' + (calIsKhmer ? 'ខ្នើតខែ' : 'New Moon') + '</span>';
         }
         document.getElementById('specialEvents').innerHTML = html;
         document.getElementById('dayModal').classList.add('open');
@@ -855,58 +685,10 @@
         if (e.key === 'Escape') document.getElementById('dayModal').classList.remove('open');
     });
 
-    function lunarResultText(day, month, year) {
-        const lunar = getLunarDate(day, month);
-        if (!lunar) return null;
-        return lunar.khmer_month + ' ទី' + calToKhNum(lunar.lunar_day) + ' · ' + calToKhNum(lunar.lunar_year) + ' ព.ស';
-    }
-
-    function goToDate() {
-        const d = parseInt(document.getElementById('lookupDay').value, 10);
-        const m = parseInt(document.getElementById('lookupMonth').value, 10);
-        const y = parseInt(document.getElementById('lookupYear').value, 10);
-        const resultEl = document.getElementById('lookupResult');
-
-        if (!d || !m || !y || m < 1 || m > 12 || d < 1 || d > 31 || y < 1900 || y > 2100) {
-            resultEl.textContent = I18N.invalidDate;
-            resultEl.classList.add('error');
-            return;
-        }
-
-        const daysInMonth = new Date(y, m, 0).getDate();
-        if (d > daysInMonth) {
-            resultEl.textContent = I18N.dayNotInMonth;
-            resultEl.classList.add('error');
-            return;
-        }
-
-        resultEl.classList.remove('error');
-
-        if (y === currentYear) {
-            currentMonth = m - 1;
-            selectedDay = d;
-            render();
-            showDayInfo(d, m - 1, y);
-            resultEl.textContent = lunarResultText(d, m, y) || I18N.noLunarData;
-        } else {
-            // Different year — reload so the server sends that year's lunar data
-            window.location.href = '/pdf-calendar/?year=' + y + '&month=' + m + '&day=' + d;
-        }
-    }
-
-    ['lookupDay', 'lookupMonth', 'lookupYear'].forEach(id => {
-        document.getElementById(id).addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') goToDate();
-        });
-    });
-
     function render() {
         document.getElementById('yearDisplay').textContent = calToKhNum(currentYear);
         document.getElementById('beYearBadge').textContent = 'BE ' + calToKhNum(currentYear + 543);
         document.getElementById('currentMonthYear').textContent = months[currentMonth] + ' ' + calToKhNum(currentYear);
-
-        const firstLunar = lunarDates.find(ld => ld.month === currentMonth + 1);
-        document.getElementById('currentLunarMonth').textContent = firstLunar ? firstLunar.khmer_month : khmerMonths[currentMonth];
 
         // Month grid
         const monthGrid = document.getElementById('monthGrid');
@@ -952,15 +734,12 @@
             const dow = date.getDay(); // 0=Sun,6=Sat
             const isWeekend = (dow === 0 || dow === 6);
             const holiday = getHoliday(dayNum, currentMonth + 1);
-            const lunar = getLunarDate(dayNum, currentMonth + 1);
             const isToday = (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === dayNum);
 
             if (isToday) {
                 div.classList.add('today');
             } else if (holiday) {
                 div.classList.add('holiday');          // holiday wins over weekend
-            } else if (lunar && lunar.is_holy) {
-                div.classList.add('holy-day');         // holy day wins over weekend
             } else if (isWeekend) {
                 div.classList.add('weekend');
             }
@@ -969,16 +748,12 @@
 
             // Dot indicator
             let dotHtml = '';
-            if (!isToday) {
-                if (holiday) dotHtml = '<span class="day-dot holiday-dot"></span>';
-                else if (lunar && lunar.is_holy) dotHtml = '<span class="day-dot holy-dot"></span>';
-                else if (lunar && lunar.is_full_moon) dotHtml = '<span class="day-dot full-moon"></span>';
-                else if (lunar && lunar.is_new_moon) dotHtml = '<span class="day-dot new-moon"></span>';
+            if (!isToday && holiday) {
+                dotHtml = '<span class="day-dot holiday-dot"></span>';
             }
 
             div.innerHTML =
                 '<span class="solar-num">' + calToKhNum(dayNum) + '</span>' +
-                '<span class="lunar-num">' + (lunar ? calToKhNum(lunar.lunar_day) : '') + '</span>' +
                 dotHtml;
 
             div.onclick = (function(d) {
@@ -1005,7 +780,7 @@
         }
     }
 
-    // Deep-linked date lookup (?year=&month=&day=) — set before render() so
+    // Deep-linked date (?year=&month=&day=) — set before render() so
     // the target cell gets the "selected" outline on first paint.
     const _dayParam = parseInt(new URLSearchParams(window.location.search).get('day'), 10);
     if (_dayParam >= 1 && _dayParam <= 31) {
@@ -1016,14 +791,7 @@
     render();
 
     if (_dayParam >= 1 && _dayParam <= 31) {
-        document.getElementById('lookupDay').value = _dayParam;
-        document.getElementById('lookupMonth').value = currentMonth + 1;
-        document.getElementById('lookupYear').value = currentYear;
         showDayInfo(_dayParam, currentMonth, currentYear);
-        const resultEl = document.getElementById('lookupResult');
-        const text = lunarResultText(_dayParam, currentMonth + 1, currentYear);
-        resultEl.classList.toggle('error', !text);
-        resultEl.textContent = text || I18N.noLunarData;
     }
 </script>
 {% endblock %}

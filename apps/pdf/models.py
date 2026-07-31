@@ -31,27 +31,6 @@ class Holiday(models.Model):
         return f"{self.start_date} - {self.name_kh or self.name_en or 'Holiday'}"
 
 
-class LunarDate(models.Model):
-    """Khmer Lunar Calendar - stores lunar month and day for each solar date"""
-    solar_date = models.DateField(unique=True)
-    lunar_month = models.IntegerField()  # 1-15 (waxing), 16-30 (waning)
-    lunar_day = models.IntegerField()  # 1-15
-    lunar_year = models.IntegerField()  # Buddhist Era
-    khmer_month_name = models.CharField(max_length=50)  # មករា, បុណ្យចូលឆ្នាំ, etc.
-    khmer_day_name = models.CharField(max_length=50)  # ច័ន្ទ, អង្គារ, etc.
-    is_holy_day = models.BooleanField(default=False)  # ថ្ងៃបុណ្យ
-    is_full_moon = models.BooleanField(default=False)
-    is_new_moon = models.BooleanField(default=False)
-    
-    class Meta:
-        ordering = ['-solar_date']
-        verbose_name = 'Lunar Date'
-        verbose_name_plural = 'Lunar Dates'
-    
-    def __str__(self):
-        return f"{self.solar_date} - {self.khmer_month_name} {self.lunar_day}"
-
-
 class CalendarEvent(models.Model):
     """Events, celebrations, and holidays stored in database"""
     EVENT_TYPES = [
