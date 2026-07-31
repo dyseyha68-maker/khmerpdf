@@ -1,3 +1,4 @@
+import mimetypes
 import os
 import threading
 import time
@@ -200,7 +201,16 @@ def download_file(request):
     # Sanitize filename (no path traversal in the suggested name)
     filename = os.path.basename(filename) or 'download.pdf'
 
-    response = FileResponse(open(safe_path, 'rb'), content_type='application/pdf')
+    # Guess content type from the *actual* file being served, falling back to
+    # the suggested filename, then to PDF. Using a hardcoded 'application/pdf'
+    # here mislabels non-PDF results (e.g. OCR's .docx output).
+    content_type = (
+        mimetypes.guess_type(safe_path)[0]
+        or mimetypes.guess_type(filename)[0]
+        or 'application/pdf'
+    )
+
+    response = FileResponse(open(safe_path, 'rb'), content_type=content_type)
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 

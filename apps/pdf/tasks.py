@@ -90,8 +90,21 @@ def compress_with_ghostscript(input_path, output_path, compression_level='recomm
     timeout = max(120, int(original_size_mb * 6))
     timeout = min(timeout, 900)
 
+    # On Windows, Ghostscript is gswin64c / gswin32c; on Linux/Mac it's gs
+    import sys as _sys
+    if _sys.platform == 'win32':
+        import shutil as _shutil
+        gs_exe = (
+            _shutil.which('gswin64c') or
+            _shutil.which('gswin32c') or
+            _shutil.which('gs') or
+            'gswin64c'
+        )
+    else:
+        gs_exe = 'gs'
+
     cmd = [
-        'gs',
+        gs_exe,
         '-sDEVICE=pdfwrite',
         '-dCompatibilityLevel=1.4',
         # ── NO -dPDFSETTINGS preset ───────────────────────────────────────────
@@ -374,8 +387,14 @@ def compress_pdf(job_id):
                                     compress_with_pymupdf(input_path, output_path, compression_level)
                             
                             compressed_size = os.path.getsize(output_path)
-                            zip_file.write(output_path, output_filename)
-                            os.remove(output_path)
+                            if compressed_size >= original_size:
+                                # Use original if compression made it larger
+                                logger.info(f'Compression did not help for {base_name}; using original')
+                                os.remove(output_path)
+                                zip_file.write(input_path, output_filename)
+                            else:
+                                zip_file.write(output_path, output_filename)
+                                os.remove(output_path)
                     except Exception as e:
                         continue
             
@@ -416,11 +435,22 @@ def compress_pdf(job_id):
             
             if not os.path.exists(output_path):
                 raise Exception(f'Compression failed: output file not created')
-            
+
             compressed_size = os.path.getsize(output_path)
-            
-            job.result.save(output_filename, open(output_path, 'rb'))
-            os.remove(output_path)
+
+            if compressed_size >= original_size:
+                # Compression made it larger or equal — return original unchanged
+                logger.info(
+                    f'Compression did not reduce size ({compressed_size} >= {original_size}); '
+                    'returning original file'
+                )
+                os.remove(output_path)
+                job.result.save(output_filename, open(input_path, 'rb'))
+                compressed_size = original_size
+            else:
+                job.result.save(output_filename, open(output_path, 'rb'))
+                os.remove(output_path)
+
             Job.objects.filter(id=job_id).update(status='done')
 
             return {'status': 'done', 'job_id': str(job_id), 'original': original_size, 'compressed': compressed_size}
@@ -682,15 +712,19 @@ def ocr_pdf(job_id):
     job = Job.objects.get(id=job_id)
     job.status = 'processing'
     job.save()
-    
+
     ocr_lang = job.compression_level or 'eng'
-    
+
     lang_map = {
         'eng': 'eng',
         'khm': 'khm',
         'eng+khm': 'eng+khm'
     }
     tess_lang = lang_map.get(ocr_lang, 'eng')
+
+    tesseract_cmd = getattr(settings, 'TESSERACT_CMD', None)
+    if tesseract_cmd:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
     
     try:
         input_path = job.file.path
@@ -703,10 +737,11 @@ def ocr_pdf(job_id):
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
         from docx.oxml import OxmlElement
-        
+
         doc = Document()
-        
-        pages = convert_from_path(input_path, dpi=150)
+
+        poppler_path = getattr(settings, 'POPPLER_PATH', None)
+        pages = convert_from_path(input_path, dpi=150, poppler_path=poppler_path)
         max_pages = min(len(pages), 30)
         
         def clean_text(text):
@@ -726,22 +761,25 @@ def ocr_pdf(job_id):
         # Set table auto-style
         doc.styles['Normal'].font.name = 'Calibri'
         doc.styles['Normal'].font.size = Pt(11)
-        
+
+        extracted_chars = 0
+
         for i in range(max_pages):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             gray = page.convert('L')
-            
+
             # Get OCR with position data
             try:
                 data = pytesseract.image_to_data(gray, lang=tess_lang, output_type=pytesseract.Output.DICT)
-            except:
+            except Exception as e:
+                logger.error(f'pytesseract.image_to_data failed on page {i+1}: {e}', exc_info=True)
                 data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}
-            
+
             # Extract text and organize by lines (y-position)
             lines_dict = {}
             n = len(data.get('text', []))
-            
+
             if n > 0:
                 # Group words into lines based on y-position
                 for j in range(n):
@@ -769,10 +807,11 @@ def ocr_pdf(job_id):
                     line_text = line_text.strip()
                     if line_text:
                         p = doc.add_paragraph(line_text)
-                        
+                        extracted_chars += len(line_text)
+
                         # Detect Khmer
                         has_khmer = any('\u1780' <= c <= '\u17FF' for c in line_text)
-                        
+
                         # Set font
                         for run in p.runs:
                             if has_khmer:
@@ -789,29 +828,38 @@ def ocr_pdf(job_id):
                         for line in text.split('\n'):
                             if line.strip():
                                 p = doc.add_paragraph(line)
+                                extracted_chars += len(line.strip())
                                 for run in p.runs:
                                     run.font.name = 'Calibri'
                                     run.font.size = Pt(11)
-                except:
-                    pass
-            
+                except Exception as e:
+                    logger.error(f'pytesseract.image_to_string failed on page {i+1}: {e}', exc_info=True)
+
             if i < max_pages - 1:
                 doc.add_page_break()
-        
+
+        if extracted_chars == 0:
+            raise RuntimeError(
+                'OCR produced no text on any page. This usually means Tesseract-OCR '
+                'is not installed / not found (check TESSERACT_CMD in settings.py or '
+                'that tesseract is on PATH), the wrong language pack is missing '
+                f"(requested '{tess_lang}'), or the source pages are blank/too low quality."
+            )
+
         output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        
+
         doc.save(output_path)
-        
+
         job.result.save(output_filename, open(output_path, 'rb'))
         os.remove(output_path)
-        
+
         job.status = 'done'
         job.save()
-        
+
         return {'status': 'done', 'job_id': str(job_id)}
-        
+
     except Exception as e:
         logger.error(f'OCR error: {e}', exc_info=True)
         job.status = 'failed'

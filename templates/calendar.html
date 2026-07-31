@@ -640,7 +640,7 @@
 <script>
     {% get_current_language as CURRENT_LANG %}
     const LANG = "{{ CURRENT_LANG }}";
-    const isKhmer = LANG === 'km';
+    const calIsKhmer = LANG === 'km';
 
     const I18N = {
         noEvents: "{% trans 'No events this month' %}",
@@ -655,14 +655,14 @@
     const englishDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
     // Language-aware arrays
-    const months = isKhmer ? khmerMonths : englishMonths;
-    const days   = isKhmer ? khmerDays   : englishDays;
+    const months = calIsKhmer ? khmerMonths : englishMonths;
+    const days   = calIsKhmer ? khmerDays   : englishDays;
 
     // Convert Arabic digits → Khmer digits when in Khmer mode
-    const KH_DIGITS = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
-    function toKhNum(n) {
-        if (!isKhmer) return String(n);
-        return String(n).replace(/[0-9]/g, d => KH_DIGITS[+d]);
+    const CAL_KH_DIGITS = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+    function calToKhNum(n) {
+        if (!calIsKhmer) return String(n);
+        return String(n).replace(/[0-9]/g, d => CAL_KH_DIGITS[+d]);
     }
 
     const holidays = JSON.parse(document.getElementById('holidays-data').textContent);
@@ -702,15 +702,15 @@
     function renderHero() {
         const today = new Date();
         const td = today.getDate(), tm = today.getMonth(), ty = today.getFullYear();
-        document.getElementById('heroSolar').textContent = toKhNum(td) + ' ' + months[tm] + ' ' + toKhNum(ty);
+        document.getElementById('heroSolar').textContent = calToKhNum(td) + ' ' + months[tm] + ' ' + calToKhNum(ty);
 
         const lunar = getLunarDate(td, tm + 1);
         if (lunar) {
-            document.getElementById('heroLunar').textContent = lunar.khmer_month + ' ទី' + toKhNum(lunar.lunar_day);
-            document.getElementById('heroBE').textContent = toKhNum(lunar.lunar_year);
+            document.getElementById('heroLunar').textContent = lunar.khmer_month + ' ទី' + calToKhNum(lunar.lunar_day);
+            document.getElementById('heroBE').textContent = calToKhNum(lunar.lunar_year);
         } else {
-            document.getElementById('heroLunar').textContent = months[tm] + ' ' + toKhNum(td);
-            document.getElementById('heroBE').textContent = toKhNum(ty + 543);
+            document.getElementById('heroLunar').textContent = months[tm] + ' ' + calToKhNum(td);
+            document.getElementById('heroBE').textContent = calToKhNum(ty + 543);
         }
     }
 
@@ -720,24 +720,24 @@
         const lunar = getLunarDate(day, month + 1);
         const holiday = getHoliday(day, month + 1);
 
-        document.getElementById('infoSolar').textContent = toKhNum(day) + ' ' + months[month] + ' ' + toKhNum(year);
-        document.getElementById('infoLunar').textContent = lunar ? lunar.khmer_month + ' ទី' + toKhNum(lunar.lunar_day) : months[month] + ' ' + toKhNum(day);
-        document.getElementById('infoDay').textContent = isKhmer ? khmerDays[dowIdx] : (khmerDays[dowIdx] + ' / ' + englishDays[dowIdx]);
-        document.getElementById('infoYear').textContent = toKhNum(lunar ? lunar.lunar_year : (year + 543)) + ' ព.ស';
+        document.getElementById('infoSolar').textContent = calToKhNum(day) + ' ' + months[month] + ' ' + calToKhNum(year);
+        document.getElementById('infoLunar').textContent = lunar ? lunar.khmer_month + ' ទី' + calToKhNum(lunar.lunar_day) : months[month] + ' ' + calToKhNum(day);
+        document.getElementById('infoDay').textContent = calIsKhmer ? khmerDays[dowIdx] : (khmerDays[dowIdx] + ' / ' + englishDays[dowIdx]);
+        document.getElementById('infoYear').textContent = calToKhNum(lunar ? lunar.lunar_year : (year + 543)) + ' ព.ស';
 
         let html = '';
         if (holiday) {
-            const hName = isKhmer ? (holiday.name_kh || holiday.name_en) : (holiday.name_en || holiday.name_kh);
+            const hName = calIsKhmer ? (holiday.name_kh || holiday.name_en) : (holiday.name_en || holiday.name_kh);
             html += '<span class="special-event holiday-badge">🏖️ ' + hName + '</span>';
         }
         if (lunar && lunar.is_holy) {
-            html += '<span class="special-event holy-badge">🙏 ' + (isKhmer ? 'ថ្ងៃបុណ្យ' : 'Holy Day') + '</span>';
+            html += '<span class="special-event holy-badge">🙏 ' + (calIsKhmer ? 'ថ្ងៃបុណ្យ' : 'Holy Day') + '</span>';
         }
         if (lunar && lunar.is_full_moon) {
-            html += '<span class="special-event moon-badge">🌕 ' + (isKhmer ? 'ពេញបូណ៌មី' : 'Full Moon') + '</span>';
+            html += '<span class="special-event moon-badge">🌕 ' + (calIsKhmer ? 'ពេញបូណ៌មី' : 'Full Moon') + '</span>';
         }
         if (lunar && lunar.is_new_moon) {
-            html += '<span class="special-event moon-badge">🌑 ' + (isKhmer ? 'ខ្នើតខែ' : 'New Moon') + '</span>';
+            html += '<span class="special-event moon-badge">🌑 ' + (calIsKhmer ? 'ខ្នើតខែ' : 'New Moon') + '</span>';
         }
         document.getElementById('specialEvents').innerHTML = html;
         document.getElementById('dayModal').classList.add('open');
@@ -754,9 +754,9 @@
     });
 
     function render() {
-        document.getElementById('yearDisplay').textContent = toKhNum(currentYear);
-        document.getElementById('beYearBadge').textContent = 'BE ' + toKhNum(currentYear + 543);
-        document.getElementById('currentMonthYear').textContent = months[currentMonth] + ' ' + toKhNum(currentYear);
+        document.getElementById('yearDisplay').textContent = calToKhNum(currentYear);
+        document.getElementById('beYearBadge').textContent = 'BE ' + calToKhNum(currentYear + 543);
+        document.getElementById('currentMonthYear').textContent = months[currentMonth] + ' ' + calToKhNum(currentYear);
 
         const firstLunar = lunarDates.find(ld => ld.month === currentMonth + 1);
         document.getElementById('currentLunarMonth').textContent = firstLunar ? firstLunar.khmer_month : khmerMonths[currentMonth];
@@ -767,7 +767,7 @@
         months.forEach((m, i) => {
             const btn = document.createElement('button');
             btn.className = 'month-btn' + (i === currentMonth ? ' active' : '');
-            btn.textContent = isKhmer ? m : m.substring(0, 3);
+            btn.textContent = calIsKhmer ? m : m.substring(0, 3);
             btn.onclick = () => selectMonth(i);
             monthGrid.appendChild(btn);
         });
@@ -830,8 +830,8 @@
             }
 
             div.innerHTML =
-                '<span class="solar-num">' + toKhNum(dayNum) + '</span>' +
-                '<span class="lunar-num">' + (lunar ? toKhNum(lunar.lunar_day) : '') + '</span>' +
+                '<span class="solar-num">' + calToKhNum(dayNum) + '</span>' +
+                '<span class="lunar-num">' + (lunar ? calToKhNum(lunar.lunar_day) : '') + '</span>' +
                 dotHtml;
 
             div.onclick = (function(d) {
@@ -850,9 +850,9 @@
             eventsList.innerHTML = '<div style="color:var(--text-secondary);padding:10px;text-align:center;font-size:13px;">' + I18N.noEvents + '</div>';
         } else {
             eventsList.innerHTML = monthHols.map(h => {
-                const name = isKhmer ? (h.name_kh || h.name_en) : (h.name_en || h.name_kh);
+                const name = calIsKhmer ? (h.name_kh || h.name_en) : (h.name_en || h.name_kh);
                 return '<div class="event-item">' +
-                    '<span class="event-date">' + toKhNum(h.day) + '/' + toKhNum(h.month) + '/' + toKhNum(currentYear) + '</span>' +
+                    '<span class="event-date">' + calToKhNum(h.day) + '/' + calToKhNum(h.month) + '/' + calToKhNum(currentYear) + '</span>' +
                     name + '</div>';
             }).join('');
         }
