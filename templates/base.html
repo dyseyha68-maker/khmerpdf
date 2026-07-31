@@ -87,7 +87,36 @@
         body.lang-kh {
             font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
+
+        /* ── Decorative watermark overlay, behind all page content ──
+           Fixed full-viewport element with z-index:-1 so it always
+           paints below normal-flow content (header, cards, panels)
+           regardless of scroll position, but above the body's own
+           background gradient. Same on every page since it lives in
+           base.html. */
+        .page-watermark {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image: url('{% static "watermark-bg.webp" %}');
+            background-repeat: no-repeat;
+            background-position: center 40%;
+            background-size: 560px auto;
+        }
+        @media (max-width: 900px) {
+            .page-watermark {
+                background-size: 400px auto;
+                background-position: center 30%;
+            }
+        }
+        @media (max-width: 480px) {
+            .page-watermark {
+                background-size: 280px auto;
+                background-position: center 22%;
+            }
+        }
+
         .header {
             background: var(--surface);
             padding: 14px 24px;
@@ -520,6 +549,7 @@
     </script>
 </head>
 <body class="{% if LANGUAGE_CODE == 'km' %}lang-kh{% else %}lang-en{% endif %}">
+    <div class="page-watermark" aria-hidden="true"></div>
     <header class="header" x-data="{ navOpen: false }">
       <div class="header-inner">
         <div class="header-left">
