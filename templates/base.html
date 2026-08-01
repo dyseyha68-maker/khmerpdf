@@ -194,7 +194,72 @@
             background: var(--primary);
             color: white;
         }
-        
+
+        /* ── "Tools" dropdown — groups Compress/Merge/Split/Organize/Protect
+           under one nav item so the header stays short. Toggled via Alpine
+           (toolsOpen) rather than pure hover, so it also works on touch. ── */
+        .nav-dropdown {
+            position: relative;
+        }
+        .nav-dropdown-trigger {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--primary);
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .nav-dropdown-trigger i {
+            font-size: 18px;
+            line-height: 1;
+        }
+        .nav-dropdown-trigger:hover,
+        .nav-dropdown-trigger.active {
+            background: var(--surface-hover);
+        }
+        .nav-caret {
+            font-size: 14px !important;
+            transition: transform 0.2s;
+        }
+        .nav-caret-open {
+            transform: rotate(180deg);
+        }
+        .nav-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-md);
+            min-width: 190px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            z-index: 50;
+        }
+        .nav-dropdown-menu a {
+            justify-content: flex-start;
+        }
+        @media (max-width: 900px) {
+            .nav-dropdown-menu {
+                position: static;
+                box-shadow: none;
+                border: none;
+                margin-top: 2px;
+                padding-left: 10px;
+            }
+        }
+
         .header-controls {
             display: flex;
             align-items: center;
@@ -590,7 +655,7 @@
 </head>
 <body class="{% if LANGUAGE_CODE == 'km' %}lang-kh{% else %}lang-en{% endif %}">
     <div class="page-watermark" aria-hidden="true"></div>
-    <header class="header" x-data="{ navOpen: false }">
+    <header class="header" x-data="{ navOpen: false, toolsOpen: false }">
       <div class="header-inner">
         <div class="header-left">
             <a href="/" class="logo">
@@ -599,11 +664,18 @@
         </div>
 
         <nav class="nav-links" :class="{ 'open': navOpen }">
-            <a href="/pdf-compress/"><i class="ti ti-file-zip"></i>{% trans "Compress" %}</a>
-            <a href="/pdf-merge/"><i class="ti ti-files"></i>{% trans "Merge" %}</a>
-            <a href="/pdf-split/"><i class="ti ti-scissors"></i>{% trans "Split" %}</a>
-            <a href="/pdf-organize/"><i class="ti ti-layout-grid"></i>{% trans "Organize" %}</a>
-            <a href="/pdf-protect/"><i class="ti ti-lock"></i>{% trans "Protect" %}</a>
+            <div class="nav-dropdown" @click.outside="toolsOpen = false">
+                <button type="button" class="nav-dropdown-trigger" :class="{ active: toolsOpen }" @click="toolsOpen = !toolsOpen">
+                    <i class="ti ti-tools"></i>{% trans "Tools" %}<i class="ti ti-chevron-down nav-caret" :class="{ 'nav-caret-open': toolsOpen }"></i>
+                </button>
+                <div class="nav-dropdown-menu" x-show="toolsOpen" x-cloak x-transition @click="toolsOpen = false">
+                    <a href="/pdf-compress/"><i class="ti ti-file-zip"></i>{% trans "Compress" %}</a>
+                    <a href="/pdf-merge/"><i class="ti ti-files"></i>{% trans "Merge" %}</a>
+                    <a href="/pdf-split/"><i class="ti ti-scissors"></i>{% trans "Split" %}</a>
+                    <a href="/pdf-organize/"><i class="ti ti-layout-grid"></i>{% trans "Organize" %}</a>
+                    <a href="/pdf-protect/"><i class="ti ti-lock"></i>{% trans "Protect" %}</a>
+                </div>
+            </div>
             <a href="/pdf-calendar/"><i class="ti ti-calendar"></i>{% trans "Calendar" %}</a>
             <a href="/contact/"><i class="ti ti-address-book"></i>{% trans "Contact" %}</a>
         </nav>

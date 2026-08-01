@@ -501,6 +501,12 @@ msgstr ""
 msgid "Protect"
 msgstr ""
 
+msgid "Tools"
+msgstr ""
+
+msgid "Lock PDF with a password"
+msgstr ""
+
 msgid "Protect PDF"
 msgstr ""
 

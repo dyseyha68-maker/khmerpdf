@@ -506,6 +506,12 @@ msgstr "ស្កេនតាមកម្មវិធីធនាគារណា
 msgid "Protect"
 msgstr "ការពារ"
 
+msgid "Tools"
+msgstr "ឧបករណ៍"
+
+msgid "Lock PDF with a password"
+msgstr "ដាក់ពាក្យសម្ងាត់ការពារ PDF"
+
 msgid "Protect PDF"
 msgstr "ការពារ PDF"
 
