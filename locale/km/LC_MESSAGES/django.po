@@ -501,3 +501,31 @@ msgstr "អ្នកឧបត្ថម្ភ"
 
 msgid "Scan with any banking app to support this project"
 msgstr "ស្កេនតាមកម្មវិធីធនាគារណាមួយ ដើម្បីគាំទ្រគម្រោងនេះ"
+
+# Protect PDF page
+msgid "Protect"
+msgstr "ការពារ"
+
+msgid "Protect PDF"
+msgstr "ការពារ PDF"
+
+msgid "Add a password so only people who know it can open your PDF."
+msgstr "ដាក់ពាក្យសម្ងាត់ ដើម្បីឱ្យតែអ្នកដែលដឹងពាក្យសម្ងាត់ប៉ុណ្ណោះអាចបើកឯកសារ PDF របស់អ្នកបាន។"
+
+msgid "Confirm Password"
+msgstr "បញ្ជាក់ពាក្យសម្ងាត់"
+
+msgid "Enter a password"
+msgstr "បញ្ចូលពាក្យសម្ងាត់"
+
+msgid "Re-enter the password"
+msgstr "បញ្ចូលពាក្យសម្ងាត់ម្ដងទៀត"
+
+msgid "Passwords do not match"
+msgstr "ពាក្យសម្ងាត់មិនត្រូវគ្នាទេ"
+
+msgid "Your password is used only to lock the file and is never stored."
+msgstr "ពាក្យសម្ងាត់របស់អ្នកត្រូវបានប្រើតែសម្រាប់ចាក់សោឯកសារប៉ុណ្ណោះ ហើយមិនត្រូវបានរក្សាទុកឡើយ។"
+
+msgid "Protecting PDF..."
+msgstr "កំពុងការពារ PDF..."

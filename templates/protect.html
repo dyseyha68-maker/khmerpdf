@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Protect PDF Free - ការពារ PDF | DAMSPEY{% endblock %}
+{% block meta_description %}Add a password to your PDF file online for free — lock it so only people who know the password can open it. ដាក់ពាក្យសម្ងាត់ការពារឯកសារ PDF ឥតគិតថ្លៃ។{% endblock %}
+{% block page_path %}/pdf-protect/{% endblock %}
+{% block og_path %}/pdf-protect/{% endblock %}
+{% block og_title %}Protect PDF Free - ការពារ PDF{% endblock %}
+{% block og_description %}Lock your PDF file with a password online, free and secure — no signup required.{% endblock %}
+{% block twitter_title %}Protect PDF Free - ការពារ PDF{% endblock %}
+{% block twitter_description %}Lock your PDF file with a password online, free and secure — no signup required.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+    .page-main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        box-sizing: border-box;
+    }
+
+    .protect-card {
+        background: var(--surface);
+        border-radius: 16px;
+        border: 0.5px solid var(--border);
+        width: 100%;
+        max-width: 460px;
+        padding: 36px 32px;
+        box-shadow: var(--shadow-md);
+    }
+
+    .protect-icon {
+        width: 52px; height: 52px; border-radius: 14px;
+        background: var(--primary); color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px; margin-bottom: 16px;
+    }
+
+    .protect-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .protect-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 22px; line-height: 1.5; }
+
+    .drop-zone.drag-over { border-color: var(--primary); background: var(--surface-hover); }
+
+    .selected-files { max-height: 180px; overflow-y: auto; margin: 16px 0; }
+    .selected-file {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 12px; background: var(--surface-hover); border-radius: 6px; margin-bottom: 8px;
+    }
+    .selected-file-name { font-size: 13px; color: var(--text); word-break: break-all; }
+    .selected-file-remove { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 18px; }
+
+    .pw-field { margin-bottom: 14px; }
+    .pw-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .pw-input-wrap { position: relative; }
+    .pw-input-wrap input {
+        width: 100%; padding: 11px 40px 11px 12px; border-radius: var(--radius-sm);
+        border: 1px solid var(--border); background: var(--surface); color: var(--text);
+        font-size: 14px; font-family: inherit; transition: border-color .15s; box-sizing: border-box;
+    }
+    .pw-input-wrap input:focus { outline: none; border-color: var(--primary); }
+    .pw-toggle {
+        position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+        background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px; padding: 4px;
+    }
+    .pw-mismatch { font-size: 12px; color: #dc2626; margin-top: 6px; }
+
+    .privacy-note {
+        display: flex; align-items: flex-start; gap: 8px;
+        font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+        background: var(--surface-hover); border-radius: 8px; padding: 10px 12px; margin-bottom: 20px;
+    }
+    .privacy-note i { color: var(--primary); font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+
+    @media (max-width: 480px) {
+        .protect-card { padding: 28px 22px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="protect-card" x-data="protectApp()">
+    <div class="protect-icon"><i class="ti ti-lock" aria-hidden="true"></i></div>
+    <div class="protect-title">{% trans "Protect PDF" %}</div>
+    <p class="protect-sub">{% trans "Add a password so only people who know it can open your PDF." %}</p>
+
+    <!-- Drop zone -->
+    <div class="drop-zone"
+         :class="{ 'drag-over': dragging }"
+         @dragover.prevent="dragging = true"
+         @dragleave.prevent="dragging = false"
+         @drop.prevent="onDrop($event)"
+         @click="$refs.fileInput.click()">
+        <div class="drop-zone-icon">📄</div>
+        <p>{% trans "Select PDF files or drop here" %}</p>
+        <input type="file" x-ref="fileInput" accept=".pdf" multiple style="display:none"
+               @change="onFileChange($event)">
+    </div>
+
+    <!-- File list -->
+    <div class="selected-files">
+        <template x-for="(file, i) in files" :key="file._aid">
+            <div class="selected-file">
+                <span class="selected-file-name" x-text="file.name"></span>
+                <button class="selected-file-remove" @click.stop="removeFile(i)">×</button>
+            </div>
+        </template>
+    </div>
+
+    <div class="pw-field">
+        <label for="pwInput">{% trans "Password" %}</label>
+        <div class="pw-input-wrap">
+            <input :type="showPw ? 'text' : 'password'" id="pwInput" x-model="password"
+                   placeholder="{% trans 'Enter a password' %}" autocomplete="new-password">
+            <button type="button" class="pw-toggle" @click="showPw = !showPw" tabindex="-1">
+                <i :class="showPw ? 'ti ti-eye-off' : 'ti ti-eye'" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="pw-field">
+        <label for="pwConfirm">{% trans "Confirm Password" %}</label>
+        <div class="pw-input-wrap">
+            <input :type="showPw ? 'text' : 'password'" id="pwConfirm" x-model="passwordConfirm"
+                   placeholder="{% trans 'Re-enter the password' %}" autocomplete="new-password">
+        </div>
+        <p class="pw-mismatch" x-show="passwordConfirm && password !== passwordConfirm" x-cloak>
+            {% trans "Passwords do not match" %}
+        </p>
+    </div>
+
+    <div class="privacy-note">
+        <i class="ti ti-shield-check" aria-hidden="true"></i>
+        <span>{% trans "Your password is used only to lock the file and is never stored." %}</span>
+    </div>
+
+    <button class="action-btn" :disabled="!canSubmit" @click="submit()">
+        {% trans "Protect PDF" %}
+    </button>
+
+    <!-- Modal -->
+    <div class="modal-overlay" x-show="modalVisible" x-cloak>
+        <div class="modal">
+            <h2>{% trans "Protecting PDF..." %}</h2>
+            <div class="progress-container">
+                <div class="progress-bar-bg"></div>
+            </div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:14px;text-align:center">
+                <span x-text="isKhmer ? 'ពេលវេលា: ' : 'Elapsed: '"></span><span
+                    x-text="Math.floor(elapsed/60).toString().padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0')"></span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function protectApp() {
+    return baseToolApp({
+        password: '',
+        passwordConfirm: '',
+        showPw: false,
+
+        get canSubmit() {
+            return this.files.length > 0
+                && this.password.length >= 4
+                && this.password === this.passwordConfirm;
+        },
+
+        removeFile(i) { this.files.splice(i, 1); },
+
+        async submit() {
+            if (!this.canSubmit) return;
+            this.showModal();
+            const fd = new FormData();
+            this.files.forEach(f => fd.append('files', f));
+            fd.append('password', this.password);
+            try {
+                const d = await fetch('/api/protect/', { method: 'POST', body: fd }).then(r => r.json());
+                if (d.job_id) this.pollJob(d.job_id, (this.files[0]?.name.replace(/\.pdf$/i, '') || 'protected') + '_protected.pdf');
+                else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
+            } catch (err) {
+                this.hideModal();
+                alert(window.I18N_JS.errorPrefix + ' ' + err.message);
+            }
+        },
+    });
+}
+</script>
+{% endblock %}

@@ -5,6 +5,7 @@ urlpatterns = [
     path('compress/', views.compress_api, name='compress'),
     path('merge/', views.merge_api, name='merge'),
     path('split/', views.split_api, name='split'),
+    path('protect/', views.protect_api, name='protect'),
     path('organize/', views.organize_api, name='organize'),
     path('ocr/', views.ocr_api, name='ocr'),
     path('pdf-to-image/', views.pdf_to_image_api, name='pdf_to_image'),

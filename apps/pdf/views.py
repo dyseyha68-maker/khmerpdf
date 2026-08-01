@@ -15,7 +15,7 @@ from rest_framework import status
 
 from .models import Job, Holiday
 from django.db import models
-from .tasks import compress_pdf, merge_pdf, split_pdf, organize_pdf
+from .tasks import compress_pdf, merge_pdf, split_pdf, organize_pdf, protect_pdf
 
 
 def cleanup_old_files():
@@ -71,6 +71,10 @@ def compress_page(request):
 
 def organize_page(request):
     return render(request, 'organize.html')
+
+
+def protect_page(request):
+    return render(request, 'protect.html')
 
 
 def calendar_page(request):
@@ -357,6 +361,65 @@ def split_api(request):
     else:
         split_pdf.delay(str(job.id))
         
+        return Response({
+            'job_id': str(job.id),
+            'status': 'pending',
+            'message': 'Job created successfully'
+        }, status=status.HTTP_201_CREATED)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def protect_api(request):
+    # Cleanup old files every time a job is created
+    cleanup_old_files()
+
+    files = request.FILES.getlist('files')
+    password = request.data.get('password', '')
+
+    if not files:
+        return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not password or len(password) < 4:
+        return Response({'error': 'Password must be at least 4 characters'}, status=status.HTTP_400_BAD_REQUEST)
+
+    for f in files:
+        if not f.name.lower().endswith('.pdf'):
+            return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
+        if f.size > settings.MAX_UPLOAD_SIZE:
+            return Response({'error': f'File {f.name} too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if len(files) == 1:
+        job = Job.objects.create(file=files[0], tool='protect')
+    else:
+        file_ids = []
+        for f in files:
+            up_job = Job.objects.create(file=f, tool='upload')
+            file_ids.append(str(up_job.id))
+        job = Job.objects.create(files=file_ids, tool='protect')
+
+    # `password` is passed only as a task argument — never saved onto the
+    # Job row, so it's never written to the database.
+    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+        protect_pdf(str(job.id), password)
+        job.refresh_from_db()
+
+        if job.status == 'failed':
+            return Response({
+                'error': job.error_message or 'Protection failed',
+                'job_id': str(job.id),
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({
+            'job_id': str(job.id),
+            'status': job.status,
+            'result_url': job.result.url if job.result else None,
+            'message': 'File protected successfully'
+        }, status=status.HTTP_201_CREATED)
+    else:
+        protect_pdf.delay(str(job.id), password)
+
         return Response({
             'job_id': str(job.id),
             'status': 'pending',

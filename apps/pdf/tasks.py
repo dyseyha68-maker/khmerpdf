@@ -594,6 +594,94 @@ def split_pdf(job_id):
         raise
 
 
+@shared_task
+def protect_pdf(job_id, password):
+    """Lock a PDF (or batch of PDFs) with an open password using pikepdf
+    (qpdf-backed), AES-256 (R=6 — the modern PDF 2.0 encryption revision).
+    `password` arrives only as a task argument — it is never written to
+    the Job row, so it never lands in the database or the admin panel."""
+    from apps.pdf.models import Job
+    from django.db import close_old_connections
+    close_old_connections()
+    import pikepdf
+
+    Job.objects.filter(id=job_id).update(status='processing')
+    job = Job.objects.get(id=job_id)
+
+    def _encrypt_one(input_path, output_path):
+        try:
+            with pikepdf.open(input_path) as pdf:
+                pdf.save(
+                    output_path,
+                    encryption=pikepdf.Encryption(owner=password, user=password, R=6),
+                )
+        except pikepdf.PasswordError:
+            raise Exception('This PDF is already password-protected — remove the existing password first.')
+
+    try:
+        file_ids = job.files if job.files else []
+
+        if file_ids and len(file_ids) > 1:
+            # Multiple files - create ZIP
+            first_base_name = ''
+            for idx, file_id in enumerate(file_ids):
+                try:
+                    job_file = Job.objects.get(id=file_id)
+                    if job_file.file and os.path.exists(job_file.file.path):
+                        if idx == 0:
+                            first_base_name = os.path.splitext(os.path.basename(job_file.file.name))[0]
+                        break
+                except Exception:
+                    continue
+
+            zip_filename = f'{first_base_name}_protected.zip' if first_base_name else f'protected_{uuid.uuid4().hex[:8]}.zip'
+            zip_path = os.path.join(settings.MEDIA_ROOT, 'processed', zip_filename)
+            os.makedirs(os.path.dirname(zip_path), exist_ok=True)
+
+            with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for file_id in file_ids:
+                    try:
+                        job_file = Job.objects.get(id=file_id)
+                        if job_file.file and os.path.exists(job_file.file.path):
+                            input_path = job_file.file.path
+                            base_name = os.path.splitext(os.path.basename(job_file.file.name))[0]
+                            output_filename = f'{base_name}_protected.pdf'
+                            output_path = os.path.join(settings.MEDIA_ROOT, 'processed', f'{uuid.uuid4().hex[:8]}_protected.pdf')
+
+                            _encrypt_one(input_path, output_path)
+
+                            zip_file.write(output_path, output_filename)
+                            os.remove(output_path)
+                    except Exception as e:
+                        logger.warning(f'protect_pdf: skipping file {file_id}: {e}')
+                        continue
+
+            job.result.save(zip_filename, open(zip_path, 'rb'))
+            os.remove(zip_path)
+            Job.objects.filter(id=job_id).update(status='done')
+            return {'status': 'done', 'job_id': str(job_id)}
+
+        else:
+            input_path = job.file.path
+            base_name = os.path.splitext(os.path.basename(job.file.name))[0]
+            output_filename = f'{base_name}_protected.pdf'
+            output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+            _encrypt_one(input_path, output_path)
+
+            job.result.save(output_filename, open(output_path, 'rb'))
+            os.remove(output_path)
+
+            Job.objects.filter(id=job_id).update(status='done')
+            return {'status': 'done', 'job_id': str(job_id)}
+
+    except Exception as e:
+        logger.error(f'protect_pdf failed: {e}', exc_info=True)
+        Job.objects.filter(id=job_id).update(status='failed', error_message=str(e)[:500])
+        raise
+
+
 def parse_page_range(page_str, total_pages):
     pages = set()
     

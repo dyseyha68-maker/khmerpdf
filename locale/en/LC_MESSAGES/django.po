@@ -497,3 +497,30 @@ msgstr ""
 
 msgid "Scan with any banking app to support this project"
 msgstr ""
+
+msgid "Protect"
+msgstr ""
+
+msgid "Protect PDF"
+msgstr ""
+
+msgid "Add a password so only people who know it can open your PDF."
+msgstr ""
+
+msgid "Confirm Password"
+msgstr ""
+
+msgid "Enter a password"
+msgstr ""
+
+msgid "Re-enter the password"
+msgstr ""
+
+msgid "Passwords do not match"
+msgstr ""
+
+msgid "Your password is used only to lock the file and is never stored."
+msgstr ""
+
+msgid "Protecting PDF..."
+msgstr ""

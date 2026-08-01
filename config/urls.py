@@ -7,7 +7,7 @@ from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
 from django.views.generic import RedirectView
-from apps.pdf.views import index, split_page, merge_page, compress_page, organize_page, calendar_page, khqr, ocr_page, pdf_to_image_page, image_to_pdf_page, download_file, contact_page
+from apps.pdf.views import index, split_page, merge_page, compress_page, organize_page, calendar_page, khqr, ocr_page, pdf_to_image_page, image_to_pdf_page, download_file, contact_page, protect_page
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),  # set_language endpoint
@@ -20,6 +20,7 @@ urlpatterns = [
     path('pdf-merge/', merge_page, name='merge'),
     path('pdf-split/', split_page, name='split'),
     path('pdf-organize/', organize_page, name='organize'),
+    path('pdf-protect/', protect_page, name='protect'),
     path('pdf-calendar/', calendar_page, name='calendar'),
     path('khqr/', khqr, name='khqr'),
     path('download/', download_file, name='download_file'),
