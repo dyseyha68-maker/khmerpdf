@@ -120,3 +120,50 @@ class Job(models.Model):
 
     def __str__(self):
         return f'{self.tool} - {self.status} - {self.id}'
+
+
+class OCRSettings(models.Model):
+    """Singleton row (always pk=1) — lets the admin switch the OCR engine
+    from Tesseract (free, local) to Google Cloud Vision (paid, more
+    accurate — especially for Khmer script) without touching code or
+    redeploying. See apps/pdf/tasks.py:ocr_pdf for how this is read."""
+
+    use_google_vision = models.BooleanField(
+        default=False,
+        verbose_name='Use Google Cloud Vision for OCR',
+        help_text='Off by default — OCR uses the built-in Tesseract engine (free). '
+                   'Turn this on once a service account key is pasted below.',
+    )
+    google_credentials_json = models.TextField(
+        blank=True,
+        verbose_name='Google Cloud service account JSON',
+        help_text='Paste the full contents of the service account key file (the JSON you '
+                   'downloaded from Google Cloud Console → IAM & Admin → Service Accounts). '
+                   'Kept only in this row — treat it like a password.',
+    )
+    fallback_to_tesseract = models.BooleanField(
+        default=True,
+        verbose_name='Fall back to Tesseract if Google Vision fails',
+        help_text='Recommended. Keeps OCR working if the API key is invalid, the monthly '
+                   'quota is used up, or Google is unreachable.',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'OCR Settings'
+        verbose_name_plural = 'OCR Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1  # enforce a single row
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass  # the singleton row is never deleted
+
+    def __str__(self):
+        return 'OCR Settings'
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

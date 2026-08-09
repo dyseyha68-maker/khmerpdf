@@ -3,6 +3,7 @@ import io
 import json
 from datetime import datetime, timedelta
 
+from django import forms
 from django.contrib import admin
 from django.contrib import messages
 from django.db.models import Count
@@ -12,7 +13,7 @@ from django.shortcuts import render
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html
-from .models import Job, Holiday, CalendarEvent, PageVisit
+from .models import Job, Holiday, CalendarEvent, PageVisit, OCRSettings
 
 
 # ── Job Admin ─────────────────────────────────────────────────────────────────
@@ -321,6 +322,45 @@ class CalendarEventAdmin(admin.ModelAdmin):
             return format_html('<span style="color:#059669;font-weight:700">● Active</span>')
         return format_html('<span style="color:#94a3b8">○ Inactive</span>')
     active_badge.short_description = 'Status'
+
+
+# ── OCR Settings Admin (Google Cloud Vision configuration) ────────────────────
+
+class OCRSettingsForm(forms.ModelForm):
+    class Meta:
+        model = OCRSettings
+        fields = '__all__'
+        widgets = {
+            'google_credentials_json': forms.Textarea(attrs={
+                'rows': 16,
+                'style': 'font-family:monospace;font-size:12px;width:100%;max-width:700px;',
+                'placeholder': '{\n  "type": "service_account",\n  "project_id": "...",\n  ...\n}',
+            }),
+        }
+
+
+@admin.register(OCRSettings)
+class OCRSettingsAdmin(admin.ModelAdmin):
+    form = OCRSettingsForm
+    readonly_fields = ['updated_at']
+    fieldsets = (
+        ('OCR Engine', {'fields': ('use_google_vision', 'fallback_to_tesseract')}),
+        ('Google Cloud Vision Credentials', {'fields': ('google_credentials_json',)}),
+        ('', {'fields': ('updated_at',)}),
+    )
+
+    def has_add_permission(self, request):
+        # Singleton — only ever one row (pk=1), created on first admin visit.
+        return not OCRSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        # Skip the list view entirely — jump straight to the (only) row's
+        # edit form, same UX as a one-off "Settings" page.
+        obj = OCRSettings.load()
+        return HttpResponseRedirect(reverse('admin:pdf_ocrsettings_change', args=[obj.pk]))
 
 
 # ── PageVisit Admin (Visitor Statistics) ──────────────────────────────────────

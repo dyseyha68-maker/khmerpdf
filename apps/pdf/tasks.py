@@ -3,6 +3,7 @@ import uuid
 import zipfile
 import subprocess
 import logging
+import json
 import numpy as np
 from celery import shared_task
 from django.conf import settings
@@ -789,6 +790,53 @@ def organize_pdf(job_id, replace_files=None):
         raise
 
 
+# ── Google Cloud Vision OCR (optional, admin-configured) ───────────────────────
+# Off by default. When apps.pdf.models.OCRSettings.use_google_vision is turned
+# on (with a valid service account JSON pasted into the admin), ocr_pdf below
+# uses Vision's DOCUMENT_TEXT_DETECTION instead of Tesseract, per page, with
+# an automatic per-page fallback to Tesseract on any failure (network, quota,
+# bad credentials) unless the admin has switched that fallback off.
+
+_VISION_LANG_HINTS = {
+    'eng': ['en'],
+    'khm': ['km'],
+    'eng+khm': ['en', 'km'],
+}
+
+
+def _get_ocr_settings():
+    from apps.pdf.models import OCRSettings
+    return OCRSettings.objects.filter(pk=1).first()
+
+
+def _build_vision_client(ocr_settings):
+    """Build an authenticated Vision client from the admin-pasted service
+    account JSON. Raises if the JSON is missing/malformed so the caller can
+    log a clear error and fall back to Tesseract."""
+    from google.cloud import vision
+    from google.oauth2 import service_account
+
+    info = json.loads(ocr_settings.google_credentials_json)
+    credentials = service_account.Credentials.from_service_account_info(info)
+    return vision.ImageAnnotatorClient(credentials=credentials)
+
+
+def _vision_ocr_page(client, pil_image, lang_hints=None):
+    """Run Google Vision DOCUMENT_TEXT_DETECTION on one page image, return
+    the extracted text (same shape as pytesseract.image_to_string output)."""
+    from google.cloud import vision
+
+    buf = io.BytesIO()
+    pil_image.convert('RGB').save(buf, format='PNG')
+    image = vision.Image(content=buf.getvalue())
+    image_context = vision.ImageContext(language_hints=lang_hints) if lang_hints else None
+
+    response = client.document_text_detection(image=image, image_context=image_context)
+    if response.error and response.error.message:
+        raise RuntimeError(response.error.message)
+    return response.full_text_annotation.text
+
+
 @shared_task
 def ocr_pdf(job_id):
     from apps.pdf.models import Job
@@ -852,21 +900,62 @@ def ocr_pdf(job_id):
 
         extracted_chars = 0
 
+        # ── Optional Google Cloud Vision engine (admin-configured) ──
+        ocr_settings = _get_ocr_settings()
+        vision_client = None
+        vision_fallback_ok = True
+        if ocr_settings and ocr_settings.use_google_vision and ocr_settings.google_credentials_json.strip():
+            vision_fallback_ok = ocr_settings.fallback_to_tesseract
+            try:
+                vision_client = _build_vision_client(ocr_settings)
+                logger.info('OCR: using Google Cloud Vision (DOCUMENT_TEXT_DETECTION)')
+            except Exception as e:
+                logger.error(f'OCR: Google Vision client init failed: {e}', exc_info=True)
+                if not vision_fallback_ok:
+                    raise RuntimeError(f'Google Vision is enabled but could not be configured: {e}')
+                vision_client = None  # falls through to Tesseract below
+        vision_lang_hints = _VISION_LANG_HINTS.get(ocr_lang, ['en'])
+
         for i in range(max_pages):
             logger.info(f'Processing page {i+1}/{max_pages}')
             page = pages[i]
             gray = page.convert('L')
+            page_done = False
+
+            # ── Try Google Vision first, if configured ──
+            if vision_client:
+                try:
+                    vtext = clean_text(_vision_ocr_page(vision_client, page, lang_hints=vision_lang_hints))
+                    if vtext:
+                        for line in vtext.split('\n'):
+                            line = line.strip()
+                            if not line:
+                                continue
+                            p = doc.add_paragraph(line)
+                            extracted_chars += len(line)
+                            has_khmer = any('ក' <= c <= '៿' for c in line)
+                            for run in p.runs:
+                                run.font.name = 'Kantumruy Pro' if has_khmer else 'Calibri'
+                                run.font.size = Pt(11)
+                    page_done = True
+                except Exception as e:
+                    logger.error(f'Google Vision OCR failed on page {i+1}: {e}', exc_info=True)
+                    if not vision_fallback_ok:
+                        raise RuntimeError(f'Google Vision OCR failed on page {i+1}: {e}')
+                    # else: fall through to Tesseract for this page
 
             # Get OCR with position data
-            try:
-                data = pytesseract.image_to_data(gray, lang=tess_lang, output_type=pytesseract.Output.DICT)
-            except Exception as e:
-                logger.error(f'pytesseract.image_to_data failed on page {i+1}: {e}', exc_info=True)
-                data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}
+            data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}
+            if not page_done:
+                try:
+                    data = pytesseract.image_to_data(gray, lang=tess_lang, output_type=pytesseract.Output.DICT)
+                except Exception as e:
+                    logger.error(f'pytesseract.image_to_data failed on page {i+1}: {e}', exc_info=True)
+                    data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}
 
             # Extract text and organize by lines (y-position)
             lines_dict = {}
-            n = len(data.get('text', []))
+            n = 0 if page_done else len(data.get('text', []))
 
             if n > 0:
                 # Group words into lines based on y-position
@@ -907,8 +996,9 @@ def ocr_pdf(job_id):
                             else:
                                 run.font.name = 'Calibri'
                             run.font.size = Pt(11)
-            else:
-                # Fallback to basic OCR
+            elif not page_done:
+                # Fallback to basic OCR (Tesseract only — Vision already had
+                # its turn above if it was configured, page_done covers that)
                 try:
                     text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
                     text = clean_text(text)
