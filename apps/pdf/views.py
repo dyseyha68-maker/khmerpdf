@@ -17,6 +17,15 @@ from .models import Job, Holiday
 from django.db import models
 from .tasks import compress_pdf, merge_pdf, split_pdf, organize_pdf, protect_pdf
 
+# Minimal container base images often ship without a system mime.types
+# database, so Python's mimetypes.guess_type() silently returns (None, None)
+# for common Office formats and download_file() below falls back to a wrong
+# 'application/pdf' content type. Register the types this app actually
+# produces explicitly so the guess never depends on the host OS.
+mimetypes.add_type('application/vnd.openxmlformats-officedocument.wordprocessingml.document', '.docx')
+mimetypes.add_type('application/zip', '.zip')
+mimetypes.add_type('application/pdf', '.pdf')
+
 
 def cleanup_old_files():
     """Delete files older than 24 hours - runs automatically when any job is created"""
