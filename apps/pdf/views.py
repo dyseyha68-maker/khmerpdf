@@ -202,8 +202,12 @@ def download_file(request):
         or 'application/pdf'
     )
 
-    response = FileResponse(open(safe_path, 'rb'), content_type=content_type)
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response = FileResponse(
+        open(safe_path, 'rb'),
+        as_attachment=True,
+        filename=filename,
+        content_type=content_type,
+    )
     return response
 
 
@@ -450,6 +454,8 @@ def job_status(request, job_id):
     if job.status == 'done' and job.result:
         data['result_url'] = job.result.url
         data['result_size'] = job.result.size
+        if getattr(job, 'original_filename', None):
+            data['original_filename'] = job.original_filename
 
     if job.status == 'failed':
         data['error'] = job.error_message
@@ -551,8 +557,10 @@ def ocr_api(request):
     if file.size > settings.MAX_UPLOAD_SIZE:
         return Response({'error': 'File too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
+    orig_name = getattr(file, 'name', '') or 'document.pdf'
     job = Job.objects.create(
         file=file,
+        original_filename=orig_name,
         tool='ocr',
         compression_level=ocr_lang
     )

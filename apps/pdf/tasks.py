@@ -821,6 +821,326 @@ def _build_vision_client(ocr_settings):
     return vision.ImageAnnotatorClient(credentials=credentials)
 
 
+def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
+    """Run Claude Vision OCR on one page image, returning layout-reconstructed markdown text."""
+    import base64
+    import anthropic
+
+    client = anthropic.Anthropic(api_key=api_key)
+
+    buf = io.BytesIO()
+    # JPEG format at quality 92 provides crisp clarity for OCR with low payload size
+    pil_image.convert('RGB').save(buf, format='JPEG', quality=92)
+    image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+    lang_desc = "Khmer and English" if ocr_lang == 'eng+khm' else ("Khmer" if ocr_lang == 'khm' else "English")
+
+    prompt = (
+        f"You are a world-class document transcription and layout reproduction engine for high-fidelity Microsoft Word conversion. "
+        f"Transcribe and faithfully reconstruct the visual layout, text, and structure of this document image with 100% precision. "
+        f"Document language: {lang_desc}.\n\n"
+        "Layout Reconstruction Rules:\n"
+        "1. ACCURACY & SCRIPT: Faithfully transcribe all characters and words without omissions. For Khmer, use clean standard Unicode Khmer. Pay close attention to legal and official terms (e.g. 'អង្គហេតុ' [NOT 'អន្តហេតុ'], 'សាលក្រមរដ្ឋប្បវេណី', 'មតកសាសន៍', 'យថាភូត', 'អត្រានុកូលដ្ឋាន').\n"
+        "2. FLOW & WRAPPING: Keep sentences and paragraphs intact as continuous paragraphs. Do NOT insert hard line breaks in the middle of a sentence or bullet point. Only break lines where a paragraph naturally ends.\n"
+        "3. TWO-COLUMN HEADERS & LETTERHEADS: Official documents often have side-by-side elements:\n"
+        "   - Top centered mottos: '# [CENTER] ព្រះរាជាណាចក្រកម្ពុជា [/CENTER]\\n## [CENTER] ជាតិ សាសនា ព្រះមហាក្សត្រ [/CENTER]'\n"
+        "   - For side-by-side letterhead elements below (e.g. Institution/Court/Case/Prakas numbers on left, and 'តាងនាមប្រជារាស្ត្រខ្មែរ' / Court name / introductory reasoning paragraph on right), use a 2-column table with [LAYOUT]:\n"
+        "     | [LAYOUT] Left Column | Right Column |\n"
+        "     | --- | --- |\n"
+        "     | **សាលាដំបូងរាជធានីភ្នំពេញ**<br>**សាលក្រមរដ្ឋប្បវេណី**<br>-លេខ...<br>ចុះថ្ងៃទី... | [CENTER] **តាងនាមប្រជារាស្ត្រខ្មែរ**<br>**សាលាដំបូងរាជធានីភ្នំពេញ** [/CENTER]<br><br>បានទាញហេតុផល... |\n"
+        "   Use '<br>' to separate lines within a cell.\n"
+        "4. COURT COMPOSITION / OFFICERS (សមាសភាព): When officers or court officials are listed in columns, format them as a 3-column table with [LAYOUT]:\n"
+        "   | [LAYOUT] Prefix | Full Name | Official Title |\n"
+        "   | --- | --- | --- |\n"
+        "   | លោក | **សាន ប៊ុនធឿន** | ចៅក្រមសាលាដំបូងរាជធានីភ្នំពេញ |\n"
+        "5. SIGNATURE BLOCKS: Signatures at the bottom of the document (e.g. Clerk left, Judge right; or Prepared by left, Approved by right) MUST be a 2-column table with [LAYOUT]:\n"
+        "   | [LAYOUT] Left Signatory | Right Signatory |\n"
+        "   | --- | --- |\n"
+        "   | [CENTER] **ក្រឡាបញ្ជី**<br><br><br>**ឈ្មោះ** [/CENTER] | [CENTER] **ចៅក្រមជំនុំជម្រះ**<br><br><br>**ឈ្មោះ** [/CENTER] |\n"
+        "6. DOCUMENT HEADINGS: Use '# [CENTER] Title [/CENTER]' for major centered document titles, '## [CENTER] Subtitle [/CENTER]' for secondary centered headings (e.g. '## [CENTER] I. អង្គហេតុ និងចំណុចវិវាទ [/CENTER]', '## [CENTER] ចៅក្រមជំនុំជម្រះ [/CENTER]').\n"
+        "7. EMPHASIS & LABELS: Use '**bold text**' for labels, headings, party names, case numbers, or key terms as in the original (e.g. '**ដើមចោទ និងជាចុងបណ្តឹងតប ៖**', '**អ្នកតំណាងដោយអាណត្តិ ៖**', '**ចុងចម្លើយ និងជាដើមបណ្តឹងតប ៖**').\n"
+        "8. TABLES: If there is a data table or schedule, format it as a standard Markdown table with headers and cell rows.\n"
+        "9. LISTS & NUMBERED CLAUSES: Use '- ' for bullets, and numbered labels like '១. ', '១.១. ', '1. ', '1.1. '.\n"
+        "10. RUNNING PAGE NUMBERS: Omit standalone running page numbers (e.g. standalone '1', '2', '១', '២', '៨' at margins) so they do not interrupt body paragraphs.\n"
+        "11. Output ONLY the reconstructed markdown text. Do NOT add preamble, conversational remarks, or markdown code fences (no ```markdown)."
+    )
+
+    response = client.messages.create(
+        model=model or "claude-haiku-5-5",
+        max_tokens=8192,
+        thinking={"type": "disabled"},
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": image_base64,
+                        },
+                    },
+                    {
+                        "type": "text",
+                        "text": prompt,
+                    },
+                ],
+            }
+        ],
+    )
+
+    text_parts = []
+    for block in response.content:
+        if getattr(block, 'text', None):
+            text_parts.append(block.text)
+
+    return "\n".join(text_parts).strip()
+
+
+def _add_markdown_to_docx(doc, markdown_text):
+    """
+    Parse Claude's formatted OCR output (Markdown headers, centered titles,
+    bold text, bullet/numbered lists, and tables) into native styled Word
+    elements with proper fonts (Kantumruy Pro for Khmer, Calibri for Latin).
+    Returns total extracted character count.
+    """
+    import re
+    from docx.shared import Pt, Inches
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.enum.table import WD_TABLE_ALIGNMENT
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls, qn
+
+    def _add_styled_runs(paragraph, text, is_bold=False, font_size=11):
+        """Parse inline **bold** markers and append runs with explicit Khmer/Latin font switching."""
+        parts = text.split('**')
+        chars = 0
+        for idx, part in enumerate(parts):
+            if not part:
+                continue
+            run_bold = is_bold or (idx % 2 == 1)
+            # Detect Khmer characters
+            has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in part)
+            font_name = 'Kantumruy Pro' if has_khmer else 'Calibri'
+
+            run = paragraph.add_run(part)
+            run.bold = run_bold
+            run.font.name = font_name
+            run.font.size = Pt(font_size)
+
+            # Explicitly set Word's Complex Script (w:cs) and East Asia fonts
+            # so Windows Word renders Khmer characters using Kantumruy Pro
+            rPr = run._element.get_or_add_rPr()
+            rFonts = rPr.get_or_add_rFonts()
+            rFonts.set(qn('w:cs'), font_name)
+            rFonts.set(qn('w:ascii'), font_name)
+            rFonts.set(qn('w:hAnsi'), font_name)
+            rFonts.set(qn('w:eastAsia'), font_name)
+
+            chars += len(part)
+        return chars
+
+    # Clean markdown code fences if Claude wrapped output in ```markdown ... ```
+    text = markdown_text.strip()
+    if text.startswith('```'):
+        first_newline = text.find('\n')
+        if first_newline != -1:
+            text = text[first_newline + 1:]
+        if text.endswith('```'):
+            text = text[:-3].strip()
+
+    lines = text.split('\n')
+    i = 0
+    n = len(lines)
+    total_chars = 0
+
+    while i < n:
+        raw_line = lines[i]
+        line = raw_line.strip()
+
+        if not line:
+            i += 1
+            continue
+
+        # ── 1. Check for Markdown Table ──────────────────────────
+        if line.startswith('|') and line.endswith('|'):
+            table_lines = []
+            while i < n and lines[i].strip().startswith('|') and lines[i].strip().endswith('|'):
+                table_lines.append(lines[i].strip())
+                i += 1
+
+            is_layout_table = any('[LAYOUT]' in tl or '[layout]' in tl for tl in table_lines)
+
+            valid_rows = []
+            for r_i, t_line in enumerate(table_lines):
+                # If this is a [LAYOUT] table, skip the header column-definition row
+                if is_layout_table and r_i == 0:
+                    continue
+                clean_tline = re.sub(r'\[LAYOUT\]|\[layout\]', '', t_line)
+                cells = [c.strip() for c in clean_tline.split('|')[1:-1]]
+                if all(set(c).issubset({'-', ':', ' '}) for c in cells if c):
+                    continue  # separator row
+                valid_rows.append(cells)
+
+            if valid_rows:
+                num_cols = max(len(r) for r in valid_rows)
+                normalized_rows = [r + [''] * (num_cols - len(r)) for r in valid_rows]
+                tbl = doc.add_table(rows=len(normalized_rows), cols=num_cols)
+                tbl.autofit = False
+                tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+                has_header_keywords = any(
+                    any(k in cell for k in ('ព្រះរាជាណាចក្រ', 'សាលាដំបូង', 'ក្រឡាបញ្ជី', 'ចៅក្រម', 'តាងនាមប្រជារាស្ត្រខ្មែរ'))
+                    for row in normalized_rows for cell in row
+                )
+
+                if is_layout_table or has_header_keywords:
+                    # Apply borderless XML to ensure completely invisible boundaries
+                    tblPr = tbl._element.xpath('w:tblPr')
+                    if tblPr:
+                        val_none = 'none'
+                        borders_xml = f'<w:tblBorders {nsdecls("w")}><w:top w:val="{val_none}"/><w:left w:val="{val_none}"/><w:bottom w:val="{val_none}"/><w:right w:val="{val_none}"/><w:insideH w:val="{val_none}"/><w:insideV w:val="{val_none}"/></w:tblBorders>'
+                        tblPr[0].append(parse_xml(borders_xml))
+                else:
+                    tbl.style = 'Table Grid'
+
+                # Explicit column widths for standard printable width (~6.5 inches)
+                if num_cols == 2:
+                    col_widths = [Inches(2.85), Inches(3.65)]
+                elif num_cols == 3:
+                    col_widths = [Inches(1.0), Inches(2.2), Inches(3.3)]
+                else:
+                    col_widths = [Inches(6.5 / num_cols)] * num_cols
+
+                for row_idx, row_cells in enumerate(normalized_rows):
+                    is_header = (row_idx == 0 and not is_layout_table and not has_header_keywords)
+                    row_elem = tbl.rows[row_idx]
+                    for col_idx, cell_text in enumerate(row_cells):
+                        cell = row_elem.cells[col_idx]
+                        if col_idx < len(col_widths):
+                            cell.width = col_widths[col_idx]
+
+                        cell_lines = [cl.strip() for cl in re.split(r'<br\s*/?>', cell_text, flags=re.I) if cl.strip()]
+                        if not cell_lines:
+                            cell_lines = ['']
+
+                        active_cell_align = None
+                        for l_idx, cl in enumerate(cell_lines):
+                            if l_idx == 0:
+                                p = cell.paragraphs[0]
+                            else:
+                                p = cell.add_paragraph()
+
+                            if '[CENTER]' in cl or '[center]' in cl:
+                                active_cell_align = WD_ALIGN_PARAGRAPH.CENTER
+                            elif '[RIGHT]' in cl or '[right]' in cl:
+                                active_cell_align = WD_ALIGN_PARAGRAPH.RIGHT
+                            elif '[JUSTIFY]' in cl or '[justify]' in cl:
+                                active_cell_align = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+                            p_align = active_cell_align or (WD_ALIGN_PARAGRAPH.JUSTIFY if len(cl) > 60 else WD_ALIGN_PARAGRAPH.LEFT)
+
+                            if any(k in cl for k in ('[/CENTER]', '[/center]', '[/RIGHT]', '[/right]', '[/JUSTIFY]', '[/justify]')):
+                                active_cell_align = None
+
+                            cl = re.sub(r'\[/?CENTER\]|\[/?center\]|\[/?RIGHT\]|\[/?right\]|\[/?JUSTIFY\]|\[/?justify\]|\[/?LEFT\]|\[/?left\]', '', cl).strip()
+
+                            p.alignment = p_align
+                            p.paragraph_format.line_spacing = 1.15
+                            p.paragraph_format.space_before = Pt(0)
+                            p.paragraph_format.space_after = Pt(2)
+
+                            c_count = _add_styled_runs(p, cl, is_bold=is_header, font_size=10.5 if not is_header else 11)
+                            total_chars += c_count
+
+                # Subtle spacing paragraph after table
+                sp = doc.add_paragraph()
+                sp.paragraph_format.space_before = Pt(0)
+                sp.paragraph_format.space_after = Pt(2)
+            continue
+
+        # ── 2. Omit standalone page numbers ──────────────────────
+        # Standalone '1', '2', '១', '២', '៨' at page margins
+        clean_num_check = re.sub(r'\[/?CENTER\]|\[/?RIGHT\]|\[/?center\]|\[/?right\]', '', line).strip()
+        if re.match(r'^[0-9\u17E0-\u17E9]{1,3}$', clean_num_check):
+            i += 1
+            continue
+
+        # ── 3. Alignment & Heading tags ──────────────────────────
+        align = WD_ALIGN_PARAGRAPH.JUSTIFY
+        font_size = 11.0
+        is_heading_bold = False
+        space_before = Pt(0)
+        space_after = Pt(3)
+
+        if '[CENTER]' in line or '[center]' in line:
+            align = WD_ALIGN_PARAGRAPH.CENTER
+            line = re.sub(r'\[/?CENTER\]|\[/?center\]', '', line).strip()
+        elif '[RIGHT]' in line or '[right]' in line:
+            align = WD_ALIGN_PARAGRAPH.RIGHT
+            line = re.sub(r'\[/?RIGHT\]|\[/?right\]', '', line).strip()
+        elif '[LEFT]' in line or '[left]' in line:
+            align = WD_ALIGN_PARAGRAPH.LEFT
+            line = re.sub(r'\[/?LEFT\]|\[/?left\]', '', line).strip()
+
+        # Check Heading levels
+        if line.startswith('# '):
+            align = WD_ALIGN_PARAGRAPH.CENTER if align == WD_ALIGN_PARAGRAPH.CENTER else WD_ALIGN_PARAGRAPH.LEFT
+            font_size = 15.5
+            is_heading_bold = True
+            space_before = Pt(6)
+            space_after = Pt(3)
+            line = line[2:].strip()
+        elif line.startswith('## '):
+            align = WD_ALIGN_PARAGRAPH.CENTER if align == WD_ALIGN_PARAGRAPH.CENTER else WD_ALIGN_PARAGRAPH.LEFT
+            font_size = 13.0
+            is_heading_bold = True
+            space_before = Pt(5)
+            space_after = Pt(3)
+            line = line[3:].strip()
+        elif line.startswith('### '):
+            align = WD_ALIGN_PARAGRAPH.CENTER if align == WD_ALIGN_PARAGRAPH.CENTER else WD_ALIGN_PARAGRAPH.LEFT
+            font_size = 12.0
+            is_heading_bold = True
+            space_before = Pt(4)
+            space_after = Pt(2)
+            line = line[4:].strip()
+
+        # Lists & Sub-clause indentations
+        is_bullet = False
+        is_number = False
+        left_indent = None
+
+        if line.startswith('- ') or line.startswith('* '):
+            is_bullet = True
+            line = line[2:].strip()
+        elif len(line) > 2 and line[0].isdigit() and line[1] in ('.', ')') and line[2] == ' ':
+            is_number = True
+        elif re.match(r'^([0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+)\s+', line):
+            # Indent sub-clauses like "១.១. " or "1.1. "
+            left_indent = Inches(0.25)
+
+        p = doc.add_paragraph()
+        p.alignment = align
+        p.paragraph_format.line_spacing = 1.2
+        p.paragraph_format.space_before = space_before
+        p.paragraph_format.space_after = space_after
+        if left_indent:
+            p.paragraph_format.left_indent = left_indent
+
+        if is_bullet:
+            p.style = 'List Bullet'
+        elif is_number:
+            p.style = 'List Number'
+
+        c_count = _add_styled_runs(p, line, is_bold=is_heading_bold, font_size=font_size)
+        total_chars += c_count
+        i += 1
+
+    return total_chars
+
+
 def _vision_ocr_page(client, pil_image, lang_hints=None):
     """Run Google Vision DOCUMENT_TEXT_DETECTION on one page image, return
     the extracted text (same shape as pytesseract.image_to_string output)."""
@@ -861,6 +1181,9 @@ def ocr_pdf(job_id):
     tesseract_cmd = getattr(settings, 'TESSERACT_CMD', None)
     if tesseract_cmd:
         pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+    tessdata_dir = getattr(settings, 'TESSDATA_DIR', None)
+    if tessdata_dir:
+        os.environ['TESSDATA_PREFIX'] = tessdata_dir
     
     try:
         input_path = job.file.path
@@ -869,12 +1192,17 @@ def ocr_pdf(job_id):
         
         from pdf2image import convert_from_path
         from docx import Document
-        from docx.shared import Pt
+        from docx.shared import Pt, Inches
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
         from docx.oxml import OxmlElement
 
         doc = Document()
+        for section in doc.sections:
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
 
         poppler_path = getattr(settings, 'POPPLER_PATH', None)
         pages = convert_from_path(input_path, dpi=150, poppler_path=poppler_path)
@@ -900,12 +1228,18 @@ def ocr_pdf(job_id):
 
         extracted_chars = 0
 
-        # ── Optional Google Cloud Vision engine (admin-configured) ──
+        # ── Optional AI OCR engines (admin-configured) ──
         ocr_settings = _get_ocr_settings()
+        claude_key = (ocr_settings.claude_api_key or '').strip() if ocr_settings else ''
+        use_claude = bool(ocr_settings and ocr_settings.use_claude and claude_key)
+        claude_model = (ocr_settings.claude_model or 'claude-haiku-5-5').strip() if ocr_settings else 'claude-haiku-5-5'
+
         vision_client = None
         vision_fallback_ok = True
-        if ocr_settings and ocr_settings.use_google_vision and ocr_settings.google_credentials_json.strip():
+        if ocr_settings:
             vision_fallback_ok = ocr_settings.fallback_to_tesseract
+
+        if not use_claude and ocr_settings and ocr_settings.use_google_vision and ocr_settings.google_credentials_json.strip():
             try:
                 vision_client = _build_vision_client(ocr_settings)
                 logger.info('OCR: using Google Cloud Vision (DOCUMENT_TEXT_DETECTION)')
@@ -914,6 +1248,10 @@ def ocr_pdf(job_id):
                 if not vision_fallback_ok:
                     raise RuntimeError(f'Google Vision is enabled but could not be configured: {e}')
                 vision_client = None  # falls through to Tesseract below
+
+        if use_claude:
+            logger.info(f'OCR: using Claude AI Vision ({claude_model})')
+
         vision_lang_hints = _VISION_LANG_HINTS.get(ocr_lang, ['en'])
 
         for i in range(max_pages):
@@ -922,8 +1260,22 @@ def ocr_pdf(job_id):
             gray = page.convert('L')
             page_done = False
 
-            # ── Try Google Vision first, if configured ──
-            if vision_client:
+            # ── 1. Try Claude AI Vision first, if configured ──
+            if use_claude:
+                try:
+                    ctext = _claude_ocr_page(claude_key, claude_model, page, ocr_lang=ocr_lang)
+                    if ctext and ctext.strip():
+                        c_count = _add_markdown_to_docx(doc, ctext)
+                        extracted_chars += c_count
+                    page_done = True
+                except Exception as e:
+                    logger.error(f'Claude OCR failed on page {i+1}: {e}', exc_info=True)
+                    if not vision_fallback_ok:
+                        raise RuntimeError(f'Claude AI OCR failed on page {i+1}: {e}')
+                    # else: fall through to Google Vision or Tesseract
+
+            # ── 2. Try Google Vision, if configured and Claude didn't run ──
+            if not page_done and vision_client:
                 try:
                     vtext = clean_text(_vision_ocr_page(vision_client, page, lang_hints=vision_lang_hints))
                     if vtext:
@@ -1024,7 +1376,11 @@ def ocr_pdf(job_id):
                 f"(requested '{tess_lang}'), or the source pages are blank/too low quality."
             )
 
-        output_filename = f'ocr_{uuid.uuid4().hex[:8]}.docx'
+        orig_name = getattr(job, 'original_filename', None)
+        if not orig_name and job.file:
+            orig_name = os.path.basename(job.file.name)
+        base_name = os.path.splitext(orig_name or 'document')[0].strip() or 'document'
+        output_filename = f'{base_name}.docx'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 

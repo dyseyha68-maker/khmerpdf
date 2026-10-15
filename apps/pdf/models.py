@@ -106,6 +106,7 @@ class Job(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     file = models.FileField(upload_to=pdf_upload_path, blank=True, null=True)
+    original_filename = models.CharField(max_length=255, blank=True, null=True)
     files = models.JSONField(blank=True, null=True, default=list)
     result = models.FileField(upload_to=pdf_processed_path, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -128,6 +129,23 @@ class OCRSettings(models.Model):
     accurate — especially for Khmer script) without touching code or
     redeploying. See apps/pdf/tasks.py:ocr_pdf for how this is read."""
 
+    use_claude = models.BooleanField(
+        default=False,
+        verbose_name='Use Claude AI (Anthropic) for OCR',
+        help_text='Off by default — Turn this on and provide an Anthropic API key below to use Claude vision models (e.g. Claude 3.5 Haiku / Sonnet) for high-accuracy OCR.',
+    )
+    claude_api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name='Anthropic API Key',
+        help_text='Paste your Anthropic API key (starts with sk-ant-...) from console.anthropic.com. Kept secure.',
+    )
+    claude_model = models.CharField(
+        max_length=60,
+        default='claude-haiku-5-5',
+        verbose_name='Claude Model',
+        help_text='e.g. claude-haiku-5-5 (fast, economical) or claude-sonnet-5-5 (highest precision for complex scans).',
+    )
     use_google_vision = models.BooleanField(
         default=False,
         verbose_name='Use Google Cloud Vision for OCR',
@@ -143,9 +161,9 @@ class OCRSettings(models.Model):
     )
     fallback_to_tesseract = models.BooleanField(
         default=True,
-        verbose_name='Fall back to Tesseract if Google Vision fails',
+        verbose_name='Fall back to Tesseract if Cloud / AI engine fails',
         help_text='Recommended. Keeps OCR working if the API key is invalid, the monthly '
-                   'quota is used up, or Google is unreachable.',
+                   'quota is used up, or the external AI service is unreachable.',
     )
     updated_at = models.DateTimeField(auto_now=True)
 

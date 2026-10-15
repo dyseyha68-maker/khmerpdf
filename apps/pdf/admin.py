@@ -324,15 +324,23 @@ class CalendarEventAdmin(admin.ModelAdmin):
     active_badge.short_description = 'Status'
 
 
-# ── OCR Settings Admin (Google Cloud Vision configuration) ────────────────────
+# ── OCR Settings Admin (Claude AI & Google Cloud Vision configuration) ────────
 
 class OCRSettingsForm(forms.ModelForm):
     class Meta:
         model = OCRSettings
         fields = '__all__'
         widgets = {
+            'claude_api_key': forms.PasswordInput(render_value=True, attrs={
+                'style': 'font-family:monospace;font-size:12px;width:100%;max-width:500px;',
+                'placeholder': 'sk-ant-api03-...',
+            }),
+            'claude_model': forms.TextInput(attrs={
+                'style': 'font-family:monospace;font-size:12px;width:100%;max-width:350px;',
+                'placeholder': 'claude-haiku-5-5',
+            }),
             'google_credentials_json': forms.Textarea(attrs={
-                'rows': 16,
+                'rows': 12,
                 'style': 'font-family:monospace;font-size:12px;width:100%;max-width:700px;',
                 'placeholder': '{\n  "type": "service_account",\n  "project_id": "...",\n  ...\n}',
             }),
@@ -344,9 +352,19 @@ class OCRSettingsAdmin(admin.ModelAdmin):
     form = OCRSettingsForm
     readonly_fields = ['updated_at']
     fieldsets = (
-        ('OCR Engine', {'fields': ('use_google_vision', 'fallback_to_tesseract')}),
-        ('Google Cloud Vision Credentials', {'fields': ('google_credentials_json',)}),
-        ('', {'fields': ('updated_at',)}),
+        ('Claude AI (Anthropic Vision) — Recommended for Khmer', {
+            'fields': ('use_claude', 'claude_api_key', 'claude_model'),
+            'description': 'Uses Anthropic Claude models (Claude 3.5 Haiku / Sonnet) for high-accuracy OCR on Khmer and English documents.'
+        }),
+        ('Google Cloud Vision', {
+            'fields': ('use_google_vision', 'google_credentials_json'),
+            'classes': ('collapse',),
+            'description': 'Alternative OCR engine via Google Cloud Vision DOCUMENT_TEXT_DETECTION.'
+        }),
+        ('Fallback & System', {
+            'fields': ('fallback_to_tesseract', 'updated_at'),
+            'description': 'If enabled, automatically falls back to local Tesseract OCR if AI API calls fail or run out of quota.'
+        }),
     )
 
     def has_add_permission(self, request):

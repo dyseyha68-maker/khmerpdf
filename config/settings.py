@@ -115,6 +115,12 @@ POPPLER_PATH = os.environ.get('POPPLER_PATH') or (
 TESSERACT_CMD = os.environ.get('TESSERACT_CMD') or (
     r"C:\Program Files\Tesseract-OCR\tesseract.exe" if os.name == 'nt' else None
 )
+TESSDATA_DIR = os.environ.get('TESSDATA_PREFIX') or (
+    str(BASE_DIR / 'tessdata') if (BASE_DIR / 'tessdata').exists() else None
+)
+if TESSDATA_DIR:
+    os.environ['TESSDATA_PREFIX'] = TESSDATA_DIR
+
 ALLOWED_EXTENSIONS = ['pdf']
 
 # Celery settings

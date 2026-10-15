@@ -234,13 +234,13 @@
         <p class="card-sub">{% trans "Processed and ready to download." %}</p>
 
         <div class="filename-pill">
-            <i class="ti ti-file-type-pdf" aria-hidden="true"></i>
+            <i class="ti {% if '.docx' in filename %}ti-file-type-docx{% elif '.zip' in filename %}ti-file-zip{% else %}ti-file-type-pdf{% endif %}" aria-hidden="true"></i>
             <span title="{{ filename }}">{{ filename }}</span>
         </div>
 
         <div class="spacer"></div>
 
-        <a href="{{ download_url }}" class="dl-btn" download>
+        <a href="{{ download_url }}" class="dl-btn" download="{{ filename }}">
             <i class="ti ti-download" aria-hidden="true"></i>
             {% trans "Download file" %}
         </a>

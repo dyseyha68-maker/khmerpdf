@@ -144,7 +144,7 @@
 function ocrApp() {
     return baseToolApp({
         currentFile: null,
-        ocrLang: 'eng',
+        ocrLang: (typeof isKhmer !== 'undefined' && isKhmer) ? 'khm' : 'eng+khm',
 
         handleFileList(list) {
             if (list.length) {
@@ -169,7 +169,8 @@ function ocrApp() {
             fd.append('ocr_lang', this.ocrLang);
             try {
                 const d = await fetch('/api/ocr/', { method: 'POST', body: fd }).then(r => r.json());
-                if (d.job_id) this.pollJob(d.job_id, 'ocr_' + (this.currentFile?.name || 'output.pdf').replace(/\.pdf$/i, '') + '.docx');
+                const baseName = (this.currentFile?.name || 'document.pdf').replace(/\.[^/.]+$/, '');
+                if (d.job_id) this.pollJob(d.job_id, baseName + '.docx');
                 else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch(err) {
                 this.hideModal(); alert(window.I18N_JS.errorPrefix + ' ' + err.message);
