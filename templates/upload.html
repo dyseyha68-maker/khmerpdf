@@ -179,7 +179,7 @@
 </div>
 
 <div class="cards-container">
-    <div class="tool-card" onclick="window.location.href='/pdf-compress/'">
+    <a href="/pdf-compress/" class="tool-card" style="text-decoration:none;color:inherit;">
         <div class="tool-icon">
             <i class="ti ti-file-zip"></i>
         </div>
@@ -191,7 +191,7 @@
         </p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/pdf-merge/'">
+    <a href="/pdf-merge/" class="tool-card" style="text-decoration:none;color:inherit;">
         <div class="tool-icon">
             <i class="ti ti-files"></i>
         </div>
@@ -203,7 +203,7 @@
         </p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/pdf-split/'">
+    <a href="/pdf-split/" class="tool-card" style="text-decoration:none;color:inherit;">
         <div class="tool-icon">
             <i class="ti ti-scissors"></i>
         </div>
@@ -215,7 +215,7 @@
         </p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/pdf-organize/'">
+    <a href="/pdf-organize/" class="tool-card" style="text-decoration:none;color:inherit;">
         <div class="tool-icon">
             <i class="ti ti-layout-grid"></i>
         </div>
@@ -227,7 +227,7 @@
         </p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/pdf-protect/'">
+    <a href="/pdf-protect/" class="tool-card" style="text-decoration:none;color:inherit;">
         <div class="tool-icon">
             <i class="ti ti-lock"></i>
         </div>
@@ -239,7 +239,7 @@
         </p>
     </div>
 
-    <div class="tool-card" onclick="window.location.href='/pdf-to-image/'">
+    <a href="/pdf-to-image/" class="tool-card" style="text-decoration:none;color:inherit;">
         <div class="tool-icon">
             <i class="ti ti-photo"></i>
         </div>
@@ -251,7 +251,7 @@
         </p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/image-to-pdf/'">
+    <a href="/image-to-pdf/" class="tool-card" style="text-decoration:none;color:inherit;">
         <div class="tool-icon">
             <i class="ti ti-file-upload"></i>
         </div>
@@ -263,19 +263,19 @@
         </p>
     </div>
     
-    <div class="tool-card" onclick="window.location.href='/pdf-ocr/'">
+    <a href="/pdf-ocr/" class="tool-card" style="text-decoration:none;color:inherit;" title="OCR PDF to Word - Khmer OCR">
         <div class="tool-icon">
             <i class="ti ti-scan"></i>
         </div>
         <h3>
-            {% trans "OCR" %}
+            {% trans "OCR PDF to Word" %}
         </h3>
         <p>
-            {% trans "Make scanned PDF searchable" %}
+            {% trans "Convert scanned Khmer & English PDFs to editable Word" %}
         </p>
-    </div>
+    </a>
     
-    <div class="tool-card calendar-card" onclick="window.location.href='/pdf-calendar/'">
+    <a href="/pdf-calendar/" class="tool-card calendar-card" style="text-decoration:none;color:inherit;">
         <div class="calendar-date">
             <span class="cal-month" id="calMonthEl">{{ current_month }}</span>
             <span class="cal-day" id="calDayEl">{{ current_day }}</span>
