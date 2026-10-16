@@ -36,7 +36,7 @@ echo "=== 5. Setting up Application Directory ==="
 if [ ! -d "$APP_DIR" ]; then
     git clone https://github.com/dyseyha68-maker/khmerpdf.git "$APP_DIR"
 else
-    cd "$APP_DIR" && git pull origin main || true
+    cd "$APP_DIR" && (git pull origin master 2>/dev/null || git pull origin main 2>/dev/null || true)
 fi
 
 cd "$APP_DIR"
