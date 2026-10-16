@@ -7,9 +7,23 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-pro
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'  # default True for dev; set DEBUG=False in production
 
-ALLOWED_HOSTS = ['18.143.195.44', '127.0.0.1', 'localhost', 'damspey.com', 'www.damspey.com']
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get(
+        'ALLOWED_HOSTS',
+        '18.143.195.44,127.0.0.1,localhost,damspey.com,www.damspey.com,.fly.dev,.railway.app'
+    ).split(',')
+    if h.strip()
+]
 
-CSRF_TRUSTED_ORIGINS = ['https://*.railway.app', 'https://damspey.com', 'https://www.damspey.com']
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.fly.dev',
+    'https://*.railway.app',
+    'https://damspey.com',
+    'https://www.damspey.com'
+]
+
+DATA_DIR = Path(os.environ.get('DATA_DIR', BASE_DIR))
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -60,7 +74,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
         'OPTIONS': {
             'timeout': 30,               # wait up to 30s for SQLite lock
             'check_same_thread': False,  # allow background threads to write
@@ -155,11 +169,11 @@ else:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(DATA_DIR, 'media')
 
 # Create media directories if they don't exist
-os.makedirs(os.path.join(BASE_DIR, 'media', 'uploads'), exist_ok=True)
-os.makedirs(os.path.join(BASE_DIR, 'media', 'processed'), exist_ok=True)
+os.makedirs(os.path.join(MEDIA_ROOT, 'uploads'), exist_ok=True)
+os.makedirs(os.path.join(MEDIA_ROOT, 'processed'), exist_ok=True)
 
 # Google Cloud Vision API (for OCR)
 GOOGLE_CLOUD_API_KEY = os.environ.get('GOOGLE_CLOUD_API_KEY', '')

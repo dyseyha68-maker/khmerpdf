@@ -3,8 +3,9 @@ version: '3.8'
 services:
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -12,15 +13,19 @@ services:
   web:
     build: .
     restart: unless-stopped
-    command: sh -c "python manage.py collectstatic --noinput --clear && gunicorn config.wsgi --bind 0.0.0.0:8000 --timeout=1200 --workers=4 --graceful-timeout=30"
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi --bind 0.0.0.0:8000 --timeout 1200 --workers 3 --threads 2 --graceful-timeout 30"
     volumes:
-      - media_volume:/app/media
+      - data_volume:/data
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+      - DATA_DIR=/data
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
@@ -29,13 +34,14 @@ services:
   celery:
     build: .
     restart: unless-stopped
-    command: celery -A config worker --loglevel=info
+    command: celery -A config worker --loglevel=info --concurrency=2
     volumes:
-      - media_volume:/app/media
+      - data_volume:/data
     env_file:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+      - DATA_DIR=/data
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
@@ -43,4 +49,4 @@ services:
 
 volumes:
   redis_data:
-  media_volume:
+  data_volume:
