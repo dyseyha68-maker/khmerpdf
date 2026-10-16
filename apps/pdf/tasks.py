@@ -1432,7 +1432,8 @@ def pdf_to_image_task(job_id):
             for i, page in enumerate(pages):
                 img_bytes = io.BytesIO()
                 ext = 'jpg' if image_format == 'jpg' else 'png'
-                page.save(img_bytes, format=ext.upper())
+                save_fmt = 'JPEG' if ext == 'jpg' else 'PNG'
+                page.save(img_bytes, format=save_fmt)
                 img_bytes.seek(0)
                 zip_file.writestr(f'page_{i+1:03d}.{ext}', img_bytes.read())
         
