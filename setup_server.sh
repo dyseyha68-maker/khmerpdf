@@ -7,16 +7,18 @@ set -e
 
 DOMAIN="damspey.com"
 WWW_DOMAIN="www.damspey.com"
-APP_DIR="/home/ubuntu/app"
+APP_DIR="/var/www/khmerpdf"
+
+export DEBIAN_FRONTEND=noninteractive
 
 echo "=== 1. Updating Ubuntu packages ==="
-sudo apt-get update && sudo apt-get upgrade -y
+apt-get update && apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-echo "=== 2. Configuring Firewall (Fix for Oracle Cloud iptables) ==="
-sudo apt-get install -y iptables-persistent netfilter-persistent
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 1 -p tcp --dport 80 -j ACCEPT
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 1 -p tcp --dport 443 -j ACCEPT
-sudo netfilter-persistent save
+echo "=== 2. Configuring Firewall ==="
+apt-get install -y iptables-persistent netfilter-persistent
+iptables -I INPUT 1 -p tcp --dport 80 -j ACCEPT 2>/dev/null || true
+iptables -I INPUT 1 -p tcp --dport 443 -j ACCEPT 2>/dev/null || true
+netfilter-persistent save || true
 
 echo "=== 3. Adding 2GB Swap space (for heavy OCR stability) ==="
 if [ ! -f /swapfile ]; then
@@ -58,8 +60,8 @@ fi
 echo "=== 6. Configuring Nginx Reverse Proxy ==="
 sudo tee /etc/nginx/sites-available/khmerpdf > /dev/null <<EOF
 server {
-    listen 80;
-    server_name $DOMAIN $WWW_DOMAIN;
+    listen 80 default_server;
+    server_name $DOMAIN $WWW_DOMAIN $PUBLIC_IP _;
 
     client_max_body_size 400M;
 
