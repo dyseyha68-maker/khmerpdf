@@ -839,30 +839,34 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
         f"You are a world-class document transcription and layout reproduction engine for high-fidelity Microsoft Word (.docx) generation. "
         f"Transcribe and faithfully reconstruct the visual layout, text, and structure of this document image with 100% precision. "
         f"Document language: {lang_desc}.\n\n"
-        "You MUST return a JSON array of structural elements representing the document from top to bottom.\n"
-        "Supported element schemas:\n"
+        "STRICT TRANSCRIPTION ACCURACY RULES:\n"
+        "- Transcribe EVERY SINGLE Khmer letter, consonant, vowel, subscript (ជើង), sign (វណ្ណយុត្តិ), dot, and number with 100% exact fidelity.\n"
+        "- NEVER paraphrase, guess, substitute, or invent words. For example, if the text reads 'ស្ម័គ្រចិត្តការពារក្តីជូនជនក្រីក្រ', do NOT replace it with other phrases.\n"
+        "- Preserve all dotted fill-in lines (e.g. '..........').\n\n"
+        "STRUCTURAL SCHEMAS (Return a JSON array from top to bottom):\n"
         "1. Heading: {\"type\": \"heading\", \"level\": 1|2|3, \"align\": \"center\"|\"left\", \"text\": \"...\"}\n"
         "   - Use 'align': 'center' for top mottos ('ព្រះរាជាណាចក្រកម្ពុជា', 'ជាតិ សាសនា ព្រះមហាក្សត្រ') and main document titles ('សាលក្រម...', 'សេចក្តីសម្រេច...', 'ប្រកាស...', 'ពាក្យស្នើសុំ...').\n"
         "2. Paragraph: {\"type\": \"paragraph\", \"align\": \"justify\"|\"left\"|\"right\"|\"center\", \"text\": \"...\"}\n"
         "   - Use 'align': 'justify' for multi-line body paragraphs, legal reasoning, requests, and narrative prose.\n"
-        "   - Use 'align': 'right' for date and location lines (e.g. 'រាជធានីភ្នំពេញ ថ្ងៃទី...', 'ថ្ងៃ...ខែ...ឆ្នាំ... / ហត្ថលេខា').\n"
+        "   - IMPORTANT: ALL narrative body paragraphs (even short 1-line or 2-line paragraphs like 'អាស្រ័យដូចបានជម្រាបជូន...' or 'សូម លោកប្រធាន...') MUST be regular 'paragraph' elements with 'align': 'justify'. NEVER put body paragraphs into a table.\n"
+        "   - Use 'align': 'right' for date and location lines (e.g. 'រាជធានីភ្នំពេញ ថ្ងៃទី...', 'ថ្ងៃ...ខែ...ឆ្នាំ... / ហត្ថលេខា'). Do NOT put dates in a table.\n"
         "   - Use 'align': 'left' for labels (e.g. '**ដើមចោទ ៖** ...', '**កម្មវត្ថុ ៖** ...', '**យោង ៖** ...'), short entries.\n"
         "   - Use '**bold text**' for labels, party names, headings, and case numbers as in the original.\n"
         "3. List Item: {\"type\": \"list_item\", \"list_type\": \"bullet\"|\"number\", \"text\": \"...\"}\n"
         "4. Table: {\"type\": \"table\", \"layout\": \"borderless\"|\"grid\", \"rows\": [[{\"text\": \"...\", \"align\": \"center\"|\"left\"|\"right\", \"bold\": true|false}, ...]]}\n"
-        "   - CRITICAL: Whenever 2 or 3 signature, approval, or review blocks appear horizontally across the page (e.g. 2-column or 3-column approval stamps like 'បានឃើញនិងបញ្ជូនមក... / LAD Director' on left, 'អគ្គលេខាធិការ' in middle, 'ប្រធាន' on right; or applicant on left and recipient on right), YOU MUST FORMAT THEM AS A 1-ROW 'borderless' TABLE with 2 or 3 columns! Never output horizontal side-by-side approval stamps as vertical separate paragraphs.\n"
-        "   - Use 'layout': 'borderless' also for side-by-side letterheads (e.g. Ministry/Court name on left, 'ព្រះរាជាណាចក្រកម្ពុជា' or 'តាងនាមប្រជារាស្ត្រខ្មែរ' on right).\n"
+        "   - Use 'layout': 'borderless' ONLY for true multi-column horizontal sections:\n"
+        "     * Side-by-side letterheads (e.g. Ministry/Court name on left, 'ព្រះរាជាណាចក្រកម្ពុជា' on right).\n"
+        "     * Bottom approval & signature columns (e.g. a 3-column row with LAD Director on left, Secretary General in middle, President on right; or applicant on left and recipient on right).\n"
         "   - Use 'layout': 'grid' for standard bordered data tables.\n"
         "   - Use '\\n' for multiple lines inside a cell.\n"
         "5. Omit standalone running page numbers (e.g. standalone '1', '2', '១', '២' at page margins).\n\n"
         "CRITICAL: Return ONLY a raw JSON array starting with '[' and ending with ']'. Do not include markdown code block fences (no ```json)."
     )
 
-    response = client.messages.create(
-        model=model or "claude-haiku-5-5",
-        max_tokens=8192,
-        thinking={"type": "disabled"},
-        messages=[
+    create_kwargs = {
+        'model': model or "claude-sonnet-5-5",
+        'max_tokens': 8192,
+        'messages': [
             {
                 "role": "user",
                 "content": [
@@ -881,7 +885,22 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
                 ],
             }
         ],
-    )
+    }
+    model_name = (model or '').lower()
+    if 'haiku' in model_name:
+        create_kwargs['thinking'] = {"type": "disabled"}
+    elif 'sonnet' in model_name:
+        create_kwargs['thinking'] = {"type": "between_tools"}
+
+    try:
+        response = client.messages.create(**create_kwargs)
+    except Exception as e:
+        # If model rejects thinking param, retry without it
+        if 'thinking' in create_kwargs:
+            del create_kwargs['thinking']
+            response = client.messages.create(**create_kwargs)
+        else:
+            raise
 
     text_parts = []
     for block in response.content:
@@ -936,25 +955,64 @@ def _add_structured_json_to_docx(doc, items):
             chars += len(part)
         return chars
 
-    # ── Pre-processing: Coalesce consecutive tail signature/approval paragraphs into a multi-column borderless table ──
-    APPROVAL_KEYWORDS = ('បានឃើញ', 'ប្រធាន', 'អគ្គលេខាធិការ', 'ហត្ថលេខា', 'ក្រឡាបញ្ជី', 'ចៅក្រម', 'អ្នកស្នើសុំ', 'សាមីខ្លួន')
+    # ── Sanitization 1: Unpack fake borderless tables that trap narrative paragraphs or have empty padding cells ──
+    APPROVAL_KEYWORDS = ('បានឃើញ', 'ប្រធាន', 'អគ្គលេខាធិការ', 'ហត្ថលេខា', 'ក្រឡាបញ្ជី', 'ចៅក្រម', 'អ្នកស្នើសុំ', 'សាមីខ្លួន', 'សាលាដំបូង', 'ក្រសួង', 'ព្រះរាជាណាចក្រ', 'តាងនាម')
+
+    sanitized_items = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        if it.get('type') == 'table' and it.get('layout') == 'borderless':
+            rows = it.get('rows', [])
+            all_cells = [c for r in rows for c in r]
+            non_empty_cells = [c for c in all_cells if (c.get('text', '') if isinstance(c, dict) else str(c)).strip()]
+            
+            # Check if this table is actually trapping regular body paragraphs
+            is_narrative_table = False
+            for c in non_empty_cells:
+                c_txt = c.get('text', '') if isinstance(c, dict) else str(c)
+                if len(c_txt) > 50 and not any(k in c_txt for k in APPROVAL_KEYWORDS):
+                    if any(c_txt.startswith(p) for p in ('អាស្រ័យ', 'តាមកម្មវត្ថុ', 'ខ្ញុំបាទ', 'សូម', 'ដោយហេតុ', 'យោង')):
+                        is_narrative_table = True
+                        break
+
+            if is_narrative_table or len(non_empty_cells) == 1:
+                # Unpack table cells into sequential paragraphs!
+                for c in non_empty_cells:
+                    c_txt = c.get('text', '') if isinstance(c, dict) else str(c)
+                    c_align = c.get('align', 'justify') if isinstance(c, dict) else 'justify'
+                    if c_txt.strip():
+                        sanitized_items.append({
+                            'type': 'paragraph',
+                            'align': c_align,
+                            'text': c_txt.strip()
+                        })
+                continue
+
+        sanitized_items.append(it)
+
+    # ── Sanitization 2: Coalesce consecutive tail signature/approval paragraphs into a multi-column borderless table ──
+    NARRATIVE_OPENERS = ('អាស្រ័យ', 'តាមកម្មវត្ថុ', 'ខ្ញុំបាទ', 'សូម', 'ដោយហេតុ', 'យោង', 'កម្មវត្ថុ')
 
     def _is_approval_item(it):
         if not isinstance(it, dict) or it.get('type') != 'paragraph':
             return False
-        txt = it.get('text', '')
-        return len(txt) < 180 and any(k in txt for k in APPROVAL_KEYWORDS)
+        txt = it.get('text', '').strip()
+        if any(txt.startswith(n) for n in NARRATIVE_OPENERS):
+            return False
+        is_approval = txt.startswith(('បានឃើញ', 'ហត្ថលេខា')) or ('\n' in txt and any(k in txt for k in ('ប្រធាន', 'អគ្គលេខាធិការ', 'ចៅក្រម', 'ក្រឡាបញ្ជី')))
+        return is_approval and len(txt) < 160
 
     processed_items = []
     idx = 0
-    total_items = len(items)
+    total_items = len(sanitized_items)
     while idx < total_items:
-        it = items[idx]
+        it = sanitized_items[idx]
         if _is_approval_item(it):
             group = [it]
             j = idx + 1
-            while j < total_items and _is_approval_item(items[j]):
-                group.append(items[j])
+            while j < total_items and _is_approval_item(sanitized_items[j]):
+                group.append(sanitized_items[j])
                 j += 1
             if len(group) in (2, 3):
                 # Build 1-row borderless table
@@ -1490,7 +1548,7 @@ def ocr_pdf(job_id):
             section.right_margin = Inches(1)
 
         poppler_path = getattr(settings, 'POPPLER_PATH', None)
-        pages = convert_from_path(input_path, dpi=150, poppler_path=poppler_path)
+        pages = convert_from_path(input_path, dpi=200, poppler_path=poppler_path)
         max_pages = min(len(pages), 30)
         
         def clean_text(text):
@@ -1517,7 +1575,7 @@ def ocr_pdf(job_id):
         ocr_settings = _get_ocr_settings()
         claude_key = (ocr_settings.claude_api_key or '').strip() if ocr_settings else ''
         use_claude = bool(ocr_settings and ocr_settings.use_claude and claude_key)
-        claude_model = (ocr_settings.claude_model or 'claude-haiku-5-5').strip() if ocr_settings else 'claude-haiku-5-5'
+        claude_model = (ocr_settings.claude_model or 'claude-sonnet-5-5').strip() if ocr_settings else 'claude-sonnet-5-5'
 
         vision_client = None
         vision_fallback_ok = True

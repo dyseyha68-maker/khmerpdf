@@ -142,9 +142,9 @@ class OCRSettings(models.Model):
     )
     claude_model = models.CharField(
         max_length=60,
-        default='claude-haiku-5-5',
+        default='claude-sonnet-5-5',
         verbose_name='Claude Model',
-        help_text='e.g. claude-haiku-5-5 (fast, economical) or claude-sonnet-5-5 (highest precision for complex scans).',
+        help_text='e.g. claude-sonnet-5-5 (highest precision for complex scans) or claude-haiku-5-5 (fast, economical).',
     )
     use_google_vision = models.BooleanField(
         default=False,
