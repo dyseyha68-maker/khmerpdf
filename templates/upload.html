@@ -12,26 +12,47 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 48px 24px;
+        padding: 44px 24px 60px;
         width: 100%;
     }
     
     .hero {
         text-align: center;
-        margin-bottom: 48px;
+        margin-bottom: 40px;
+    }
+    
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 20px;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    [data-theme="dark"] .hero-badge {
+        background: rgba(96, 165, 250, 0.12);
     }
     
     .hero h1 {
-        font-size: 44px;
-        font-weight: 700;
+        font-size: 42px;
+        font-weight: 800;
         color: var(--text);
+        letter-spacing: -0.5px;
         margin-bottom: 12px;
+        line-height: 1.25;
     }
     
     .hero p {
-        font-size: 20px;
-        font-weight: 700;
+        font-size: 18px;
+        font-weight: 500;
         color: var(--text-secondary);
+        max-width: 650px;
+        margin: 0 auto;
+        line-height: 1.5;
     }
     
     .cards-container {
@@ -45,124 +66,213 @@
     .tool-card {
         background: var(--surface);
         border-radius: 16px;
-        padding: 28px;
+        padding: 28px 20px;
         text-align: center;
-        cursor: pointer;
-        transition: all 0.3s;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 195px;
         border: 1px solid var(--border);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
     }
     
     .tool-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 10px 40px rgba(37, 99, 235, 0.15);
         border-color: var(--primary);
+        box-shadow: 0 16px 32px -4px rgba(37, 99, 235, 0.12);
     }
     
     .tool-icon {
-        width: 40px;
-        height: 40px;
-        margin: 0 auto 16px;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: rgba(37, 99, 235, 0.08);
         display: flex;
         align-items: center;
         justify-content: center;
+        margin: 0 auto 16px;
+        color: var(--primary);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .tool-icon i {
+        font-size: 28px;
+        line-height: 1;
+    }
+    
+    .tool-card:hover .tool-icon {
+        background: var(--primary);
+        color: #ffffff;
+        transform: scale(1.08);
+    }
+    
+    [data-theme="dark"] .tool-icon {
+        background: rgba(96, 165, 250, 0.12);
         color: var(--primary);
     }
     
-    .tool-icon svg {
-        width: 40px;
-        height: 40px;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 1.5;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-    }
-    .tool-icon i { font-size: 40px; line-height: 1; }
-    
-    .calendar-card .tool-icon {
-        color: white;
+    [data-theme="dark"] .tool-card:hover .tool-icon {
+        background: var(--primary);
+        color: #0f172a;
     }
     
     .tool-card h3 {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
         color: var(--text);
-        margin-bottom: 8px;
+        margin: 0 0 6px 0;
+        line-height: 1.3;
     }
     
     .tool-card p {
-        font-size: 15px;
+        font-size: 13.5px;
         color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.4;
     }
     
     .calendar-card {
-        background: var(--primary);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        padding: 24px;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+        border-color: transparent !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important;
     }
     
     .calendar-card:hover {
-        border-color: transparent;
+        box-shadow: 0 16px 36px rgba(37, 99, 235, 0.4) !important;
+        border-color: transparent !important;
     }
     
-    .calendar-card .cal-icon {
-        font-size: 48px;
-    }
-    
-    .calendar-card h3, .calendar-card p {
-        color: white;
-    }
-    
-    .calendar-date {
+    .calendar-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 6px 18px;
+        margin-bottom: 12px;
         display: flex;
         flex-direction: column;
         align-items: center;
+        min-width: 76px;
+        transition: transform 0.25s ease;
     }
     
-    .calendar-date .cal-month {
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        opacity: 0.9;
+    .calendar-card:hover .calendar-badge {
+        transform: scale(1.06);
     }
     
-    .calendar-date .cal-day {
-        font-size: 32px;
+    .calendar-badge .cal-month {
+        font-size: 11px;
         font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #ffffff !important;
+        line-height: 1.2;
     }
     
-    .calendar-card .cal-text {
-        text-align: center;
+    .calendar-badge .cal-day {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+        color: #ffffff !important;
     }
     
-    .text-kh {
-        font-family: 'Kantumruy Pro', sans-serif;
+    .calendar-card h3,
+    .calendar-card p {
+        color: #ffffff !important;
+    }
+    
+    .trust-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 44px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        flex-wrap: wrap;
+    }
+    
+    .trust-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .trust-item i {
+        color: var(--primary);
+        font-size: 16px;
+    }
+    
+    .trust-dot {
+        opacity: 0.4;
     }
     
     @media (max-width: 1000px) {
         .cards-container {
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
         }
     }
     
     @media (max-width: 768px) {
+        .page-main {
+            padding: 32px 16px 48px;
+        }
         .cards-container {
             grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+        .hero {
+            margin-bottom: 28px;
+        }
+        .hero h1 {
+            font-size: 30px;
+        }
+        .hero p {
+            font-size: 15px;
+        }
+        .tool-card {
+            padding: 22px 14px;
+            min-height: 175px;
+        }
+        .tool-icon {
+            width: 46px;
+            height: 46px;
+            margin-bottom: 12px;
+        }
+        .tool-icon i {
+            font-size: 24px;
         }
     }
     
     @media (max-width: 480px) {
         .cards-container {
             grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
-        
         .hero h1 {
-            font-size: 24px;
+            font-size: 23px;
+        }
+        .hero p {
+            font-size: 14px;
+        }
+        .tool-card {
+            padding: 18px 10px;
+            min-height: 160px;
+            border-radius: 14px;
+        }
+        .tool-card h3 {
+            font-size: 15px;
+        }
+        .tool-card p {
+            font-size: 12px;
+        }
+        .trust-bar {
+            gap: 10px;
+            font-size: 12px;
         }
     }
 </style>
@@ -170,6 +280,10 @@
 
 {% block content %}
 <div class="hero">
+    <div class="hero-badge">
+        <i class="ti ti-sparkles"></i>
+        <span>{% trans "100% Free Khmer PDF Tools" %}</span>
+    </div>
     <h1>
         {% trans "Free Online PDF Tools" %}
     </h1>
@@ -179,116 +293,95 @@
 </div>
 
 <div class="cards-container">
-    <a href="/pdf-compress/" class="tool-card" style="text-decoration:none;color:inherit;">
+    <a href="/pdf-compress/" class="tool-card">
         <div class="tool-icon">
             <i class="ti ti-file-zip"></i>
         </div>
-        <h3>
-            {% trans "Compress PDF" %}
-        </h3>
-        <p>
-            {% trans "Reduce PDF file size" %}
-        </p>
-    </div>
+        <h3>{% trans "Compress PDF" %}</h3>
+        <p>{% trans "Reduce PDF file size" %}</p>
+    </a>
     
-    <a href="/pdf-merge/" class="tool-card" style="text-decoration:none;color:inherit;">
+    <a href="/pdf-merge/" class="tool-card">
         <div class="tool-icon">
             <i class="ti ti-files"></i>
         </div>
-        <h3>
-            {% trans "Merge PDF" %}
-        </h3>
-        <p>
-            {% trans "Combine multiple PDFs" %}
-        </p>
-    </div>
+        <h3>{% trans "Merge PDF" %}</h3>
+        <p>{% trans "Combine multiple PDFs" %}</p>
+    </a>
     
-    <a href="/pdf-split/" class="tool-card" style="text-decoration:none;color:inherit;">
+    <a href="/pdf-split/" class="tool-card">
         <div class="tool-icon">
             <i class="ti ti-scissors"></i>
         </div>
-        <h3>
-            {% trans "Split PDF" %}
-        </h3>
-        <p>
-            {% trans "Extract pages" %}
-        </p>
-    </div>
+        <h3>{% trans "Split PDF" %}</h3>
+        <p>{% trans "Extract pages" %}</p>
+    </a>
     
-    <a href="/pdf-organize/" class="tool-card" style="text-decoration:none;color:inherit;">
+    <a href="/pdf-organize/" class="tool-card">
         <div class="tool-icon">
             <i class="ti ti-layout-grid"></i>
         </div>
-        <h3>
-            {% trans "Organize PDF" %}
-        </h3>
-        <p>
-            {% trans "Reorder pages" %}
-        </p>
-    </div>
+        <h3>{% trans "Organize PDF" %}</h3>
+        <p>{% trans "Reorder pages" %}</p>
+    </a>
     
-    <a href="/pdf-protect/" class="tool-card" style="text-decoration:none;color:inherit;">
+    <a href="/pdf-protect/" class="tool-card">
         <div class="tool-icon">
             <i class="ti ti-lock"></i>
         </div>
-        <h3>
-            {% trans "Protect PDF" %}
-        </h3>
-        <p>
-            {% trans "Lock PDF with a password" %}
-        </p>
-    </div>
+        <h3>{% trans "Protect PDF" %}</h3>
+        <p>{% trans "Lock PDF with password" %}</p>
+    </a>
 
-    <a href="/pdf-to-image/" class="tool-card" style="text-decoration:none;color:inherit;">
+    <a href="/pdf-to-image/" class="tool-card">
         <div class="tool-icon">
             <i class="ti ti-photo"></i>
         </div>
-        <h3>
-            {% trans "PDF to Image" %}
-        </h3>
-        <p>
-            {% trans "Convert PDF to images" %}
-        </p>
-    </div>
+        <h3>{% trans "PDF to Image" %}</h3>
+        <p>{% trans "Convert PDF to images" %}</p>
+    </a>
     
-    <a href="/image-to-pdf/" class="tool-card" style="text-decoration:none;color:inherit;">
+    <a href="/image-to-pdf/" class="tool-card">
         <div class="tool-icon">
             <i class="ti ti-file-upload"></i>
         </div>
-        <h3>
-            {% trans "Image to PDF" %}
-        </h3>
-        <p>
-            {% trans "Convert images to PDF" %}
-        </p>
-    </div>
+        <h3>{% trans "Image to PDF" %}</h3>
+        <p>{% trans "Convert images to PDF" %}</p>
+    </a>
     
-    <a href="/pdf-ocr/" class="tool-card" style="text-decoration:none;color:inherit;" title="OCR PDF to Word - Khmer OCR">
+    <a href="/pdf-ocr/" class="tool-card">
         <div class="tool-icon">
             <i class="ti ti-scan"></i>
         </div>
-        <h3>
-            {% trans "OCR PDF to Word" %}
-        </h3>
-        <p>
-            {% trans "Convert scanned Khmer & English PDFs to editable Word" %}
-        </p>
+        <h3>{% trans "OCR" %}</h3>
+        <p>{% trans "Make scanned PDF searchable" %}</p>
     </a>
     
-    <a href="/pdf-calendar/" class="tool-card calendar-card" style="text-decoration:none;color:inherit;">
-        <div class="calendar-date">
+    <a href="/pdf-calendar/" class="tool-card calendar-card">
+        <div class="calendar-badge">
             <span class="cal-month" id="calMonthEl">{{ current_month }}</span>
             <span class="cal-day" id="calDayEl">{{ current_day }}</span>
         </div>
-        <div class="cal-text">
-            <h3>
-                {% trans "Calendar" %}
-            </h3>
-            <p>
-                {% trans "Cambodia holidays" %}
-            </p>
-        </div>
-      </div>
+        <h3>{% trans "Calendar" %}</h3>
+        <p>{% trans "Public holidays & lunar" %}</p>
+    </a>
+</div>
+
+<div class="trust-bar">
+    <div class="trust-item">
+        <i class="ti ti-bolt"></i>
+        <span>{% trans "Instant & Free" %}</span>
+    </div>
+    <div class="trust-dot">•</div>
+    <div class="trust-item">
+        <i class="ti ti-shield-check"></i>
+        <span>{% trans "Private & Secure" %}</span>
+    </div>
+    <div class="trust-dot">•</div>
+    <div class="trust-item">
+        <i class="ti ti-heart"></i>
+        <span>{% trans "Built for Cambodia" %}</span>
+    </div>
 </div>
 {% endblock %}
 
@@ -298,8 +391,10 @@
     const KH_MONTHS = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
     const EN_MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const idx = {{ current_month_num }} - 1;
-    document.getElementById('calMonthEl').textContent = isKhmer ? 'ខែ' + KH_MONTHS[idx] : EN_MONTHS[idx];
-    document.getElementById('calDayEl').textContent = toKhNum({{ current_day }});
+    const m = document.getElementById('calMonthEl');
+    const d = document.getElementById('calDayEl');
+    if (m) m.textContent = isKhmer ? 'ខែ' + KH_MONTHS[idx] : EN_MONTHS[idx];
+    if (d) d.textContent = toKhNum({{ current_day }});
 })();
 </script>
 {% endblock %}
