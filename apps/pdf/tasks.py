@@ -839,30 +839,37 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
         f"You are a world-class document transcription and layout reproduction engine for high-fidelity Microsoft Word conversion. "
         f"Transcribe and faithfully reconstruct the visual layout, text, and structure of this document image with 100% precision. "
         f"Document language: {lang_desc}.\n\n"
-        "Layout Reconstruction Rules:\n"
+        "Layout & Alignment Reconstruction Rules:\n"
         "1. ACCURACY & SCRIPT: Faithfully transcribe all characters and words without omissions. For Khmer, use clean standard Unicode Khmer. Pay close attention to legal and official terms (e.g. 'អង្គហេតុ' [NOT 'អន្តហេតុ'], 'សាលក្រមរដ្ឋប្បវេណី', 'មតកសាសន៍', 'យថាភូត', 'អត្រានុកូលដ្ឋាន').\n"
         "2. FLOW & WRAPPING: Keep sentences and paragraphs intact as continuous paragraphs. Do NOT insert hard line breaks in the middle of a sentence or bullet point. Only break lines where a paragraph naturally ends.\n"
-        "3. TWO-COLUMN HEADERS & LETTERHEADS: Official documents often have side-by-side elements:\n"
-        "   - Top centered mottos: '# [CENTER] ព្រះរាជាណាចក្រកម្ពុជា [/CENTER]\\n## [CENTER] ជាតិ សាសនា ព្រះមហាក្សត្រ [/CENTER]'\n"
-        "   - For side-by-side letterhead elements below (e.g. Institution/Court/Case/Prakas numbers on left, and 'តាងនាមប្រជារាស្ត្រខ្មែរ' / Court name / introductory reasoning paragraph on right), use a 2-column table with [LAYOUT]:\n"
+        "3. PARAGRAPH ALIGNMENT (CRITICAL):\n"
+        "   - Use '[CENTER] ... [/CENTER]' for any text visually CENTERED on the page:\n"
+        "     * Top centered mottos: '# [CENTER] ព្រះរាជាណាចក្រកម្ពុជា [/CENTER]\\n## [CENTER] ជាតិ សាសនា ព្រះមហាក្សត្រ [/CENTER]'\n"
+        "     * Document titles: '# [CENTER] សាលក្រមរដ្ឋប្បវេណី [/CENTER]', '## [CENTER] តាងនាមប្រជារាស្ត្រខ្មែរ [/CENTER]', '## [CENTER] សេចក្តីសម្រេច [/CENTER]'\n"
+        "     * Centered section headings or centered seal captions.\n"
+        "   - Use '[RIGHT] ... [/RIGHT]' for any text visually aligned to the RIGHT margin (e.g., date lines: '[RIGHT] រាជធានីភ្នំពេញ ថ្ងៃទី... [/RIGHT]').\n"
+        "   - Use '[JUSTIFY] ... [/JUSTIFY]' for multi-line body paragraphs and long narrative prose that span across margins.\n"
+        "   - Use '[LEFT] ... [/LEFT]' for left-aligned labels (e.g. '[LEFT] **ដើមចោទ ៖** ... [/LEFT]'), short entries, and list items.\n"
+        "4. TWO-COLUMN HEADERS & LETTERHEADS: Official documents often have side-by-side elements:\n"
+        "   - For side-by-side letterhead elements below mottos (e.g. Institution/Court/Case/Prakas numbers on left, and 'តាងនាមប្រជារាស្ត្រខ្មែរ' / Court name / introductory reasoning paragraph on right), use a 2-column table with [LAYOUT]:\n"
         "     | [LAYOUT] Left Column | Right Column |\n"
         "     | --- | --- |\n"
-        "     | **សាលាដំបូងរាជធានីភ្នំពេញ**<br>**សាលក្រមរដ្ឋប្បវេណី**<br>-លេខ...<br>ចុះថ្ងៃទី... | [CENTER] **តាងនាមប្រជារាស្ត្រខ្មែរ**<br>**សាលាដំបូងរាជធានីភ្នំពេញ** [/CENTER]<br><br>បានទាញហេតុផល... |\n"
+        "     | **សាលាដំបូងរាជធានីភ្នំពេញ**<br>**សាលក្រមរដ្ឋប្បវេណី**<br>-លេខ...<br>ចុះថ្ងៃទី... | [CENTER] **តាងនាមប្រជារាស្ត្រខ្មែរ**<br>**សាលាដំបូងរាជធានីភ្នំពេញ** [/CENTER]<br><br>[JUSTIFY] បានទាញហេតុផល... [/JUSTIFY] |\n"
         "   Use '<br>' to separate lines within a cell.\n"
-        "4. COURT COMPOSITION / OFFICERS (សមាសភាព): When officers or court officials are listed in columns, format them as a 3-column table with [LAYOUT]:\n"
+        "5. COURT COMPOSITION / OFFICERS (សមាសភាព): When officers or court officials are listed in columns, format them as a 3-column table with [LAYOUT]:\n"
         "   | [LAYOUT] Prefix | Full Name | Official Title |\n"
         "   | --- | --- | --- |\n"
         "   | លោក | **សាន ប៊ុនធឿន** | ចៅក្រមសាលាដំបូងរាជធានីភ្នំពេញ |\n"
-        "5. SIGNATURE BLOCKS: Signatures at the bottom of the document (e.g. Clerk left, Judge right; or Prepared by left, Approved by right) MUST be a 2-column table with [LAYOUT]:\n"
+        "6. SIGNATURE BLOCKS: Signatures at the bottom of the document (e.g. Clerk left, Judge right; or Prepared by left, Approved by right) MUST be a 2-column table with [LAYOUT]:\n"
         "   | [LAYOUT] Left Signatory | Right Signatory |\n"
         "   | --- | --- |\n"
         "   | [CENTER] **ក្រឡាបញ្ជី**<br><br><br>**ឈ្មោះ** [/CENTER] | [CENTER] **ចៅក្រមជំនុំជម្រះ**<br><br><br>**ឈ្មោះ** [/CENTER] |\n"
-        "6. DOCUMENT HEADINGS: Use '# [CENTER] Title [/CENTER]' for major centered document titles, '## [CENTER] Subtitle [/CENTER]' for secondary centered headings (e.g. '## [CENTER] I. អង្គហេតុ និងចំណុចវិវាទ [/CENTER]', '## [CENTER] ចៅក្រមជំនុំជម្រះ [/CENTER]').\n"
-        "7. EMPHASIS & LABELS: Use '**bold text**' for labels, headings, party names, case numbers, or key terms as in the original (e.g. '**ដើមចោទ និងជាចុងបណ្តឹងតប ៖**', '**អ្នកតំណាងដោយអាណត្តិ ៖**', '**ចុងចម្លើយ និងជាដើមបណ្តឹងតប ៖**').\n"
-        "8. TABLES: If there is a data table or schedule, format it as a standard Markdown table with headers and cell rows.\n"
-        "9. LISTS & NUMBERED CLAUSES: Use '- ' for bullets, and numbered labels like '១. ', '១.១. ', '1. ', '1.1. '.\n"
-        "10. RUNNING PAGE NUMBERS: Omit standalone running page numbers (e.g. standalone '1', '2', '១', '២', '៨' at margins) so they do not interrupt body paragraphs.\n"
-        "11. Output ONLY the reconstructed markdown text. Do NOT add preamble, conversational remarks, or markdown code fences (no ```markdown)."
+        "7. DOCUMENT HEADINGS: Use '# [CENTER] Title [/CENTER]' for major centered document titles, '## [CENTER] Subtitle [/CENTER]' for secondary centered headings (e.g. '## [CENTER] I. អង្គហេតុ និងចំណុចវិវាទ [/CENTER]').\n"
+        "8. EMPHASIS & LABELS: Use '**bold text**' for labels, headings, party names, case numbers, or key terms as in the original (e.g. '**ដើមចោទ និងជាចុងបណ្តឹងតប ៖**', '**អ្នកតំណាងដោយអាណត្តិ ៖**', '**ចុងចម្លើយ និងជាដើមបណ្តឹងតប ៖**').\n"
+        "9. TABLES: If there is a data table or schedule, format it as a standard Markdown table with headers and cell rows.\n"
+        "10. LISTS & NUMBERED CLAUSES: Use '- ' for bullets, and numbered labels like '១. ', '១.១. ', '1. ', '1.1. '.\n"
+        "11. RUNNING PAGE NUMBERS: Omit standalone running page numbers (e.g. standalone '1', '2', '១', '២', '៨' at margins) so they do not interrupt body paragraphs.\n"
+        "12. Output ONLY the reconstructed markdown text. Do NOT add preamble, conversational remarks, or markdown code fences (no ```markdown)."
     )
 
     response = client.messages.create(
@@ -1038,10 +1045,19 @@ def _add_markdown_to_docx(doc, markdown_text):
                                 active_cell_align = WD_ALIGN_PARAGRAPH.RIGHT
                             elif '[JUSTIFY]' in cl or '[justify]' in cl:
                                 active_cell_align = WD_ALIGN_PARAGRAPH.JUSTIFY
+                            elif '[LEFT]' in cl or '[left]' in cl:
+                                active_cell_align = WD_ALIGN_PARAGRAPH.LEFT
 
-                            p_align = active_cell_align or (WD_ALIGN_PARAGRAPH.JUSTIFY if len(cl) > 60 else WD_ALIGN_PARAGRAPH.LEFT)
+                            if active_cell_align:
+                                p_align = active_cell_align
+                            elif any(k in cl for k in ('ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'តាងនាមប្រជារាស្ត្រខ្មែរ', 'ក្រឡាបញ្ជី', 'ចៅក្រម', 'ប្រធាន', 'អនុប្រធាន')):
+                                p_align = WD_ALIGN_PARAGRAPH.CENTER
+                            elif len(cl) > 80:
+                                p_align = WD_ALIGN_PARAGRAPH.JUSTIFY
+                            else:
+                                p_align = WD_ALIGN_PARAGRAPH.LEFT
 
-                            if any(k in cl for k in ('[/CENTER]', '[/center]', '[/RIGHT]', '[/right]', '[/JUSTIFY]', '[/justify]')):
+                            if any(k in cl for k in ('[/CENTER]', '[/center]', '[/RIGHT]', '[/right]', '[/JUSTIFY]', '[/justify]', '[/LEFT]', '[/left]')):
                                 active_cell_align = None
 
                             cl = re.sub(r'\[/?CENTER\]|\[/?center\]|\[/?RIGHT\]|\[/?right\]|\[/?JUSTIFY\]|\[/?justify\]|\[/?LEFT\]|\[/?left\]', '', cl).strip()
@@ -1068,39 +1084,43 @@ def _add_markdown_to_docx(doc, markdown_text):
             continue
 
         # ── 3. Alignment & Heading tags ──────────────────────────
-        align = WD_ALIGN_PARAGRAPH.JUSTIFY
+        explicit_align = None
+        if re.search(r'\[/?CENTER\]|\[/?center\]', line):
+            explicit_align = WD_ALIGN_PARAGRAPH.CENTER
+            line = re.sub(r'\[/?CENTER\]|\[/?center\]', '', line).strip()
+        elif re.search(r'\[/?RIGHT\]|\[/?right\]', line):
+            explicit_align = WD_ALIGN_PARAGRAPH.RIGHT
+            line = re.sub(r'\[/?RIGHT\]|\[/?right\]', '', line).strip()
+        elif re.search(r'\[/?JUSTIFY\]|\[/?justify\]', line):
+            explicit_align = WD_ALIGN_PARAGRAPH.JUSTIFY
+            line = re.sub(r'\[/?JUSTIFY\]|\[/?justify\]', '', line).strip()
+        elif re.search(r'\[/?LEFT\]|\[/?left\]', line):
+            explicit_align = WD_ALIGN_PARAGRAPH.LEFT
+            line = re.sub(r'\[/?LEFT\]|\[/?left\]', '', line).strip()
+
         font_size = 11.0
         is_heading_bold = False
         space_before = Pt(0)
         space_after = Pt(3)
-
-        if '[CENTER]' in line or '[center]' in line:
-            align = WD_ALIGN_PARAGRAPH.CENTER
-            line = re.sub(r'\[/?CENTER\]|\[/?center\]', '', line).strip()
-        elif '[RIGHT]' in line or '[right]' in line:
-            align = WD_ALIGN_PARAGRAPH.RIGHT
-            line = re.sub(r'\[/?RIGHT\]|\[/?right\]', '', line).strip()
-        elif '[LEFT]' in line or '[left]' in line:
-            align = WD_ALIGN_PARAGRAPH.LEFT
-            line = re.sub(r'\[/?LEFT\]|\[/?left\]', '', line).strip()
+        is_heading = False
 
         # Check Heading levels
         if line.startswith('# '):
-            align = WD_ALIGN_PARAGRAPH.CENTER if align == WD_ALIGN_PARAGRAPH.CENTER else WD_ALIGN_PARAGRAPH.LEFT
+            is_heading = True
             font_size = 15.5
             is_heading_bold = True
             space_before = Pt(6)
             space_after = Pt(3)
             line = line[2:].strip()
         elif line.startswith('## '):
-            align = WD_ALIGN_PARAGRAPH.CENTER if align == WD_ALIGN_PARAGRAPH.CENTER else WD_ALIGN_PARAGRAPH.LEFT
+            is_heading = True
             font_size = 13.0
             is_heading_bold = True
             space_before = Pt(5)
             space_after = Pt(3)
             line = line[3:].strip()
         elif line.startswith('### '):
-            align = WD_ALIGN_PARAGRAPH.CENTER if align == WD_ALIGN_PARAGRAPH.CENTER else WD_ALIGN_PARAGRAPH.LEFT
+            is_heading = True
             font_size = 12.0
             is_heading_bold = True
             space_before = Pt(4)
@@ -1117,9 +1137,33 @@ def _add_markdown_to_docx(doc, markdown_text):
             line = line[2:].strip()
         elif len(line) > 2 and line[0].isdigit() and line[1] in ('.', ')') and line[2] == ' ':
             is_number = True
+        elif re.match(r'^([0-9\u17E0-\u17E9]+[\.\)])\s+', line):
+            is_number = True
         elif re.match(r'^([0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+)\s+', line):
             # Indent sub-clauses like "១.១. " or "1.1. "
             left_indent = Inches(0.25)
+
+        # ── Intelligent Alignment Resolution ──
+        # Check if text is center -> make it center; if paragraph/narrative -> make it justify
+        if explicit_align is not None:
+            align = explicit_align
+        elif any(k in line for k in ('ព្រះរាជាណាចក្រកម្ពុជា', 'ជាតិ សាសនា ព្រះមហាក្សត្រ', 'Kingdom of Cambodia', 'Nation Religion King')):
+            align = WD_ALIGN_PARAGRAPH.CENTER
+        elif is_heading:
+            if any(k in line for k in ('សាលក្រម', 'សេចក្តីសម្រេច', 'ដីកា', 'ប្រកាស', 'កិច្ចសន្យា', 'តាងនាមប្រជារាស្ត្រខ្មែរ', 'ព្រះរាជក្រម', 'លិខិត', 'NOTICE', 'CERTIFICATE', 'DECISION', 'JUDGMENT', 'CONTRACT', 'ORDER')) or len(line) < 55:
+                align = WD_ALIGN_PARAGRAPH.CENTER
+            else:
+                align = WD_ALIGN_PARAGRAPH.LEFT
+        elif re.match(r'^(រាជធានីភ្នំពេញ|ភ្នំពេញ|ធ្វើនៅ|ថ្ងៃទី)\s*,?\s*ថ្ងៃទី', line) or (re.search(r'ថ្ងៃទី\s*[0-9\u17E0-\u17E9]+\s*ខែ\s*[0-9\u17E0-\u17E9\w]+\s*ឆ្នាំ\s*[0-9\u17E0-\u17E9]+', line) and len(line) < 70):
+            align = WD_ALIGN_PARAGRAPH.RIGHT
+        elif is_bullet or is_number:
+            align = WD_ALIGN_PARAGRAPH.JUSTIFY if len(line) > 85 else WD_ALIGN_PARAGRAPH.LEFT
+        elif len(line) < 65 or line.endswith(('៖', ':')) or re.match(r'^\*\*[^\*]+(៖|:)\*\*', line):
+            align = WD_ALIGN_PARAGRAPH.LEFT
+        elif len(line) >= 65:
+            align = WD_ALIGN_PARAGRAPH.JUSTIFY
+        else:
+            align = WD_ALIGN_PARAGRAPH.LEFT
 
         p = doc.add_paragraph()
         p.alignment = align
