@@ -836,40 +836,25 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
     lang_desc = "Khmer and English" if ocr_lang == 'eng+khm' else ("Khmer" if ocr_lang == 'khm' else "English")
 
     prompt = (
-        f"You are a world-class document transcription and layout reproduction engine for high-fidelity Microsoft Word conversion. "
+        f"You are a world-class document transcription and layout reproduction engine for high-fidelity Microsoft Word (.docx) generation. "
         f"Transcribe and faithfully reconstruct the visual layout, text, and structure of this document image with 100% precision. "
         f"Document language: {lang_desc}.\n\n"
-        "Layout & Alignment Reconstruction Rules:\n"
-        "1. ACCURACY & SCRIPT: Faithfully transcribe all characters and words without omissions. For Khmer, use clean standard Unicode Khmer. Pay close attention to legal and official terms (e.g. 'អង្គហេតុ' [NOT 'អន្តហេតុ'], 'សាលក្រមរដ្ឋប្បវេណី', 'មតកសាសន៍', 'យថាភូត', 'អត្រានុកូលដ្ឋាន').\n"
-        "2. FLOW & WRAPPING: Keep sentences and paragraphs intact as continuous paragraphs. Do NOT insert hard line breaks in the middle of a sentence or bullet point. Only break lines where a paragraph naturally ends.\n"
-        "3. PARAGRAPH ALIGNMENT (CRITICAL):\n"
-        "   - Use '[CENTER] ... [/CENTER]' for any text visually CENTERED on the page:\n"
-        "     * Top centered mottos: '# [CENTER] ព្រះរាជាណាចក្រកម្ពុជា [/CENTER]\\n## [CENTER] ជាតិ សាសនា ព្រះមហាក្សត្រ [/CENTER]'\n"
-        "     * Document titles: '# [CENTER] សាលក្រមរដ្ឋប្បវេណី [/CENTER]', '## [CENTER] តាងនាមប្រជារាស្ត្រខ្មែរ [/CENTER]', '## [CENTER] សេចក្តីសម្រេច [/CENTER]'\n"
-        "     * Centered section headings or centered seal captions.\n"
-        "   - Use '[RIGHT] ... [/RIGHT]' for any text visually aligned to the RIGHT margin (e.g., date lines: '[RIGHT] រាជធានីភ្នំពេញ ថ្ងៃទី... [/RIGHT]').\n"
-        "   - Use '[JUSTIFY] ... [/JUSTIFY]' for multi-line body paragraphs and long narrative prose that span across margins.\n"
-        "   - Use '[LEFT] ... [/LEFT]' for left-aligned labels (e.g. '[LEFT] **ដើមចោទ ៖** ... [/LEFT]'), short entries, and list items.\n"
-        "4. TWO-COLUMN HEADERS & LETTERHEADS: Official documents often have side-by-side elements:\n"
-        "   - For side-by-side letterhead elements below mottos (e.g. Institution/Court/Case/Prakas numbers on left, and 'តាងនាមប្រជារាស្ត្រខ្មែរ' / Court name / introductory reasoning paragraph on right), use a 2-column table with [LAYOUT]:\n"
-        "     | [LAYOUT] Left Column | Right Column |\n"
-        "     | --- | --- |\n"
-        "     | **សាលាដំបូងរាជធានីភ្នំពេញ**<br>**សាលក្រមរដ្ឋប្បវេណី**<br>-លេខ...<br>ចុះថ្ងៃទី... | [CENTER] **តាងនាមប្រជារាស្ត្រខ្មែរ**<br>**សាលាដំបូងរាជធានីភ្នំពេញ** [/CENTER]<br><br>[JUSTIFY] បានទាញហេតុផល... [/JUSTIFY] |\n"
-        "   Use '<br>' to separate lines within a cell.\n"
-        "5. COURT COMPOSITION / OFFICERS (សមាសភាព): When officers or court officials are listed in columns, format them as a 3-column table with [LAYOUT]:\n"
-        "   | [LAYOUT] Prefix | Full Name | Official Title |\n"
-        "   | --- | --- | --- |\n"
-        "   | លោក | **សាន ប៊ុនធឿន** | ចៅក្រមសាលាដំបូងរាជធានីភ្នំពេញ |\n"
-        "6. SIGNATURE BLOCKS: Signatures at the bottom of the document (e.g. Clerk left, Judge right; or Prepared by left, Approved by right) MUST be a 2-column table with [LAYOUT]:\n"
-        "   | [LAYOUT] Left Signatory | Right Signatory |\n"
-        "   | --- | --- |\n"
-        "   | [CENTER] **ក្រឡាបញ្ជី**<br><br><br>**ឈ្មោះ** [/CENTER] | [CENTER] **ចៅក្រមជំនុំជម្រះ**<br><br><br>**ឈ្មោះ** [/CENTER] |\n"
-        "7. DOCUMENT HEADINGS: Use '# [CENTER] Title [/CENTER]' for major centered document titles, '## [CENTER] Subtitle [/CENTER]' for secondary centered headings (e.g. '## [CENTER] I. អង្គហេតុ និងចំណុចវិវាទ [/CENTER]').\n"
-        "8. EMPHASIS & LABELS: Use '**bold text**' for labels, headings, party names, case numbers, or key terms as in the original (e.g. '**ដើមចោទ និងជាចុងបណ្តឹងតប ៖**', '**អ្នកតំណាងដោយអាណត្តិ ៖**', '**ចុងចម្លើយ និងជាដើមបណ្តឹងតប ៖**').\n"
-        "9. TABLES: If there is a data table or schedule, format it as a standard Markdown table with headers and cell rows.\n"
-        "10. LISTS & NUMBERED CLAUSES: Use '- ' for bullets, and numbered labels like '១. ', '១.១. ', '1. ', '1.1. '.\n"
-        "11. RUNNING PAGE NUMBERS: Omit standalone running page numbers (e.g. standalone '1', '2', '១', '២', '៨' at margins) so they do not interrupt body paragraphs.\n"
-        "12. Output ONLY the reconstructed markdown text. Do NOT add preamble, conversational remarks, or markdown code fences (no ```markdown)."
+        "You MUST return a JSON array of structural elements representing the document from top to bottom.\n"
+        "Supported element schemas:\n"
+        "1. Heading: {\"type\": \"heading\", \"level\": 1|2|3, \"align\": \"center\"|\"left\", \"text\": \"...\"}\n"
+        "   - Use 'align': 'center' for top mottos ('ព្រះរាជាណាចក្រកម្ពុជា', 'ជាតិ សាសនា ព្រះមហាក្សត្រ') and main document titles ('សាលក្រម...', 'សេចក្តីសម្រេច...', 'ប្រកាស...').\n"
+        "2. Paragraph: {\"type\": \"paragraph\", \"align\": \"justify\"|\"left\"|\"right\"|\"center\", \"text\": \"...\"}\n"
+        "   - Use 'align': 'justify' for multi-line body paragraphs, legal reasoning, and narrative prose.\n"
+        "   - Use 'align': 'right' for date and location lines (e.g. 'រាជធានីភ្នំពេញ ថ្ងៃទី...').\n"
+        "   - Use 'align': 'left' for labels (e.g. '**ដើមចោទ ៖** ...', '**កម្មវត្ថុ ៖** ...'), short entries.\n"
+        "   - Use '**bold text**' for labels, party names, headings, and case numbers as in the original.\n"
+        "3. List Item: {\"type\": \"list_item\", \"list_type\": \"bullet\"|\"number\", \"text\": \"...\"}\n"
+        "4. Table: {\"type\": \"table\", \"layout\": \"borderless\"|\"grid\", \"rows\": [[{\"text\": \"...\", \"align\": \"center\"|\"left\"|\"right\", \"bold\": true|false}, ...]]}\n"
+        "   - Use 'layout': 'borderless' for side-by-side letterheads (e.g. Court name on left, 'តាងនាមប្រជារាស្ត្រខ្មែរ' on right) and signature blocks (e.g. Clerk on left, Judge on right).\n"
+        "   - Use 'layout': 'grid' for standard bordered data tables.\n"
+        "   - Use '\\n' for multiple lines inside a cell.\n"
+        "5. Omit standalone running page numbers (e.g. standalone '1', '2', '១', '២' at page margins).\n\n"
+        "CRITICAL: Return ONLY a raw JSON array starting with '[' and ending with ']'. Do not include markdown code block fences (no ```json)."
     )
 
     response = client.messages.create(
@@ -903,6 +888,191 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
             text_parts.append(block.text)
 
     return "\n".join(text_parts).strip()
+
+
+def _add_structured_json_to_docx(doc, items):
+    """
+    Directly converts Claude's structured JSON array of document elements
+    (headings, paragraphs with explicit alignments, lists, tables) into
+    native Microsoft Word elements with accurate Khmer font styling.
+    """
+    import re
+    from docx.shared import Pt, Inches
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.enum.table import WD_TABLE_ALIGNMENT
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls, qn
+
+    ALIGN_MAP = {
+        'center': WD_ALIGN_PARAGRAPH.CENTER,
+        'justify': WD_ALIGN_PARAGRAPH.JUSTIFY,
+        'left': WD_ALIGN_PARAGRAPH.LEFT,
+        'right': WD_ALIGN_PARAGRAPH.RIGHT,
+    }
+
+    def _add_styled_runs(paragraph, text, is_bold=False, font_size=11):
+        parts = text.split('**')
+        chars = 0
+        for idx, part in enumerate(parts):
+            if not part:
+                continue
+            run_bold = is_bold or (idx % 2 == 1)
+            has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in part)
+            font_name = 'Kantumruy Pro' if has_khmer else 'Calibri'
+
+            run = paragraph.add_run(part)
+            run.bold = run_bold
+            run.font.name = font_name
+            run.font.size = Pt(font_size)
+
+            rPr = run._element.get_or_add_rPr()
+            rFonts = rPr.get_or_add_rFonts()
+            rFonts.set(qn('w:cs'), font_name)
+            rFonts.set(qn('w:ascii'), font_name)
+            rFonts.set(qn('w:hAnsi'), font_name)
+            rFonts.set(qn('w:eastAsia'), font_name)
+
+            chars += len(part)
+        return chars
+
+    total_chars = 0
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        itype = item.get('type', 'paragraph').lower()
+        align_str = item.get('align', '').lower()
+        text = item.get('text', '')
+
+        if itype == 'heading':
+            level = item.get('level', 1)
+            size_map = {1: 15.5, 2: 13.0, 3: 12.0}
+            font_size = size_map.get(level, 13.0)
+            align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.CENTER)
+            
+            p = doc.add_paragraph()
+            p.alignment = align
+            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.space_before = Pt(6 if level == 1 else 4)
+            p.paragraph_format.space_after = Pt(3)
+            total_chars += _add_styled_runs(p, text, is_bold=True, font_size=font_size)
+
+        elif itype == 'list_item':
+            list_type = item.get('list_type', 'bullet').lower()
+            p = doc.add_paragraph()
+            p.style = 'List Bullet' if list_type == 'bullet' else 'List Number'
+            p.alignment = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.LEFT)
+            p.paragraph_format.line_spacing = 1.15
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(2)
+            total_chars += _add_styled_runs(p, text, is_bold=False, font_size=11)
+
+        elif itype == 'table':
+            rows_data = item.get('rows', [])
+            if not rows_data:
+                continue
+            layout = item.get('layout', 'grid').lower()
+            num_cols = max(len(r) for r in rows_data)
+            tbl = doc.add_table(rows=len(rows_data), cols=num_cols)
+            tbl.autofit = False
+            tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+            if layout == 'borderless':
+                tblPr = tbl._element.xpath('w:tblPr')
+                if tblPr:
+                    val_none = 'none'
+                    borders_xml = f'<w:tblBorders {nsdecls("w")}><w:top w:val="{val_none}"/><w:left w:val="{val_none}"/><w:bottom w:val="{val_none}"/><w:right w:val="{val_none}"/><w:insideH w:val="{val_none}"/><w:insideV w:val="{val_none}"/></w:tblBorders>'
+                    tblPr[0].append(parse_xml(borders_xml))
+            else:
+                tbl.style = 'Table Grid'
+
+            if num_cols == 2:
+                col_widths = [Inches(2.85), Inches(3.65)]
+            elif num_cols == 3:
+                col_widths = [Inches(1.0), Inches(2.2), Inches(3.3)]
+            else:
+                col_widths = [Inches(6.5 / num_cols)] * num_cols
+
+            for row_idx, r in enumerate(rows_data):
+                row_elem = tbl.rows[row_idx]
+                for col_idx in range(num_cols):
+                    cell = row_elem.cells[col_idx]
+                    if col_idx < len(col_widths):
+                        cell.width = col_widths[col_idx]
+                    if col_idx >= len(r):
+                        continue
+                    cell_data = r[col_idx]
+                    if isinstance(cell_data, dict):
+                        c_text = cell_data.get('text', '')
+                        c_align = ALIGN_MAP.get(cell_data.get('align', '').lower(), WD_ALIGN_PARAGRAPH.LEFT)
+                        c_bold = cell_data.get('bold', False)
+                    else:
+                        c_text = str(cell_data)
+                        c_align = WD_ALIGN_PARAGRAPH.LEFT
+                        c_bold = False
+
+                    lines = [l.strip() for l in re.split(r'\n|<br\s*/?>', c_text) if l.strip()]
+                    if not lines:
+                        lines = ['']
+                    for l_i, l_str in enumerate(lines):
+                        p = cell.paragraphs[0] if l_i == 0 else cell.add_paragraph()
+                        p.alignment = c_align
+                        p.paragraph_format.line_spacing = 1.15
+                        p.paragraph_format.space_before = Pt(0)
+                        p.paragraph_format.space_after = Pt(2)
+                        total_chars += _add_styled_runs(p, l_str, is_bold=c_bold, font_size=10.5)
+
+            sp = doc.add_paragraph()
+            sp.paragraph_format.space_before = Pt(0)
+            sp.paragraph_format.space_after = Pt(2)
+
+        else:  # paragraph
+            if not align_str:
+                align_str = 'justify' if len(text) > 65 else 'left'
+            align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.JUSTIFY if len(text) > 65 else WD_ALIGN_PARAGRAPH.LEFT)
+
+            p = doc.add_paragraph()
+            p.alignment = align
+            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(3)
+            total_chars += _add_styled_runs(p, text, is_bold=False, font_size=11)
+
+    return total_chars
+
+
+def _add_structured_content_to_docx(doc, raw_text):
+    """
+    Parses Claude's output. If raw_text contains a valid JSON array of structural
+    elements, formats each element with exact alignment, styling, and geometry.
+    If raw_text is markdown or JSON parsing fails, falls back gracefully to the
+    markdown parser.
+    """
+    import json
+    import logging
+    logger = logging.getLogger(__name__)
+
+    clean = raw_text.strip()
+    if clean.startswith('```'):
+        first_nl = clean.find('\n')
+        if first_nl != -1:
+            clean = clean[first_nl + 1:]
+        if clean.endswith('```'):
+            clean = clean[:-3].strip()
+
+    start_idx = clean.find('[')
+    end_idx = clean.rfind(']')
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        json_candidate = clean[start_idx:end_idx + 1]
+        try:
+            items = json.loads(json_candidate)
+            if isinstance(items, list) and len(items) > 0:
+                logger.info(f'OCR: Successfully parsed {len(items)} structured JSON elements from Claude')
+                return _add_structured_json_to_docx(doc, items)
+        except Exception as e:
+            logger.warning(f'OCR: JSON parsing failed ({e}), falling back to markdown parser')
+
+    # Fallback to markdown parser
+    return _add_markdown_to_docx(doc, raw_text)
 
 
 def _add_markdown_to_docx(doc, markdown_text):
@@ -1309,7 +1479,7 @@ def ocr_pdf(job_id):
                 try:
                     ctext = _claude_ocr_page(claude_key, claude_model, page, ocr_lang=ocr_lang)
                     if ctext and ctext.strip():
-                        c_count = _add_markdown_to_docx(doc, ctext)
+                        c_count = _add_structured_content_to_docx(doc, ctext)
                         extracted_chars += c_count
                     page_done = True
                 except Exception as e:
