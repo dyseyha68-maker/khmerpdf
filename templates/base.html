@@ -559,95 +559,17 @@
         /* Hide old deterministic bar — we don't use it during processing */
         .progress-bar { display: none; }
         
-        /* ── Site Footer ── */
+        /* ── Minimal Clean Footer ── */
         .site-footer {
             background: var(--surface);
             border-top: 1px solid var(--border);
             margin-top: auto;
-            padding: 48px 24px 28px;
+            padding: 24px 20px;
             transition: background 0.3s, border-color 0.3s;
         }
         .footer-inner {
             max-width: 1200px;
             margin: 0 auto;
-        }
-        .footer-top {
-            display: flex;
-            justify-content: space-between;
-            gap: 48px;
-            margin-bottom: 36px;
-            flex-wrap: wrap;
-        }
-        .footer-brand {
-            max-width: 340px;
-        }
-        .footer-logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 19px;
-            font-weight: 800;
-            color: var(--text);
-            text-decoration: none;
-            margin-bottom: 12px;
-            letter-spacing: -0.3px;
-        }
-        .footer-logo i {
-            color: var(--primary);
-            font-size: 24px;
-        }
-        .footer-tagline {
-            font-size: 13.5px;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-        }
-        .footer-gdpr-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #10b981;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            padding: 5px 12px;
-            border-radius: 20px;
-        }
-        .footer-links-grid {
-            display: flex;
-            gap: 48px;
-            flex-wrap: wrap;
-        }
-        .footer-col {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-width: 140px;
-        }
-        .footer-col h4 {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-        .footer-col a {
-            font-size: 13.5px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .footer-col a:hover {
-            color: var(--primary);
-        }
-        .footer-bottom {
-            padding-top: 24px;
-            border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -655,15 +577,16 @@
             flex-wrap: wrap;
         }
         .footer-copy {
-            font-size: 12.5px;
+            font-size: 13px;
             color: var(--text-secondary);
             margin: 0;
+            line-height: 1.5;
         }
         .footer-legal-links {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 12.5px;
+            gap: 12px;
+            font-size: 13px;
         }
         .footer-legal-links a {
             color: var(--text-secondary);
@@ -676,24 +599,15 @@
         .footer-legal-links span {
             opacity: 0.4;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 680px) {
             .site-footer {
-                padding: 36px 16px 24px;
+                padding: 20px 16px;
             }
-            .footer-top {
+            .footer-inner {
                 flex-direction: column;
-                gap: 28px;
-            }
-            .footer-brand {
-                max-width: 100%;
-            }
-            .footer-links-grid {
-                gap: 24px 32px;
-            }
-            .footer-bottom {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
+                align-items: center;
+                text-align: center;
+                gap: 10px;
             }
         }
         @media (max-width: 900px) {
@@ -812,57 +726,15 @@
     
     <footer class="site-footer">
         <div class="footer-inner">
-            <div class="footer-top">
-                <div class="footer-brand">
-                    <a href="/" class="footer-logo">
-                        <i class="ti ti-file-text"></i>
-                        <span>DAMSPEY</span>
-                    </a>
-                    <p class="footer-tagline">
-                        {% trans "Free, secure and private online PDF tools with Khmer Unicode AI OCR." %}
-                    </p>
-                    <div class="footer-gdpr-pill">
-                        <i class="ti ti-shield-check"></i>
-                        <span>{% trans "GDPR Compliant • Ephemeral 60-min Auto-Purge" %}</span>
-                    </div>
-                </div>
-
-                <div class="footer-links-grid">
-                    <div class="footer-col">
-                        <h4>{% trans "Popular Tools" %}</h4>
-                        <a href="/pdf-ocr/">{% trans "OCR PDF to Word" %}</a>
-                        <a href="/pdf-compress/">{% trans "Compress PDF" %}</a>
-                        <a href="/pdf-merge/">{% trans "Merge PDF" %}</a>
-                        <a href="/pdf-split/">{% trans "Split PDF" %}</a>
-                        <a href="/pdf-organize/">{% trans "Organize PDF" %}</a>
-                    </div>
-                    <div class="footer-col">
-                        <h4>{% trans "More Tools" %}</h4>
-                        <a href="/pdf-protect/">{% trans "Protect PDF" %}</a>
-                        <a href="/pdf-to-image/">{% trans "PDF to Image" %}</a>
-                        <a href="/image-to-pdf/">{% trans "Image to PDF" %}</a>
-                        <a href="/pdf-calendar/">{% trans "Calendar" %}</a>
-                    </div>
-                    <div class="footer-col">
-                        <h4>{% trans "Legal & Privacy" %}</h4>
-                        <a href="/privacy/"><i class="ti ti-shield-lock"></i> {% trans "Privacy Policy (GDPR)" %}</a>
-                        <a href="/terms/"><i class="ti ti-file-certificate"></i> {% trans "Terms of Service" %}</a>
-                        <a href="/contact/"><i class="ti ti-mail"></i> {% trans "Contact Us" %}</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p class="footer-copy">
-                    &copy; 2026 DAMSPEY. {% trans "All rights reserved. Documents are permanently purged within 60 minutes." %}
-                </p>
-                <div class="footer-legal-links">
-                    <a href="/privacy/">{% trans "Privacy Policy" %}</a>
-                    <span>•</span>
-                    <a href="/terms/">{% trans "Terms & Conditions" %}</a>
-                    <span>•</span>
-                    <a href="/contact/">{% trans "Contact" %}</a>
-                </div>
+            <p class="footer-copy">
+                &copy; 2026 DAMSPEY. {% trans "All rights reserved. Documents are permanently purged within 60 minutes." %}
+            </p>
+            <div class="footer-legal-links">
+                <a href="/privacy/">{% trans "Privacy Policy" %}</a>
+                <span>•</span>
+                <a href="/terms/">{% trans "Terms & Conditions" %}</a>
+                <span>•</span>
+                <a href="/contact/">{% trans "Contact" %}</a>
             </div>
         </div>
     </footer>
