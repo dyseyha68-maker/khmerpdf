@@ -547,8 +547,48 @@ msgid "👆 Add PDF files to merge. Click Merge to combine them."
 msgstr "👆 បន្ថែមឯកសារ PDF ដើម្បីបញ្ជូល ចុច Merge ដើម្បីបញ្ជូលគ្នា"
 
 # Category: OCR
+msgid "100% Free Khmer PDF Tools & AI OCR"
+msgstr "ឧបករណ៍ PDF ខ្មែរ & AI OCR ឥតគិតថ្លៃ 100%"
+
+# Category: OCR
+msgid "100% Khmer Unicode"
+msgstr "អក្សរខ្មែរយូនីកូដ 100%"
+
+# Category: OCR
+msgid "Claude AI Vision"
+msgstr "បច្ចេកវិទ្យា Claude AI"
+
+# Category: OCR
+msgid "Convert scanned Khmer documents and images into editable Microsoft Word (.docx) with 100% Khmer Unicode accuracy, preserving tables, columns, and document layout."
+msgstr "បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជាឯកសារ Word (.docx) ជាភាសាខ្មែរ ដោយរក្សាទម្រង់តារាង ជួរឈរ និងអក្សរយូនីកូដត្រឹមត្រូវ 100%។"
+
+# Category: OCR
 msgid "Convert scanned PDF files into editable Word documents with Khmer and English OCR."
 msgstr "បម្លែងឯកសារ PDF ដែលបានស្កេនទៅជាឯកសារ Word ដែលអាចកែសម្រួលបាន គាំទ្រភាសាខ្មែរ និងអង់គ្លេស។"
+
+# Category: OCR
+msgid "Editable .docx Output"
+msgstr "ឯកសារ Word កែសម្រួលបាន"
+
+# Category: OCR
+msgid "Editable Word (.docx)"
+msgstr "ឯកសារ Word (.docx)"
+
+# Category: OCR
+msgid "Instant AI Recognition"
+msgstr "ស្គាល់អក្សរដោយ AI ភ្លាមៗ"
+
+# Category: OCR
+msgid "Instant • 100% Free • No registration needed"
+msgstr "រហ័ស • ឥតគិតថ្លៃ 100% • មិនបាច់ចុះឈ្មោះ"
+
+# Category: OCR
+msgid "Khmer AI OCR"
+msgstr "OCR ភាសាខ្មែរ AI"
+
+# Category: OCR
+msgid "Khmer AI OCR, Compress, Merge, Split, Organize PDF Files and More"
+msgstr "OCR ខ្មែរឆ្លាតវៃ, បង្រួម, បញ្ចូល, បំបែក, រៀបចំ PDF និងច្រើនទៀត"
 
 # Category: OCR
 msgid "Make Scanned PDFs Searchable"
@@ -559,8 +599,16 @@ msgid "Make scanned PDF searchable"
 msgstr "នឹងធ្វើឱ្យ PDF ដែលស្កេនអាចស្វែងរកបាន"
 
 # Category: OCR
+msgid "Most Popular"
+msgstr "ពេញនិយមបំផុត"
+
+# Category: OCR
 msgid "OCR"
 msgstr "កម្មវិធីបំលែងទៅជាអក្សរ"
+
+# Category: OCR
+msgid "OCR (PDF to Word)"
+msgstr "OCR (PDF ទៅជា Word)"
 
 # Category: OCR
 msgid "OCR Language"
@@ -575,8 +623,28 @@ msgid "OCR PDF to Word - Khmer & English"
 msgstr "បម្លែង PDF ស្កេនទៅជា Word (OCR) - ខ្មែរ និងអង់គ្លេស"
 
 # Category: OCR
+msgid "PDF / Image → Word (.docx)"
+msgstr "PDF / រូបភាព → Word (.docx)"
+
+# Category: OCR
+msgid "Preserves Tables & Layout"
+msgstr "រក្សាទម្រង់តារាង និងប្លង់"
+
+# Category: OCR
 msgid "Processing OCR..."
 msgstr "កំពុងដំណើរការ OCR..."
+
+# Category: OCR
+msgid "Scanned PDF / IMG"
+msgstr "PDF ស្កេន / រូបភាព"
+
+# Category: OCR
+msgid "Scanned PDF to Word (.docx)"
+msgstr "បម្លែង PDF ស្កេនទៅជា Word (.docx)"
+
+# Category: OCR
+msgid "Try Khmer OCR Free"
+msgstr "សាកល្បង OCR ខ្មែរ ឥតគិតថ្លៃ"
 
 # Category: OCR
 msgid "Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages."
@@ -781,6 +849,10 @@ msgstr "បំបែកតាម"
 # Category: Split
 msgid "Split into files of N pages"
 msgstr "បំបែកចំនួនទំព័រក្នុងមួយឯកសារ"
+
+# Category: Tools
+msgid "All PDF Tools"
+msgstr "ឧបករណ៍ PDF ទាំងអស់"
 
 # Category: Tools
 msgid "Back to Home"
