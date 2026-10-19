@@ -20,8 +20,19 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.fly.dev',
     'https://*.railway.app',
     'https://damspey.com',
-    'https://www.damspey.com'
+    'https://www.damspey.com',
+    'http://damspey.com',
+    'http://www.damspey.com',
+    'http://66.29.139.34',
+    'https://66.29.139.34',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
 ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 
 DATA_DIR = Path(os.environ.get('DATA_DIR', BASE_DIR))
 

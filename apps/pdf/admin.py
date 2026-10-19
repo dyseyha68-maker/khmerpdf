@@ -597,6 +597,11 @@ def deactivate_ad_snippets(modeladmin, request, queryset):
 
 
 class AdSnippetAdminForm(forms.ModelForm):
+    name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Optional — auto-names if empty (e.g. "Adsterra Top Banner")'})
+    )
+
     class Meta:
         model = AdSnippet
         fields = '__all__'

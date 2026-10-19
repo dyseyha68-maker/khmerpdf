@@ -260,8 +260,10 @@ class AdSnippet(models.Model):
 
     name = models.CharField(
         max_length=150,
+        blank=True,
+        default='',
         verbose_name='Name / Label',
-        help_text='Internal label for this ad snippet (e.g., "Adsterra Social Bar", "Adsterra 728x90 Top Banner")'
+        help_text='Internal label for this ad snippet (e.g., "Adsterra Social Bar"). Auto-generated if left blank.'
     )
     placement = models.CharField(
         max_length=30,
@@ -295,6 +297,7 @@ class AdSnippet(models.Model):
     )
     order = models.PositiveIntegerField(
         default=0,
+        blank=True,
         verbose_name='Display Order',
         help_text='Order of execution/display if multiple snippets share the same slot (lower numbers first)'
     )
@@ -310,6 +313,14 @@ class AdSnippet(models.Model):
         ordering = ['order', '-created_at']
         verbose_name = 'Ad & Script Code'
         verbose_name_plural = 'Ads & Script Codes'
+
+    def save(self, *args, **kwargs):
+        if not self.name or not self.name.strip():
+            placement_label = self.get_placement_display().split(' (')[0]
+            self.name = f"Adsterra ({placement_label})"
+        if self.order is None:
+            self.order = 0
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} [{self.get_placement_display()}]"
