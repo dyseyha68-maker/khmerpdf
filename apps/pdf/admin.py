@@ -13,7 +13,7 @@ from django.shortcuts import render
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html
-from .models import Job, Holiday, CalendarEvent, PageVisit, OCRSettings, SiteTranslation
+from .models import Job, Holiday, CalendarEvent, PageVisit, OCRSettings, SiteTranslation, AdSnippet
 
 
 # ── Job Admin ─────────────────────────────────────────────────────────────────
@@ -580,3 +580,94 @@ class SiteTranslationAdmin(admin.ModelAdmin):
         super().delete_model(request, obj)
         from .translation_service import compile_translations_to_files
         compile_translations_to_files()
+
+
+# ── Ad & Script Manager (Adsterra / Networks) ──────────────────────────────────
+
+@admin.action(description='✔ Activate selected ad snippets')
+def activate_ad_snippets(modeladmin, request, queryset):
+    updated = queryset.update(is_active=True)
+    messages.success(request, f'{updated} ad snippet(s) activated.')
+
+
+@admin.action(description='✖ Deactivate selected ad snippets')
+def deactivate_ad_snippets(modeladmin, request, queryset):
+    updated = queryset.update(is_active=False)
+    messages.warning(request, f'{updated} ad snippet(s) deactivated.')
+
+
+class AdSnippetAdminForm(forms.ModelForm):
+    class Meta:
+        model = AdSnippet
+        fields = '__all__'
+        widgets = {
+            'code': forms.Textarea(attrs={
+                'rows': 10,
+                'style': 'font-family: Consolas, monospace, "Courier New"; font-size: 13px; background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box;',
+                'placeholder': '<!-- Paste your Adsterra code here -->\n<script type="text/javascript">\n    // Adsterra snippet\n</script>'
+            }),
+            'notes': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Optional internal notes (e.g. Ad unit ID, eCPM notes)'}),
+        }
+
+
+@admin.register(AdSnippet)
+class AdSnippetAdmin(admin.ModelAdmin):
+    form = AdSnippetAdminForm
+    list_display = ['name', 'placement_badge', 'page_target_badge', 'device_badge', 'is_active', 'order', 'updated_at']
+    list_filter = ['placement', 'page_target', 'device_target', 'is_active']
+    search_fields = ['name', 'code', 'notes']
+    list_editable = ['is_active', 'order']
+    actions = [activate_ad_snippets, deactivate_ad_snippets]
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'is_active', 'order', 'notes'),
+            'description': 'Configure the label, status, and display priority of this ad unit.'
+        }),
+        ('Ad / Script Code (Adsterra / Networks)', {
+            'fields': ('code',),
+            'description': 'Paste the raw JavaScript/HTML code snippet from your Adsterra publisher dashboard (beta.publishers.adsterra.com).'
+        }),
+        ('Placement & Targeting Rules', {
+            'fields': ('placement', 'page_target', 'device_target'),
+            'description': 'Control precisely where, on which pages, and on which devices this ad appears.'
+        }),
+    )
+
+    def placement_badge(self, obj):
+        colors = {
+            'head': '#8b5cf6',
+            'top_banner': '#2563eb',
+            'sidebar': '#0891b2',
+            'bottom_banner': '#059669',
+            'footer_script': '#d97706',
+        }
+        color = colors.get(obj.placement, '#64748b')
+        return format_html(
+            '<span style="background:{}; color:white; padding:3px 9px; border-radius:12px; font-size:11px; font-weight:600;">{}</span>',
+            color, obj.get_placement_display().split(' (')[0]
+        )
+    placement_badge.short_description = 'Placement'
+
+    def page_target_badge(self, obj):
+        colors = {
+            'all': '#059669',
+            'home_only': '#3b82f6',
+            'tools_only': '#d97706',
+            'exclude_policy': '#64748b',
+        }
+        color = colors.get(obj.page_target, '#64748b')
+        return format_html(
+            '<span style="background:{}; color:white; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:500;">{}</span>',
+            color, obj.get_page_target_display()
+        )
+    page_target_badge.short_description = 'Pages'
+
+    def device_badge(self, obj):
+        labels = {
+            'all': '📱 Desktop & Mobile',
+            'desktop': '💻 Desktop Only',
+            'mobile': '📱 Mobile Only',
+        }
+        return labels.get(obj.device_target, obj.device_target)
+    device_badge.short_description = 'Device'
+

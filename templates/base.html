@@ -371,6 +371,49 @@
             width: 100%;
         }
 
+        /* ── Ad Banners & Code Snippets ── */
+        .ad-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 12px auto;
+            text-align: center;
+            clear: both;
+            position: relative;
+            z-index: 5;
+        }
+        .ad-top-container {
+            max-width: 1400px;
+            padding: 0 24px;
+            margin-top: 14px;
+            margin-bottom: 6px;
+        }
+        .ad-bottom-container {
+            max-width: 1400px;
+            padding: 0 24px;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+        .ad-unit {
+            display: inline-block;
+            margin: 0 auto;
+            overflow: hidden;
+            text-align: center;
+        }
+        .ad-unit iframe, .ad-unit img {
+            max-width: 100%;
+            height: auto;
+        }
+        @media (max-width: 768px) {
+            .ad-unit-desktop { display: none !important; }
+            .ad-top-container, .ad-bottom-container { padding: 0 12px; }
+        }
+        @media (min-width: 769px) {
+            .ad-unit-mobile { display: none !important; }
+        }
+
         .main-content {
             flex: 1;
             padding: 24px;
@@ -657,6 +700,9 @@
     }
     </script>
     {% block extra_head %}{% endblock %}
+    {% for snippet in ad_head_codes %}
+        {{ snippet.code }}
+    {% endfor %}
 </head>
 <body class="{% if LANGUAGE_CODE == 'km' %}lang-kh{% else %}lang-en{% endif %}">
     <header class="header" x-data="{ navOpen: false, toolsOpen: false }">
@@ -720,9 +766,29 @@
       </div>
     </header>
     
+    {% if ad_top_codes %}
+    <div class="ad-container ad-top-container">
+        {% for snippet in ad_top_codes %}
+        <div class="ad-unit ad-unit-{{ snippet.device_target }}">
+            {{ snippet.code }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <main class="page-main">
         {% block content %}{% endblock %}
     </main>
+
+    {% if ad_bottom_codes %}
+    <div class="ad-container ad-bottom-container">
+        {% for snippet in ad_bottom_codes %}
+        <div class="ad-unit ad-unit-{{ snippet.device_target }}">
+            {{ snippet.code }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     
     <footer class="site-footer">
         <div class="footer-inner">
@@ -852,5 +918,9 @@
     </script>
 
     {% block scripts %}{% endblock %}
+
+    {% for snippet in ad_footer_codes %}
+        {{ snippet.code }}
+    {% endfor %}
 </body>
 </html>

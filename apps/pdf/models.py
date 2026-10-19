@@ -234,3 +234,82 @@ class SiteTranslation(models.Model):
 
     def __str__(self):
         return f"{self.msgid} → {self.msgstr[:40]}"
+
+
+class AdSnippet(models.Model):
+    PLACEMENT_CHOICES = [
+        ('head', 'Header / <head> Tag (Meta / Domain Verification / Global Scripts)'),
+        ('top_banner', 'Top Banner (Below Header Navigation)'),
+        ('sidebar', 'Tool Sidebar / Control Panel Slot'),
+        ('bottom_banner', 'Bottom Banner (Above Footer)'),
+        ('footer_script', 'Footer / Before </body> (Social Bar, Popunder, Tracking)'),
+    ]
+
+    PAGE_TARGET_CHOICES = [
+        ('all', 'All Pages'),
+        ('home_only', 'Homepage Only'),
+        ('tools_only', 'Tool Pages Only (OCR, Merge, Compress, etc.)'),
+        ('exclude_policy', 'Exclude Legal Pages (Privacy, Terms, Contact)'),
+    ]
+
+    DEVICE_CHOICES = [
+        ('all', 'All Devices (Desktop & Mobile)'),
+        ('desktop', 'Desktop Only'),
+        ('mobile', 'Mobile Only'),
+    ]
+
+    name = models.CharField(
+        max_length=150,
+        verbose_name='Name / Label',
+        help_text='Internal label for this ad snippet (e.g., "Adsterra Social Bar", "Adsterra 728x90 Top Banner")'
+    )
+    placement = models.CharField(
+        max_length=30,
+        choices=PLACEMENT_CHOICES,
+        default='footer_script',
+        verbose_name='Placement Slot',
+        help_text='Choose where this code snippet will be injected in the HTML layout'
+    )
+    code = models.TextField(
+        verbose_name='Ad / Script Code',
+        help_text='Paste the raw HTML or <script> code provided by Adsterra or your ad network'
+    )
+    page_target = models.CharField(
+        max_length=30,
+        choices=PAGE_TARGET_CHOICES,
+        default='all',
+        verbose_name='Page Target',
+        help_text='Control which pages will display this ad code'
+    )
+    device_target = models.CharField(
+        max_length=20,
+        choices=DEVICE_CHOICES,
+        default='all',
+        verbose_name='Device Target',
+        help_text='Target specific screen sizes'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Active',
+        help_text='Uncheck to instantly pause or disable this ad snippet without deleting it'
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Display Order',
+        help_text='Order of execution/display if multiple snippets share the same slot (lower numbers first)'
+    )
+    notes = models.TextField(
+        blank=True,
+        verbose_name='Notes / Description',
+        help_text='Optional notes (e.g. ad unit ID, banner size, revenue notes)'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', '-created_at']
+        verbose_name = 'Ad & Script Code'
+        verbose_name_plural = 'Ads & Script Codes'
+
+    def __str__(self):
+        return f"{self.name} [{self.get_placement_display()}]"

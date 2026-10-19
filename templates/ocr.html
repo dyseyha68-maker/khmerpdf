@@ -855,6 +855,16 @@
         <p class="action-note" x-show="pages.length > 0" x-cloak>
             {% trans "Only selected pages will be processed and converted into Word (.docx)." %}
         </p>
+
+        {% if ad_sidebar_codes %}
+        <div class="ad-sidebar-slot" style="margin-top: 18px; text-align: center;">
+            {% for snippet in ad_sidebar_codes %}
+            <div class="ad-unit ad-unit-{{ snippet.device_target }}">
+                {{ snippet.code }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 
     <!-- Right Workspace Panel -->
