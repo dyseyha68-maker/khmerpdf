@@ -227,59 +227,132 @@
     /* Options section */
     .options-section {
         margin-bottom: 20px;
-        padding: 14px;
+        padding: 16px;
         background: var(--surface-hover);
-        border-radius: var(--radius-sm);
+        border-radius: var(--radius);
         border: 1px solid var(--border);
+        transition: border-color 0.2s ease;
     }
-    .options-section label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
+    .lang-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .lang-header-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13.5px;
+        font-weight: 700;
         color: var(--text);
-        margin-bottom: 10px;
+        letter-spacing: -0.01em;
     }
+    .lang-header-title i {
+        font-size: 18px;
+        color: var(--primary);
+    }
+    .lang-ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(96, 165, 250, 0.12) 100%);
+        color: var(--primary);
+        border: 1px solid rgba(37, 99, 235, 0.22);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+    }
+    .lang-ai-badge i {
+        font-size: 11px;
+    }
+
     .lang-pills {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-        background: var(--surface);
-        padding: 4px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
+        gap: 8px;
     }
     .lang-pill {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 6px;
         padding: 10px 4px;
-        background: none;
-        border: none;
-        border-radius: 6px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
         cursor: pointer;
         font-family: inherit;
-        transition: all 0.2s ease;
-        color: var(--text-secondary);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        color: var(--text);
+        position: relative;
+        user-select: none;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
     .lang-pill:hover {
-        color: var(--text);
-        background: var(--surface-hover);
+        border-color: var(--primary-light);
+        background: var(--surface);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
     }
     .lang-pill.active {
-        background: var(--primary);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border-color: #1d4ed8;
         color: #ffffff;
-        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        transform: translateY(-2px);
     }
-    .lang-pill .pill-flag {
-        font-size: 20px;
-        line-height: 1;
+    .modern-flag {
+        width: 22px;
+        height: 16px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        display: inline-block;
+        vertical-align: middle;
+        object-fit: cover;
+    }
+    .dual-flags {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        height: 16px;
+        width: 32px;
+    }
+    .dual-flags .flag-left {
+        position: absolute;
+        left: 0;
+        z-index: 1;
+    }
+    .dual-flags .flag-right {
+        position: absolute;
+        right: 0;
+        z-index: 2;
+        box-shadow: -1px 0 3px rgba(0, 0, 0, 0.25);
     }
     .lang-pill .pill-name {
         font-size: 12px;
         font-weight: 600;
-        line-height: 1;
+        line-height: 1.2;
+        text-align: center;
+        white-space: nowrap;
+    }
+    [data-theme="dark"] .lang-pill {
+        background: #1e293b;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+    [data-theme="dark"] .lang-pill:hover {
+        background: #334155;
+        border-color: var(--primary);
+    }
+    [data-theme="dark"] .lang-pill.active {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border-color: #3b82f6;
+        color: #ffffff;
     }
 
     .action-note {
@@ -574,24 +647,99 @@
         to { transform: rotate(360deg); }
     }
 
+    .right-panel-inner {
+        min-height: 480px;
+        display: flex;
+        flex-direction: column;
+    }
     .empty-preview {
-        min-height: 360px;
+        flex: 1;
+        width: 100%;
+        min-height: 420px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 14px;
-        color: var(--text-secondary);
-        opacity: 0.6;
-        padding: 40px 20px;
         text-align: center;
+        padding: 48px 24px;
+        border: 2px dashed var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-sizing: border-box;
     }
-    .empty-preview i {
-        font-size: 48px;
+    .empty-preview:hover,
+    .empty-preview.drag-over {
+        border-color: var(--primary);
+        background: var(--surface-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1);
+    }
+    .empty-icon-card {
+        width: 80px;
+        height: 80px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(37, 99, 235, 0.04) 100%);
+        border: 1.5px solid rgba(37, 99, 235, 0.22);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 38px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .empty-preview:hover .empty-icon-card {
+        transform: scale(1.08);
     }
     .empty-preview p {
-        font-size: 14px;
-        margin: 0;
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        max-width: 480px;
+        line-height: 1.6;
+        margin: 0 0 20px;
+    }
+    .empty-preview-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        border-radius: 24px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        color: var(--primary);
+        font-size: 13.5px;
+        font-weight: 600;
+        box-shadow: var(--shadow);
+        transition: all 0.2s;
+    }
+    .empty-preview:hover .empty-preview-btn {
+        background: var(--primary);
+        color: #ffffff;
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+    [data-theme="dark"] .empty-preview {
+        background: #1e293b;
+        border-color: #334155;
+    }
+    [data-theme="dark"] .empty-preview:hover,
+    [data-theme="dark"] .empty-preview.drag-over {
+        background: rgba(30, 41, 59, 0.8);
+        border-color: var(--primary);
+    }
+    [data-theme="dark"] .empty-preview-btn {
+        background: #0f172a;
+        border-color: #334155;
+        color: #60a5fa;
+    }
+    [data-theme="dark"] .empty-preview:hover .empty-preview-btn {
+        background: var(--primary);
+        color: #ffffff;
+        border-color: var(--primary);
     }
 
     @media (max-width: 900px) {
@@ -672,18 +820,29 @@
 
         <!-- OCR Language Picker -->
         <div class="options-section">
-            <label>{% trans "OCR Language" %}</label>
+            <div class="lang-section-header">
+                <div class="lang-header-title">
+                    <i class="ti ti-language"></i>
+                    <span>{% trans "OCR Language" %}</span>
+                </div>
+                <span class="lang-ai-badge">
+                    <i class="ti ti-sparkles"></i> AI
+                </span>
+            </div>
             <div class="lang-pills">
                 <button type="button" class="lang-pill" :class="{ active: ocrLang === 'khm' }" @click="ocrLang = 'khm'">
-                    <span class="pill-flag">🇰🇭</span>
+                    <span class="fi fi-kh modern-flag"></span>
                     <span class="pill-name">{% trans "Khmer" %}</span>
                 </button>
                 <button type="button" class="lang-pill" :class="{ active: ocrLang === 'eng+khm' }" @click="ocrLang = 'eng+khm'">
-                    <span class="pill-flag">🌐</span>
+                    <div class="dual-flags">
+                        <span class="fi fi-kh modern-flag flag-left"></span>
+                        <span class="fi fi-us modern-flag flag-right"></span>
+                    </div>
                     <span class="pill-name">{% trans "Khmer + Eng" %}</span>
                 </button>
                 <button type="button" class="lang-pill" :class="{ active: ocrLang === 'eng' }" @click="ocrLang = 'eng'">
-                    <span class="pill-flag">🇺🇸</span>
+                    <span class="fi fi-us modern-flag"></span>
                     <span class="pill-name">{% trans "English" %}</span>
                 </button>
             </div>
@@ -733,19 +892,32 @@
                 </div>
             </div>
 
-            <!-- Page Grid -->
-            <div class="page-grid" id="previewGrid">
-                <!-- Empty Placeholder -->
-                <div class="empty-preview" x-show="pages.length === 0 && !isLoadingPages">
-                    <i class="ti ti-layout-grid"></i>
-                    <p>{% trans "Upload PDF or image files to preview, select, and organize pages before converting." %}</p>
+            <!-- Empty Centered Placeholder (Visible when pages === 0 and not loading) -->
+            <div class="empty-preview"
+                 x-show="pages.length === 0 && !isLoadingPages"
+                 :class="{ 'drag-over': draggingRight }"
+                 @dragover.prevent="draggingRight = true"
+                 @dragleave.prevent="draggingRight = false"
+                 @drop.prevent="draggingRight = false; onDrop($event)"
+                 @click="$refs.initialFileInput.click()">
+                <div class="empty-icon-card">
+                    <i class="ti ti-layout-grid-add"></i>
                 </div>
+                <p>{% trans "Upload PDF or image files to preview, select, and organize pages before converting." %}</p>
+                <div class="empty-preview-btn">
+                    <i class="ti ti-file-upload"></i>
+                    <span>{% trans "Select PDF or Image or drop here" %}</span>
+                </div>
+            </div>
 
-                <!-- Loading State while extracting pages -->
-                <div class="grid-loading-box" x-show="isLoadingPages" x-cloak>
-                    <div class="grid-spinner"></div>
-                    <p style="font-size:14.5px; font-weight:600;" x-text="loadingProgress"></p>
-                </div>
+            <!-- Loading State while extracting pages -->
+            <div class="grid-loading-box" x-show="isLoadingPages" x-cloak>
+                <div class="grid-spinner"></div>
+                <p style="font-size:14.5px; font-weight:600;" x-text="loadingProgress"></p>
+            </div>
+
+            <!-- Page Grid (Visible when pages > 0) -->
+            <div class="page-grid" id="previewGrid" x-show="pages.length > 0 && !isLoadingPages">
 
                 <!-- Page Thumbnails List -->
                 <template x-for="(page, idx) in pages" :key="page.id">
@@ -814,6 +986,7 @@ function ocrApp() {
         ocrLang: (typeof isKhmer !== 'undefined' && isKhmer) ? 'khm' : 'eng+khm',
         isLoadingPages: false,
         loadingProgress: '',
+        draggingRight: false,
         _nextId: 1,
 
         get filesCount() {
@@ -841,6 +1014,7 @@ function ocrApp() {
 
         onDrop(e) {
             this.dragging = false;
+            this.draggingRight = false;
             this.handleFileList(e.dataTransfer.files);
         },
         onInitialFileChange(e) {
