@@ -1,537 +1,811 @@
-# Khmer translations for DAMSPEY
-# Copyright (C) 2026 DAMSPEY
+# Khmer translation for DAMSPEY (Managed via Admin)
 msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: km\n"
+""
 
-# Navigation
-msgid "Compress"
-msgstr "បង្រួម"
-
-msgid "Merge"
-msgstr "បញ្ចូល"
-
-msgid "Split"
-msgstr "បំបែក"
-
-msgid "Organize"
-msgstr "រៀបចំ"
-
-msgid "Calendar"
-msgstr "ប្រតិទិន"
-
-# Calendar page
-msgid "Today"
-msgstr "ថ្ងៃនេះ"
-
+# Category: Calendar
 msgid "Buddhist Era"
 msgstr "ព.ស"
 
-msgid "Events"
-msgstr "ព្រឹត្តិការណ៍"
-
-msgid "Public Holiday"
-msgstr "ថ្ងៃឈប់សម្រាក"
-
-msgid "Weekend"
-msgstr "ថ្ងៃចុងសប្ដាហ៍"
-
-msgid "Holy / Precept Day"
-msgstr "ថ្ងៃសីល"
-
-msgid "Day of Week"
-msgstr "ថ្ងៃ"
-
-msgid "Lunar Date"
-msgstr "ថ្ងៃខ្មែរ"
-
-msgid "No events this month"
-msgstr "ពុំមានថ្ងៃឈប់សម្រាកក្នៅនុងខែនេះ"
-
-msgid "Day Info"
-msgstr "ព័ត៌មានថ្ងៃ"
-
-msgid "Solar Date"
-msgstr "ថ្ងៃ (ព្រះអាទិត្យ)"
-
-# --- Tool pages ---
-msgid "Select PDF files or drop here"
-msgstr "ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ"
-
-msgid "Select PDF file or drop here"
-msgstr "ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ"
-
-msgid "Select PDF file"
-msgstr "ជ្រើសរើសឯកសារ PDF"
-
-msgid "Select images or drop here"
-msgstr "ជ្រើសរើសរូបភាព ឬទំលាក់នៅទីនេះ"
-
-msgid "Compression Quality"
-msgstr "គុណភាពបង្រួម"
-
-msgid "Low (Best)"
-msgstr "កម្រិតទាប (បង្រួមខ្លាំង)"
-
-msgid "Smallest file size, lower quality"
-msgstr "កម្រិតទំហំតូចបំផុត គុណភាពទាប"
-
-msgid "Recommended (Balanced)"
-msgstr "ណែនាំ (ល្មម)"
-
-msgid "Good balance between size and quality"
-msgstr "គុណភាពល្អរវាងកម្រិតទំហំ និងគុណភាព"
-
-msgid "High (Best Quality)"
-msgstr "កម្រិតខ្ពស់ (គុណភាពល្អបំផុត)"
-
-msgid "Best quality, larger file size"
-msgstr "គុណភាពល្អបំផុត ទំហំធំជាង"
-
-msgid "Estimated output: Calculating..."
-msgstr "ទំហំប៉ារម៉ាស់: កំពុងគណនា..."
-
-msgid "Compress PDF"
-msgstr "បង្រួម PDF"
-
-msgid "👆 Add PDF files and click Compress."
-msgstr "👆 បន្ថែមឯកសារ ហើយចុច Compress"
-
-msgid "Compressing PDF files..."
-msgstr "កំពុងបង្រួម PDF..."
-
-msgid "Merge PDF"
-msgstr "បញ្ចូល PDF"
-
-msgid "👆 Add PDF files to merge. Click Merge to combine them."
-msgstr "👆 បន្ថែមឯកសារ PDF ដើម្បីបញ្ជូល ចុច Merge ដើម្បីបញ្ជូលគ្នា"
-
-msgid "Merging PDF files..."
-msgstr "កំពុងបញ្ជូល PDF..."
-
-msgid "Split PDF"
-msgstr "បំបែក PDF"
-
-msgid "Split Mode"
-msgstr "ទម្រង់សម្រាប់ការបំបែក"
-
-msgid "Select Pages"
-msgstr "ជ្រើសរើសទំព័រ"
-
-msgid "Click pages to extract"
-msgstr "ចុចទំព័រដើម្បីទាញយក"
-
-msgid "By Range"
-msgstr "តាមចន្លោះ"
-
-msgid "Specify page ranges"
-msgstr "កំណត់ចន្លោះទំព័រ"
-
-msgid "Split Every N Pages"
-msgstr "បំបែកតាមចំនួនទំព័រ"
-
-msgid "Split into files of N pages"
-msgstr "បំបែកចំនួនទំព័រក្នុងមួយឯកសារ"
-
-msgid "Page Ranges"
-msgstr "ចន្លោះទំព័រ"
-
-msgid "+ Add Another Range"
-msgstr "+ បន្ថែមចន្លោះ"
-
-msgid "Split every"
-msgstr "បំបែកតាម"
-
-msgid "pages"
-msgstr "ទំព័រ"
-
-msgid "Selected:"
-msgstr "បានជ្រើស:"
-
-msgid "Total:"
-msgstr "សរុប:"
-
-msgid "👆 Click on the PDF file to load pages, then select pages to extract"
-msgstr "👆 ចុចលើឯកសារ PDF ភ្ជាប់ទំព័រ រួចជ្រើសទំព័រដែលចង់ទាញយក"
-
-msgid "Actions"
-msgstr "សកម្មភាព"
-
-msgid "Select All"
-msgstr "ជ្រើសទាំងអស់"
-
-msgid "Deselect All"
-msgstr "មិនជ្រើស"
-
-msgid "Add Blank Page"
-msgstr "បន្ថែមទំព័រទទេ"
-
-msgid "Replace Selected"
-msgstr "ជំនួសទំព័រជ្រើស"
-
-msgid "Delete Selected"
-msgstr "លុបចេញ"
-
-msgid "Extract Selected Pages"
-msgstr "ទាញយកទំព័រជ្រើស"
-
-msgid "👆 Upload a PDF to reorder pages. Drag pages to rearrange. Click to select/deselect."
-msgstr "👆 បញ្ចូល PDF ដើម្បីរៀបចំទំព័រ ទាញទំព័រដើម្បីផ្លាស់ទី ចុចដើម្បីជ្រើស/មិនជ្រើស"
-
-msgid "No PDF loaded"
-msgstr "មិនទាន់មាន PDF"
-
-msgid "Processing..."
-msgstr "កំពុងដំណើរការ..."
-
-msgid "Remove"
-msgstr "លុប"
-
-msgid "OCR Language"
-msgstr "ភាសា OCR"
-
-msgid "OCR PDF"
-msgstr "OCR PDF"
-
-msgid "Make Scanned PDFs Searchable"
-msgstr "ធ្វើឱ្យ PDF ស្កេនអាចស្វែងរកបាន"
-
-msgid "Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages."
-msgstr "បង្ហាញ PDF ស្កេន ឬ PDF ដោយផ្អែកលើរូបភាព ដើម្បីបំលែងទៅជា PDF ដែលអាចស្វែងរកបាន គាំទ្រភាសាអង់គ្លេស និង ខ្មែរ"
-
-msgid "👆 Upload a PDF to preview"
-msgstr "👆 បង្ហាញ PDF ដើម្បីមើល"
-
-msgid "Processing OCR..."
-msgstr "កំពុងដំណើរការ OCR..."
-
-msgid "Error loading preview"
-msgstr "កំហុសក្នុងការបង្ហាញ"
-
-msgid "Convert to PDF"
-msgstr "បម្លែងទៅ PDF"
-
-msgid "👆 Drag images to reorder. They will appear in PDF in this order."
-msgstr "👆 អូសរូបភាពដើម្បីតម្រៀប វានឹងលេចឡើងតាមលំដាប់"
-
-msgid "👆 Add images to preview. Drag to reorder."
-msgstr "👆 បន្ថែមរូបភាពដើម្បីមើល អូសដើម្បីតម្រៀប"
-
-msgid "Converting images to PDF..."
-msgstr "កំពុងបម្លែងរូបភាពទៅ PDF..."
-
-msgid "Format"
-msgstr "ទម្រង់"
-
-msgid "Quality (DPI)"
-msgstr "គុណភាព (DPI)"
-
-msgid "Convert to Images"
-msgstr "បម្លែងទៅរូបភាព"
-
-msgid "👆 Add a PDF file to preview pages and convert to images."
-msgstr "👆 បន្ថែមឯកសារ PDF ដើម្បីមើលទំព័រ និងបម្លែងទៅរូបភាព"
-
-msgid "Converting PDF to images..."
-msgstr "កំពុងបម្លែង PDF ទៅរូបភាព..."
-
-# --- Upload / Home page ---
-msgid "Free Online PDF Tools"
-msgstr "កម្មវិធីជំនួយប្រភេទឯកសារ PDF ដោយឥតគិតថ្លៃ"
-
-msgid "Compress, Merge, Split, Organize PDF Files and More"
-msgstr "បង្រួម បញ្ចូល បំបែង រៀបចំ PDF និងច្រើនទៀត"
-
-msgid "Reduce PDF file size"
-msgstr "កាត់បន្ថយទំហំឯកសារ PDF"
-
-msgid "Combine multiple PDFs"
-msgstr "បញ្ចូល PDF ច្រើនចូលគ្នា"
-
-msgid "Extract pages"
-msgstr "ទាញយកទំព័រ"
-
-msgid "Organize PDF"
-msgstr "រៀបចំ PDF តាមលំដាប់លំដោយ"
-
-msgid "Reorder pages"
-msgstr "រៀបទំព័រឡើងវិញ"
-
-msgid "PDF to Image"
-msgstr "PDF ទៅរូបភាព"
-
-msgid "Convert PDF to images"
-msgstr "បម្លែង PDF ទៅរូបភាព"
-
-msgid "Image to PDF"
-msgstr "បម្លែងរូបភាពទៅ PDF"
-
-msgid "Convert images to PDF"
-msgstr "បម្លែងរូបភាពទៅ PDF"
-
-msgid "OCR"
-msgstr "កម្មវិធីបំលែងទៅជាអក្សរ"
-
-msgid "Make scanned PDF searchable"
-msgstr "នឹងធ្វើឱ្យ PDF ដែលស្កេនអាចស្វែងរកបាន"
-
+# Category: Calendar
+msgid "Calendar"
+msgstr "ប្រតិទិន"
+
+# Category: Calendar
 msgid "Cambodia holidays"
 msgstr "ថ្ងៃឈប់សម្រាក"
 
-# --- Thank you / result pages ---
-msgid "Thank You!"
-msgstr "សូមអរគុណ!"
-
-msgid "Your file has been processed successfully."
-msgstr "ឯកសាររបស់អ្នកត្រូវបានប្រតិបត្តការដោយជោគជ័យ។"
-
-msgid "Support Us with QR Code"
-msgstr "គាំទ្រពួកយើងជាមួយទឹកចិត្ត"
-
-msgid "Any donation is appreciated!"
-msgstr "សូមអរគុណសម្រាប់ទឹកចិត្ត!"
-
-msgid "Download File"
-msgstr "សូមទាញយកឯកសារ"
-
-msgid "Back to Home"
-msgstr "ត្រឡប់ទៅទំព័រដើម"
-
-msgid "PDF Processing"
-msgstr "កំពុងដំណើរការ PDF"
-
-msgid "Pending"
-msgstr "កំពុងពន្យាពេល"
-
-msgid "Processing"
-msgstr "កំពុងដំណើរការ"
-
-msgid "Done"
-msgstr "បានរួចរាល់"
-
-msgid "Failed"
-msgstr "មិនទទួលបានជោគជ័យ"
-
-msgid "Error:"
-msgstr "មានកំហុស:"
-
-msgid "Try again"
-msgstr "សូមសាកម្តងទៀត"
-
-msgid "Please wait while your PDF is being processed..."
-msgstr "សូមរង់ចាំ ឯកសារ PDF របស់អ្នកកំពុងដំណើរការ..."
-
-msgid "Loading PDF pages..."
-msgstr "កំពុងដំណើរការផ្ទុកទំព័រ..."
-
-# --- Download / file-ready page (khqr.html) ---
-msgid "File Ready"
-msgstr "ឯកសារបានរួចរាល់"
-
-msgid "Your file is ready"
-msgstr "ឯកសាររបស់អ្នកបានរួចរាល់ហើយ"
-
-msgid "Processed and ready to download."
-msgstr "បានប្រតិបត្តិការរួចរាល់ ត្រៀមខ្លួនសម្រាប់ទាញយក។"
-
-msgid "Download file"
-msgstr "ទាញយកឯកសារ"
-
-msgid "Back to home"
-msgstr "ត្រឡប់ទៅទំព័រដើម"
-
-msgid "Support this tool"
-msgstr "គាំទ្រឧបករណ៍នេះ"
-
-msgid "KHQR donation code"
-msgstr "កូដ KHQR សម្រាប់បរិច្ចាគ"
-
-msgid "Any amount is appreciated"
-msgstr "សូមអរគុណសម្រាប់ចំនួនទឹកប្រាក់ណាមួយ"
-
-# --- SEO page headers (h1 + intro on each tool page) ---
-msgid "Compress PDF Files Online"
-msgstr "បង្រួមទំហំ PDF លើអនឡាញ"
-
-msgid "Reduce your PDF file size for free — fast, secure, and no signup required."
-msgstr "កាត់បន្ថយទំហំឯកសារ PDF របស់អ្នកដោយឥតគិតថ្លៃ លឿន សុវត្ថិភាព និងមិនចាំបាច់ចុះឈ្មោះ។"
-
-msgid "Merge PDF Files Online"
-msgstr "បញ្ចូល PDF ជាមួយគ្នាលើអនឡាញ"
-
-msgid "Combine multiple PDF files into one document in seconds."
-msgstr "បញ្ចូលឯកសារ PDF ច្រើនទៅជាឯកសារតែមួយក្នុងរយៈពេលប៉ុន្មានវិនាទី។"
-
-msgid "Split PDF Files Online"
-msgstr "បំបែក PDF លើអនឡាញ"
-
-msgid "Extract or separate pages from your PDF document easily."
-msgstr "ដកចេញ ឬបំបែកទំព័រចេញពីឯកសារ PDF របស់អ្នកយ៉ាងងាយស្រួល។"
-
-msgid "Organize PDF Pages"
-msgstr "រៀបចំទំព័រ PDF"
-
-msgid "Reorder, rotate, or delete pages in your PDF file."
-msgstr "តម្រៀបលំដាប់ បង្វិល ឬលុបទំព័រនៅក្នុងឯកសារ PDF របស់អ្នក។"
-
-msgid "OCR PDF to Word - Khmer & English"
-msgstr "បម្លែង PDF ស្កេនទៅជា Word (OCR) - ខ្មែរ និងអង់គ្លេស"
-
-msgid "Convert scanned PDF files into editable Word documents with Khmer and English OCR."
-msgstr "បម្លែងឯកសារ PDF ដែលបានស្កេនទៅជាឯកសារ Word ដែលអាចកែសម្រួលបាន គាំទ្រភាសាខ្មែរ និងអង់គ្លេស។"
-
-msgid "Convert PDF to Image"
-msgstr "បម្លែង PDF ទៅជារូបភាព"
-
-msgid "Turn PDF pages into JPG or PNG images instantly."
-msgstr "បម្លែងទំព័រ PDF ទៅជារូបភាព JPG ឬ PNG ភ្លាមៗ។"
-
-msgid "Convert Image to PDF"
-msgstr "បម្លែងរូបភាពទៅជា PDF"
-
-msgid "Combine JPG or PNG images into a single PDF file."
-msgstr "បញ្ចូលរូបភាព JPG ឬ PNG ទៅជាឯកសារ PDF តែមួយ។"
-
-msgid "Khmer Lunar Calendar & Cambodia Holidays"
-msgstr "ប្រតិទិនចន្ទគតិខ្មែរ និងថ្ងៃឈប់សម្រាកកម្ពុជា"
-
+# Category: Calendar
 msgid "Check Khmer lunar dates, Buddhist Era years, and public holidays in Cambodia."
 msgstr "ពិនិត្យមើលកាលបរិច្ឆេទចន្ទគតិខ្មែរ ឆ្នាំពុទ្ធសករាជ និងថ្ងៃឈប់សម្រាកនៅកម្ពុជា។"
 
-# Auth (login / register / logout)
-msgid "Log In"
-msgstr "ចូលគណនី"
+# Category: Calendar
+msgid "Khmer Lunar Calendar & Cambodia Holidays"
+msgstr "ប្រតិទិនចន្ទគតិខ្មែរ និងថ្ងៃឈប់សម្រាកកម្ពុជា"
 
-msgid "Log Out"
-msgstr "ចាកចេញ"
+# Category: Calendar
+msgid "Lunar Date"
+msgstr "ថ្ងៃខ្មែរ"
 
-msgid "Log in to your DAMSPEY account."
-msgstr "ចូលទៅគណនី DAMSPEY របស់អ្នក។"
-
-msgid "Log in to your account"
-msgstr "ចូលទៅគណនីរបស់អ្នក"
-
-msgid "Username"
-msgstr "ឈ្មោះអ្នកប្រើប្រាស់"
-
-msgid "Password"
-msgstr "ពាក្យសម្ងាត់"
-
-msgid "Don't have an account?"
-msgstr "មិនទាន់មានគណនីមែនទេ?"
-
-msgid "Sign up"
-msgstr "ចុះឈ្មោះ"
-
-msgid "Sign Up"
-msgstr "ចុះឈ្មោះ"
-
-msgid "Create a free DAMSPEY account."
-msgstr "បង្កើតគណនី DAMSPEY ដោយឥតគិតថ្លៃ។"
-
-msgid "Create your account"
-msgstr "បង្កើតគណនីរបស់អ្នក"
-
-msgid "Confirm password"
-msgstr "បញ្ជាក់ពាក្យសម្ងាត់"
-
-msgid "At least 8 characters. Not too common, not all numbers."
-msgstr "យ៉ាងហោចណាស់ ៨ តួអក្សរ។ មិនធម្មតាពេក និងមិនមែនជាលេខទាំងអស់។"
-
-msgid "Already have an account?"
-msgstr "មានគណនីរួចហើយមែនទេ?"
-
-msgid "Log in"
-msgstr "ចូល"
-
-# Calendar - date lookup
-msgid "Find a Date"
-msgstr "រកកាលបរិច្ឆេទ"
-
-msgid "Day"
-msgstr "ថ្ងៃ"
-
-msgid "Month"
-msgstr "ខែ"
-
-msgid "Year"
-msgstr "ឆ្នាំ"
-
-msgid "Show Lunar Date"
-msgstr "បង្ហាញកាលបរិច្ឆេទចន្ទគតិ"
-
-msgid "Please enter a valid date"
-msgstr "សូមបញ្ចូលកាលបរិច្ឆេទឱ្យត្រឹមត្រូវ"
-
-msgid "That day does not exist in this month"
-msgstr "ថ្ងៃនេះមិនមានក្នុងខែនេះទេ"
-
+# Category: Calendar
 msgid "No lunar data available for this date"
 msgstr "មិនមានទិន្នន័យចន្ទគតិសម្រាប់ថ្ងៃនេះទេ"
 
-# Contact page
-msgid "Contact"
-msgstr "ទំនាក់ទំនង"
+# Category: Calendar
+msgid "Public Holiday"
+msgstr "ថ្ងៃឈប់សម្រាក"
 
-msgid "Contact Us"
-msgstr "ទាក់ទងមកយើងខ្ញុំ"
+# Category: Calendar
+msgid "Show Lunar Date"
+msgstr "បង្ហាញកាលបរិច្ឆេទចន្ទគតិ"
 
-msgid "Get in touch with DAMSPEY, or support the project by becoming a sponsor."
-msgstr "ទាក់ទងមក DAMSPEY ឬគាំទ្រគម្រោងនេះដោយក្លាយជាអ្នកឧបត្ថម្ភ។"
+# Category: Compress
+msgid "Compress"
+msgstr "បង្រួម"
 
-msgid "Questions, feedback, or business inquiries — reach out through any of the channels below."
-msgstr "សំណួរ មតិយោបល់ ឬការទាក់ទងអាជីវកម្ម — សូមទាក់ទងតាមរយៈមធ្យោបាយខាងក្រោម។"
+# Category: Compress
+msgid "Compress PDF"
+msgstr "បង្រួម PDF"
 
-msgid "Telegram"
-msgstr "តេឡេក្រាម"
+# Category: Compress
+msgid "Compress PDF Files Online"
+msgstr "បង្រួមទំហំ PDF លើអនឡាញ"
 
-msgid "Phone"
-msgstr "លេខទូរស័ព្ទ"
+# Category: Compress
+msgid "Compressing PDF files..."
+msgstr "កំពុងបង្រួម PDF..."
 
-msgid "Email"
-msgstr "អ៊ីមែល"
+# Category: Compress
+msgid "Compression Quality"
+msgstr "គុណភាពបង្រួម"
 
+# Category: Compress
+msgid "Quality (DPI)"
+msgstr "គុណភាព (DPI)"
+
+# Category: Compress
+msgid "Smallest file size, lower quality"
+msgstr "កម្រិតទំហំតូចបំផុត គុណភាពទាប"
+
+# Category: Compress
+msgid "👆 Add PDF files and click Compress."
+msgstr "👆 បន្ថែមឯកសារ ហើយចុច Compress"
+
+# Category: General
+msgid "+ Add Another Range"
+msgstr "+ បន្ថែមចន្លោះ"
+
+# Category: General
+msgid "Actions"
+msgstr "សកម្មភាព"
+
+# Category: General
+msgid "Already have an account?"
+msgstr "មានគណនីរួចហើយមែនទេ?"
+
+# Category: General
+msgid "Any amount is appreciated"
+msgstr "សូមអរគុណសម្រាប់ចំនួនទឹកប្រាក់ណាមួយ"
+
+# Category: General
+msgid "Any donation is appreciated!"
+msgstr "សូមអរគុណសម្រាប់ទឹកចិត្ត!"
+
+# Category: General
+msgid "Applies to"
+msgstr "អនុវត្តលើ"
+
+# Category: General
+msgid "Applies to all pages"
+msgstr "អនុវត្តលើគ្រប់ទំព័រ"
+
+# Category: General
+msgid "At least 8 characters. Not too common, not all numbers."
+msgstr "យ៉ាងហោចណាស់ ៨ តួអក្សរ។ មិនធម្មតាពេក និងមិនមែនជាលេខទាំងអស់។"
+
+# Category: General
 msgid "Become a"
 msgstr "ក្លាយជា"
 
-msgid "Sponsor"
-msgstr "អ្នកឧបត្ថម្ភ"
+# Category: General
+msgid "Best quality, larger file size"
+msgstr "គុណភាពល្អបំផុត ទំហំធំជាង"
 
+# Category: General
+msgid "Blank"
+msgstr "ទទេ"
+
+# Category: General
+msgid "Blank Page"
+msgstr "ទំព័រទទេ"
+
+# Category: General
+msgid "By Range"
+msgstr "តាមចន្លោះ"
+
+# Category: General
+msgid "Click pages to extract"
+msgstr "ចុចទំព័រដើម្បីទាញយក"
+
+# Category: General
+msgid "Combine JPG or PNG images into a single PDF file."
+msgstr "បញ្ចូលរូបភាព JPG ឬ PNG ទៅជាឯកសារ PDF តែមួយ។"
+
+# Category: General
+msgid "Combine multiple PDF files into one document in seconds."
+msgstr "បញ្ចូលឯកសារ PDF ច្រើនទៅជាឯកសារតែមួយក្នុងរយៈពេលប៉ុន្មានវិនាទី។"
+
+# Category: General
+msgid "Combine multiple PDFs"
+msgstr "បញ្ចូល PDF ច្រើនចូលគ្នា"
+
+# Category: General
+msgid "Convert to Images"
+msgstr "បម្លែងទៅរូបភាព"
+
+# Category: General
+msgid "Create a free DAMSPEY account."
+msgstr "បង្កើតគណនី DAMSPEY ដោយឥតគិតថ្លៃ។"
+
+# Category: General
+msgid "Create your account"
+msgstr "បង្កើតគណនីរបស់អ្នក"
+
+# Category: General
+msgid "Day"
+msgstr "ថ្ងៃ"
+
+# Category: General
+msgid "Day Info"
+msgstr "ព័ត៌មានថ្ងៃ"
+
+# Category: General
+msgid "Day of Week"
+msgstr "ថ្ងៃ"
+
+# Category: General
+msgid "Delete Page"
+msgstr "លុបទំព័រ"
+
+# Category: General
+msgid "Delete Selected"
+msgstr "លុបចេញ"
+
+# Category: General
+msgid "Deselect"
+msgstr "មិនជ្រើស"
+
+# Category: General
+msgid "Deselect All"
+msgstr "មិនជ្រើស"
+
+# Category: General
+msgid "Don't have an account?"
+msgstr "មិនទាន់មានគណនីមែនទេ?"
+
+# Category: General
+msgid "Done"
+msgstr "បានរួចរាល់"
+
+# Category: General
+msgid "Download File"
+msgstr "សូមទាញយកឯកសារ"
+
+# Category: General
+msgid "Download file"
+msgstr "ទាញយកឯកសារ"
+
+# Category: General
+msgid "Email"
+msgstr "អ៊ីមែល"
+
+# Category: General
+msgid "Error loading PDF file"
+msgstr "កំហុសក្នុងការបើកឯកសារ PDF"
+
+# Category: General
+msgid "Error loading preview"
+msgstr "កំហុសក្នុងការបង្ហាញ"
+
+# Category: General
+msgid "Error:"
+msgstr "មានកំហុស:"
+
+# Category: General
+msgid "Estimated output: Calculating..."
+msgstr "ទំហំប៉ារម៉ាស់: កំពុងគណនា..."
+
+# Category: General
+msgid "Events"
+msgstr "ព្រឹត្តិការណ៍"
+
+# Category: General
+msgid "Extract Selected Pages"
+msgstr "ទាញយកទំព័រជ្រើស"
+
+# Category: General
+msgid "Extract or separate pages from your PDF document easily."
+msgstr "ដកចេញ ឬបំបែកទំព័រចេញពីឯកសារ PDF របស់អ្នកយ៉ាងងាយស្រួល។"
+
+# Category: General
+msgid "Extract pages"
+msgstr "ទាញយកទំព័រ"
+
+# Category: General
+msgid "Failed"
+msgstr "មិនទទួលបានជោគជ័យ"
+
+# Category: General
+msgid "File Ready"
+msgstr "ឯកសារបានរួចរាល់"
+
+# Category: General
+msgid "Find a Date"
+msgstr "រកកាលបរិច្ឆេទ"
+
+# Category: General
+msgid "Format"
+msgstr "ទម្រង់"
+
+# Category: General
+msgid "Get in touch with DAMSPEY, or support the project by becoming a sponsor."
+msgstr "ទាក់ទងមក DAMSPEY ឬគាំទ្រគម្រោងនេះដោយក្លាយជាអ្នកឧបត្ថម្ភ។"
+
+# Category: General
+msgid "Good balance between size and quality"
+msgstr "គុណភាពល្អរវាងកម្រិតទំហំ និងគុណភាព"
+
+# Category: General
+msgid "High (Best Quality)"
+msgstr "កម្រិតខ្ពស់ (គុណភាពល្អបំផុត)"
+
+# Category: General
+msgid "Holy / Precept Day"
+msgstr "ថ្ងៃសីល"
+
+# Category: General
+msgid "KHQR donation code"
+msgstr "កូដ KHQR សម្រាប់បរិច្ចាគ"
+
+# Category: General
+msgid "Loading PDF pages..."
+msgstr "កំពុងដំណើរការផ្ទុកទំព័រ..."
+
+# Category: General
+msgid "Log In"
+msgstr "ចូលគណនី"
+
+# Category: General
+msgid "Log Out"
+msgstr "ចាកចេញ"
+
+# Category: General
+msgid "Log in"
+msgstr "ចូល"
+
+# Category: General
+msgid "Log in to your DAMSPEY account."
+msgstr "ចូលទៅគណនី DAMSPEY របស់អ្នក។"
+
+# Category: General
+msgid "Log in to your account"
+msgstr "ចូលទៅគណនីរបស់អ្នក"
+
+# Category: General
+msgid "Low (Best)"
+msgstr "កម្រិតទាប (បង្រួមខ្លាំង)"
+
+# Category: General
+msgid "Merging PDF files..."
+msgstr "កំពុងបញ្ជូល PDF..."
+
+# Category: General
+msgid "Month"
+msgstr "ខែ"
+
+# Category: General
+msgid "No PDF loaded"
+msgstr "មិនទាន់មាន PDF"
+
+# Category: General
+msgid "No events this month"
+msgstr "ពុំមានថ្ងៃឈប់សម្រាកក្នៅនុងខែនេះ"
+
+# Category: General
+msgid "PDF Processing"
+msgstr "កំពុងដំណើរការ PDF"
+
+# Category: General
+msgid "Pending"
+msgstr "កំពុងពន្យាពេល"
+
+# Category: General
+msgid "Phone"
+msgstr "លេខទូរស័ព្ទ"
+
+# Category: General
+msgid "Please enter a valid date"
+msgstr "សូមបញ្ចូលកាលបរិច្ឆេទឱ្យត្រឹមត្រូវ"
+
+# Category: General
+msgid "Please wait while your PDF is being processed..."
+msgstr "សូមរង់ចាំ ឯកសារ PDF របស់អ្នកកំពុងដំណើរការ..."
+
+# Category: General
+msgid "Processed and ready to download."
+msgstr "បានប្រតិបត្តិការរួចរាល់ ត្រៀមខ្លួនសម្រាប់ទាញយក។"
+
+# Category: General
+msgid "Processing"
+msgstr "កំពុងដំណើរការ"
+
+# Category: General
+msgid "Processing PDF..."
+msgstr "កំពុងដំណើរការ PDF..."
+
+# Category: General
+msgid "Processing..."
+msgstr "កំពុងដំណើរការ..."
+
+# Category: General
+msgid "Questions, feedback, or business inquiries — reach out through any of the channels below."
+msgstr "សំណួរ មតិយោបល់ ឬការទាក់ទងអាជីវកម្ម — សូមទាក់ទងតាមរយៈមធ្យោបាយខាងក្រោម។"
+
+# Category: General
+msgid "Recommended (Balanced)"
+msgstr "ណែនាំ (ល្មម)"
+
+# Category: General
+msgid "Reduce PDF file size"
+msgstr "កាត់បន្ថយទំហំឯកសារ PDF"
+
+# Category: General
+msgid "Reduce your PDF file size for free — fast, secure, and no signup required."
+msgstr "កាត់បន្ថយទំហំឯកសារ PDF របស់អ្នកដោយឥតគិតថ្លៃ លឿន សុវត្ថិភាព និងមិនចាំបាច់ចុះឈ្មោះ។"
+
+# Category: General
+msgid "Remove"
+msgstr "លុប"
+
+# Category: General
+msgid "Remove & Start Over"
+msgstr "លុប & ចាប់ផ្ដើមឡើងវិញ"
+
+# Category: General
+msgid "Rendering page"
+msgstr "កំពុងបង្ហាញទំព័រ"
+
+# Category: General
+msgid "Replacing selected pages..."
+msgstr "កំពុងជំនួសទំព័រដែលបានជ្រើស..."
+
+# Category: General
+msgid "Save & Download PDF"
+msgstr "រក្សាទុក & ទាញយក PDF"
+
+# Category: General
 msgid "Scan with any banking app to support this project"
 msgstr "ស្កេនតាមកម្មវិធីធនាគារណាមួយ ដើម្បីគាំទ្រគម្រោងនេះ"
 
-# Protect PDF page
-msgid "Protect"
-msgstr "ការពារ"
+# Category: General
+msgid "Select All"
+msgstr "ជ្រើសទាំងអស់"
 
-msgid "Tools"
-msgstr "ឧបករណ៍"
+# Category: General
+msgid "Select PDF file"
+msgstr "ជ្រើសរើសឯកសារ PDF"
 
-msgid "Lock PDF with a password"
-msgstr "ដាក់ពាក្យសម្ងាត់ការពារ PDF"
+# Category: General
+msgid "Select PDF file or drop here"
+msgstr "ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ"
 
-msgid "Protect PDF"
-msgstr "ការពារ PDF"
+# Category: General
+msgid "Select PDF files or drop here"
+msgstr "ជ្រើសរើសឯកសារ PDF ឬទំលាក់នៅទីនេះ"
 
+# Category: General
+msgid "Select Pages"
+msgstr "ជ្រើសរើសទំព័រ"
+
+# Category: General
+msgid "Select images or drop here"
+msgstr "ជ្រើសរើសរូបភាព ឬទំលាក់នៅទីនេះ"
+
+# Category: General
+msgid "Selected:"
+msgstr "បានជ្រើស:"
+
+# Category: General
+msgid "Selection & Delete"
+msgstr "ការជ្រើស & លុប"
+
+# Category: General
+msgid "Sign Up"
+msgstr "ចុះឈ្មោះ"
+
+# Category: General
+msgid "Sign up"
+msgstr "ចុះឈ្មោះ"
+
+# Category: General
+msgid "Solar Date"
+msgstr "ថ្ងៃ (ព្រះអាទិត្យ)"
+
+# Category: General
+msgid "Sponsor"
+msgstr "អ្នកឧបត្ថម្ភ"
+
+# Category: General
+msgid "Support Us with QR Code"
+msgstr "គាំទ្រពួកយើងជាមួយទឹកចិត្ត"
+
+# Category: General
+msgid "Telegram"
+msgstr "តេឡេក្រាម"
+
+# Category: General
+msgid "Thank You!"
+msgstr "សូមអរគុណ!"
+
+# Category: General
+msgid "That day does not exist in this month"
+msgstr "ថ្ងៃនេះមិនមានក្នុងខែនេះទេ"
+
+# Category: General
+msgid "Today"
+msgstr "ថ្ងៃនេះ"
+
+# Category: General
+msgid "Total:"
+msgstr "សរុប:"
+
+# Category: General
+msgid "Try again"
+msgstr "សូមសាកម្តងទៀត"
+
+# Category: General
+msgid "Turn PDF pages into JPG or PNG images instantly."
+msgstr "បម្លែងទំព័រ PDF ទៅជារូបភាព JPG ឬ PNG ភ្លាមៗ។"
+
+# Category: General
+msgid "Username"
+msgstr "ឈ្មោះអ្នកប្រើប្រាស់"
+
+# Category: General
+msgid "Weekend"
+msgstr "ថ្ងៃចុងសប្ដាហ៍"
+
+# Category: General
+msgid "Year"
+msgstr "ឆ្នាំ"
+
+# Category: General
+msgid "Your file has been processed successfully."
+msgstr "ឯកសាររបស់អ្នកត្រូវបានប្រតិបត្តការដោយជោគជ័យ។"
+
+# Category: General
+msgid "Your file is ready"
+msgstr "ឯកសាររបស់អ្នកបានរួចរាល់ហើយ"
+
+# Category: General
+msgid "pages"
+msgstr "ទំព័រ"
+
+# Category: General
+msgid "selected page(s)"
+msgstr "ទំព័រដែលបានជ្រើស"
+
+# Category: General
+msgid "👆 Add a PDF file to preview pages and convert to images."
+msgstr "👆 បន្ថែមឯកសារ PDF ដើម្បីមើលទំព័រ និងបម្លែងទៅរូបភាព"
+
+# Category: General
+msgid "👆 Click on the PDF file to load pages, then select pages to extract"
+msgstr "👆 ចុចលើឯកសារ PDF ភ្ជាប់ទំព័រ រួចជ្រើសទំព័រដែលចង់ទាញយក"
+
+# Category: General
+msgid "👆 Upload a PDF to preview"
+msgstr "👆 បង្ហាញ PDF ដើម្បីមើល"
+
+# Category: ImageToPdf
+msgid "Convert Image to PDF"
+msgstr "បម្លែងរូបភាពទៅជា PDF"
+
+# Category: ImageToPdf
+msgid "Convert images to PDF"
+msgstr "បម្លែងរូបភាពទៅ PDF"
+
+# Category: ImageToPdf
+msgid "Convert to PDF"
+msgstr "បម្លែងទៅ PDF"
+
+# Category: ImageToPdf
+msgid "Converting images to PDF..."
+msgstr "កំពុងបម្លែងរូបភាពទៅ PDF..."
+
+# Category: ImageToPdf
+msgid "Image to PDF"
+msgstr "បម្លែងរូបភាពទៅ PDF"
+
+# Category: Merge
+msgid "Merge"
+msgstr "បញ្ចូល"
+
+# Category: Merge
+msgid "Merge PDF"
+msgstr "បញ្ចូល PDF"
+
+# Category: Merge
+msgid "Merge PDF Files Online"
+msgstr "បញ្ចូល PDF ជាមួយគ្នាលើអនឡាញ"
+
+# Category: Merge
+msgid "👆 Add PDF files to merge. Click Merge to combine them."
+msgstr "👆 បន្ថែមឯកសារ PDF ដើម្បីបញ្ជូល ចុច Merge ដើម្បីបញ្ជូលគ្នា"
+
+# Category: OCR
+msgid "Convert scanned PDF files into editable Word documents with Khmer and English OCR."
+msgstr "បម្លែងឯកសារ PDF ដែលបានស្កេនទៅជាឯកសារ Word ដែលអាចកែសម្រួលបាន គាំទ្រភាសាខ្មែរ និងអង់គ្លេស។"
+
+# Category: OCR
+msgid "Make Scanned PDFs Searchable"
+msgstr "ធ្វើឱ្យ PDF ស្កេនអាចស្វែងរកបាន"
+
+# Category: OCR
+msgid "Make scanned PDF searchable"
+msgstr "នឹងធ្វើឱ្យ PDF ដែលស្កេនអាចស្វែងរកបាន"
+
+# Category: OCR
+msgid "OCR"
+msgstr "កម្មវិធីបំលែងទៅជាអក្សរ"
+
+# Category: OCR
+msgid "OCR Language"
+msgstr "ភាសា OCR"
+
+# Category: OCR
+msgid "OCR PDF"
+msgstr "OCR PDF"
+
+# Category: OCR
+msgid "OCR PDF to Word - Khmer & English"
+msgstr "បម្លែង PDF ស្កេនទៅជា Word (OCR) - ខ្មែរ និងអង់គ្លេស"
+
+# Category: OCR
+msgid "Processing OCR..."
+msgstr "កំពុងដំណើរការ OCR..."
+
+# Category: OCR
+msgid "Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages."
+msgstr "បង្ហាញ PDF ស្កេន ឬ PDF ដោយផ្អែកលើរូបភាព ដើម្បីបំលែងទៅជា PDF ដែលអាចស្វែងរកបាន គាំទ្រភាសាអង់គ្លេស និង ខ្មែរ"
+
+# Category: Organize
+msgid "+ Insert PDF"
+msgstr "+ បញ្ចូល PDF"
+
+# Category: Organize
+msgid "Add Blank Page"
+msgstr "បន្ថែមទំព័រទទេ"
+
+# Category: Organize
+msgid "Click to insert another PDF file at the end"
+msgstr "ចុចដើម្បីបញ្ចូលឯកសារ PDF ផ្សេងទៀតនៅខាងចុង"
+
+# Category: Organize
+msgid "Compress, Merge, Split, Organize PDF Files and More"
+msgstr "បង្រួម បញ្ចូល បំបែង រៀបចំ PDF និងច្រើនទៀត"
+
+# Category: Organize
+msgid "Error inserting PDF"
+msgstr "កំហុសក្នុងការបញ្ចូល PDF"
+
+# Category: Organize
+msgid "Insert & Add"
+msgstr "បញ្ចូល & បន្ថែម"
+
+# Category: Organize
+msgid "Insert PDF"
+msgstr "បញ្ចូល PDF"
+
+# Category: Organize
+msgid "Inserting"
+msgstr "កំពុងបញ្ចូល"
+
+# Category: Organize
+msgid "Inserting PDF pages..."
+msgstr "កំពុងបញ្ចូលទំព័រ PDF..."
+
+# Category: Organize
+msgid "Organize"
+msgstr "រៀបចំ"
+
+# Category: Organize
+msgid "Organize PDF"
+msgstr "រៀបចំ PDF តាមលំដាប់លំដោយ"
+
+# Category: Organize
+msgid "Organize PDF Pages"
+msgstr "រៀបចំទំព័រ PDF"
+
+# Category: Organize
+msgid "Reorder pages"
+msgstr "រៀបទំព័រឡើងវិញ"
+
+# Category: Organize
+msgid "Reorder, rotate, insert, or delete pages in your PDF file."
+msgstr "រៀបចំលំដាប់ បង្វិល បញ្ចូល ឬលុបទំព័រ PDF របស់អ្នក។"
+
+# Category: Organize
+msgid "Reorder, rotate, or delete pages in your PDF file."
+msgstr "តម្រៀបលំដាប់ បង្វិល ឬលុបទំព័រនៅក្នុងឯកសារ PDF របស់អ្នក។"
+
+# Category: Organize
+msgid "Replace Selected"
+msgstr "ជំនួសទំព័រជ្រើស"
+
+# Category: Organize
+msgid "Rotate Left"
+msgstr "បង្វិលឆ្វេង"
+
+# Category: Organize
+msgid "Rotate Left (90°)"
+msgstr "បង្វិលឆ្វេង (90°)"
+
+# Category: Organize
+msgid "Rotate Pages"
+msgstr "បង្វិលទំព័រ"
+
+# Category: Organize
+msgid "Rotate Right"
+msgstr "បង្វិលស្តាំ"
+
+# Category: Organize
+msgid "Rotate Right (90°)"
+msgstr "បង្វិលស្តាំ (90°)"
+
+# Category: Organize
+msgid "Upload a PDF to view, reorder, rotate, or insert pages."
+msgstr "បញ្ចូល PDF ដើម្បីមើល រៀបចំ បង្វិល ឬបញ្ចូលទំព័រ។"
+
+# Category: Organize
+msgid "👆 Add images to preview. Drag to reorder."
+msgstr "👆 បន្ថែមរូបភាពដើម្បីមើល អូសដើម្បីតម្រៀប"
+
+# Category: Organize
+msgid "👆 Drag images to reorder. They will appear in PDF in this order."
+msgstr "👆 អូសរូបភាពដើម្បីតម្រៀប វានឹងលេចឡើងតាមលំដាប់"
+
+# Category: Organize
+msgid "👆 Upload a PDF to reorder pages. Drag pages to rearrange. Click to select/deselect."
+msgstr "👆 បញ្ចូល PDF ដើម្បីរៀបចំទំព័រ ទាញទំព័រដើម្បីផ្លាស់ទី ចុចដើម្បីជ្រើស/មិនជ្រើស"
+
+# Category: PdfToImage
+msgid "Convert PDF to Image"
+msgstr "បម្លែង PDF ទៅជារូបភាព"
+
+# Category: PdfToImage
+msgid "Convert PDF to images"
+msgstr "បម្លែង PDF ទៅរូបភាព"
+
+# Category: PdfToImage
+msgid "Converting PDF to images..."
+msgstr "កំពុងបម្លែង PDF ទៅរូបភាព..."
+
+# Category: PdfToImage
+msgid "PDF to Image"
+msgstr "PDF ទៅរូបភាព"
+
+# Category: Protect
 msgid "Add a password so only people who know it can open your PDF."
 msgstr "ដាក់ពាក្យសម្ងាត់ ដើម្បីឱ្យតែអ្នកដែលដឹងពាក្យសម្ងាត់ប៉ុណ្ណោះអាចបើកឯកសារ PDF របស់អ្នកបាន។"
 
+# Category: Protect
 msgid "Confirm Password"
 msgstr "បញ្ជាក់ពាក្យសម្ងាត់"
 
+# Category: Protect
+msgid "Confirm password"
+msgstr "បញ្ជាក់ពាក្យសម្ងាត់"
+
+# Category: Protect
 msgid "Enter a password"
 msgstr "បញ្ចូលពាក្យសម្ងាត់"
 
-msgid "Re-enter the password"
-msgstr "បញ្ចូលពាក្យសម្ងាត់ម្ដងទៀត"
+# Category: Protect
+msgid "Lock PDF with a password"
+msgstr "ដាក់ពាក្យសម្ងាត់ការពារ PDF"
 
+# Category: Protect
+msgid "Password"
+msgstr "ពាក្យសម្ងាត់"
+
+# Category: Protect
 msgid "Passwords do not match"
 msgstr "ពាក្យសម្ងាត់មិនត្រូវគ្នាទេ"
 
+# Category: Protect
+msgid "Protect"
+msgstr "ការពារ"
+
+# Category: Protect
+msgid "Protect PDF"
+msgstr "ការពារ PDF"
+
+# Category: Protect
+msgid "Protecting PDF..."
+msgstr "កំពុងការពារ PDF..."
+
+# Category: Protect
+msgid "Re-enter the password"
+msgstr "បញ្ចូលពាក្យសម្ងាត់ម្ដងទៀត"
+
+# Category: Protect
 msgid "Your password is used only to lock the file and is never stored."
 msgstr "ពាក្យសម្ងាត់របស់អ្នកត្រូវបានប្រើតែសម្រាប់ចាក់សោឯកសារប៉ុណ្ណោះ ហើយមិនត្រូវបានរក្សាទុកឡើយ។"
 
-msgid "Protecting PDF..."
-msgstr "កំពុងការពារ PDF..."
+# Category: Split
+msgid "Page Ranges"
+msgstr "ចន្លោះទំព័រ"
+
+# Category: Split
+msgid "Specify page ranges"
+msgstr "កំណត់ចន្លោះទំព័រ"
+
+# Category: Split
+msgid "Split"
+msgstr "បំបែក"
+
+# Category: Split
+msgid "Split Every N Pages"
+msgstr "បំបែកតាមចំនួនទំព័រ"
+
+# Category: Split
+msgid "Split Mode"
+msgstr "ទម្រង់សម្រាប់ការបំបែក"
+
+# Category: Split
+msgid "Split PDF"
+msgstr "បំបែក PDF"
+
+# Category: Split
+msgid "Split PDF Files Online"
+msgstr "បំបែក PDF លើអនឡាញ"
+
+# Category: Split
+msgid "Split every"
+msgstr "បំបែកតាម"
+
+# Category: Split
+msgid "Split into files of N pages"
+msgstr "បំបែកចំនួនទំព័រក្នុងមួយឯកសារ"
+
+# Category: Tools
+msgid "Back to Home"
+msgstr "ត្រឡប់ទៅទំព័រដើម"
+
+# Category: Tools
+msgid "Back to home"
+msgstr "ត្រឡប់ទៅទំព័រដើម"
+
+# Category: Tools
+msgid "Contact"
+msgstr "ទំនាក់ទំនង"
+
+# Category: Tools
+msgid "Contact Us"
+msgstr "ទាក់ទងមកយើងខ្ញុំ"
+
+# Category: Tools
+msgid "Free Online PDF Tools"
+msgstr "កម្មវិធីជំនួយប្រភេទឯកសារ PDF ដោយឥតគិតថ្លៃ"
+
+# Category: Tools
+msgid "Support this tool"
+msgstr "គាំទ្រឧបករណ៍នេះ"
+
+# Category: Tools
+msgid "Tools"
+msgstr "ឧបករណ៍"

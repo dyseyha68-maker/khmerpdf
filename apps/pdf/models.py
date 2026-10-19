@@ -185,3 +185,52 @@ class OCRSettings(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class SiteTranslation(models.Model):
+    CATEGORY_CHOICES = [
+        ('General', 'General'),
+        ('Tools', 'Tools & Menus'),
+        ('Organize', 'Organize PDF'),
+        ('Compress', 'Compress PDF'),
+        ('Merge', 'Merge PDF'),
+        ('Split', 'Split PDF'),
+        ('Protect', 'Protect PDF'),
+        ('OCR', 'OCR'),
+        ('ImageToPdf', 'Image to PDF'),
+        ('PdfToImage', 'PDF to Image'),
+        ('Calendar', 'Calendar'),
+        ('SEO', 'SEO & Meta'),
+    ]
+
+    msgid = models.CharField(
+        max_length=500,
+        unique=True,
+        verbose_name='English (Source)',
+        help_text='Original English text as written in templates'
+    )
+    msgstr = models.TextField(
+        verbose_name='Khmer Translation',
+        help_text='Khmer translation for this text'
+    )
+    category = models.CharField(
+        max_length=30,
+        choices=CATEGORY_CHOICES,
+        default='General',
+        verbose_name='Category'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Active',
+        help_text='Inactive translations fall back to default English'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['category', 'msgid']
+        verbose_name = 'Translation (EN → KH)'
+        verbose_name_plural = 'Translations (EN → KH)'
+
+    def __str__(self):
+        return f"{self.msgid} → {self.msgstr[:40]}"

@@ -13,7 +13,7 @@ from django.shortcuts import render
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html
-from .models import Job, Holiday, CalendarEvent, PageVisit, OCRSettings
+from .models import Job, Holiday, CalendarEvent, PageVisit, OCRSettings, SiteTranslation
 
 
 # ── Job Admin ─────────────────────────────────────────────────────────────────
@@ -484,3 +484,99 @@ class PageVisitAdmin(admin.ModelAdmin):
             'chart_values': json.dumps(chart_values),
         }
         return render(request, 'admin/pdf/pagevisit/stats.html', context)
+
+
+# ── Translation Admin (English to Khmer) ─────────────────────────────────────
+
+@admin.action(description='⚡ Compile translations to .mo')
+def compile_translations_action(modeladmin, request, queryset):
+    from .translation_service import compile_translations_to_files
+    count = compile_translations_to_files()
+    messages.success(request, f'Successfully compiled {count} translations to django.mo!')
+
+
+@admin.action(description='✔ Mark selected as Active')
+def mark_translations_active(modeladmin, request, queryset):
+    updated = queryset.update(is_active=True)
+    from .translation_service import compile_translations_to_files
+    compile_translations_to_files()
+    messages.success(request, f'{updated} translation(s) marked as active and recompiled.')
+
+
+@admin.action(description='✖ Mark selected as Inactive')
+def mark_translations_inactive(modeladmin, request, queryset):
+    updated = queryset.update(is_active=False)
+    from .translation_service import compile_translations_to_files
+    compile_translations_to_files()
+    messages.warning(request, f'{updated} translation(s) marked as inactive and recompiled.')
+
+
+@admin.register(SiteTranslation)
+class SiteTranslationAdmin(admin.ModelAdmin):
+    list_display = ['msgid_display', 'msgstr', 'category', 'is_active', 'updated_at']
+    list_editable = ['msgstr', 'category', 'is_active']
+    search_fields = ['msgid', 'msgstr']
+    list_filter = ['category', 'is_active', 'updated_at']
+    list_per_page = 50
+    actions = [compile_translations_action, mark_translations_active, mark_translations_inactive]
+
+    def msgid_display(self, obj):
+        return format_html('<strong style="color:var(--primary, #2563eb); font-size:13px;">{}</strong>', obj.msgid)
+    msgid_display.short_description = 'English (Source Text)'
+
+    def category_badge(self, obj):
+        palette = {
+            'Organize': '#8b5cf6',
+            'Compress': '#3b82f6',
+            'Merge': '#10b981',
+            'Split': '#f59e0b',
+            'Protect': '#ef4444',
+            'OCR': '#06b6d4',
+            'Tools': '#6366f1',
+            'Calendar': '#ec4899',
+            'ImageToPdf': '#14b8a6',
+            'PdfToImage': '#f97316',
+            'General': '#64748b',
+        }
+        bg = palette.get(obj.category, '#64748b')
+        return format_html(
+            '<span style="background:{}; color:white; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">{}</span>',
+            bg, obj.category
+        )
+    category_badge.short_description = 'Category'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path('import-po/', self.admin_site.admin_view(self.import_po_view), name='pdf_sitetranslation_import_po'),
+            path('compile-mo/', self.admin_site.admin_view(self.compile_mo_view), name='pdf_sitetranslation_compile_mo'),
+        ]
+        return custom + urls
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['import_po_url'] = reverse('admin:pdf_sitetranslation_import_po')
+        extra_context['compile_mo_url'] = reverse('admin:pdf_sitetranslation_compile_mo')
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def import_po_view(self, request):
+        from .translation_service import import_translations_from_po
+        created, updated, total = import_translations_from_po()
+        messages.success(request, f'Imported translations from django.po: {created} new, {updated} updated (total {total} entries).')
+        return HttpResponseRedirect(reverse('admin:pdf_sitetranslation_changelist'))
+
+    def compile_mo_view(self, request):
+        from .translation_service import compile_translations_to_files
+        count = compile_translations_to_files()
+        messages.success(request, f'Compiled {count} active translations to django.mo successfully!')
+        return HttpResponseRedirect(reverse('admin:pdf_sitetranslation_changelist'))
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        from .translation_service import compile_translations_to_files
+        compile_translations_to_files()
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        from .translation_service import compile_translations_to_files
+        compile_translations_to_files()

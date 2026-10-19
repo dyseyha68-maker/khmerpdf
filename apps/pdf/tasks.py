@@ -707,6 +707,8 @@ def parse_page_range(page_str, total_pages):
 def organize_pdf(job_id, replace_files=None):
     from apps.pdf.models import Job
     import json
+    import io
+    import copy
     
     if replace_files is None:
         replace_files = {}
@@ -721,11 +723,26 @@ def organize_pdf(job_id, replace_files=None):
         
         try:
             page_order = json.loads(page_order_json.replace('\\/', '/'))
-        except:
+        except Exception:
             page_order = []
         
         reader = PdfReader(input_path)
         total_pages = len(reader.pages)
+        
+        # Preload any extra / inserted / replaced files into in-memory readers
+        extra_readers = {}
+        for idx, extra_file in replace_files.items():
+            try:
+                if hasattr(extra_file, 'read'):
+                    content = extra_file.read()
+                elif hasattr(extra_file, 'chunks'):
+                    content = b''.join(extra_file.chunks())
+                else:
+                    with open(extra_file, 'rb') as ef:
+                        content = ef.read()
+                extra_readers[idx] = PdfReader(io.BytesIO(content))
+            except Exception as ef_err:
+                logger.error(f'Error loading extra file index {idx}: {ef_err}')
         
         output_filename = f'organized_{uuid.uuid4().hex[:8]}.pdf'
         output_path = os.path.join(settings.MEDIA_ROOT, 'processed', output_filename)
@@ -734,49 +751,57 @@ def organize_pdf(job_id, replace_files=None):
         writer = PdfWriter()
         
         for page_info in page_order:
-            page_idx = page_info.get('index')
             is_blank = page_info.get('isBlank', False)
-            is_replaced = page_info.get('isReplaced', False)
-            replaced_file_index = page_info.get('replacedFileIndex')
-            replaced_page_num = page_info.get('replacedPageNum')
+            is_extra = (
+                page_info.get('isReplaced', False) or
+                page_info.get('isInserted', False) or
+                page_info.get('isExtra', False) or
+                (page_info.get('replacedFileIndex') is not None) or
+                (page_info.get('fileIndex') is not None)
+            )
+            file_idx = page_info.get('fileIndex') if page_info.get('fileIndex') is not None else page_info.get('replacedFileIndex')
+            page_num = page_info.get('pageNum') if page_info.get('pageNum') is not None else page_info.get('replacedPageNum')
+            rotation = int(page_info.get('rotation', 0) or 0) % 360
+            
+            target_page = None
             
             if is_blank:
-                from reportlab.pdfgen import canvas
-                from reportlab.lib.pagesizes import letter
-                
-                temp_blank = os.path.join(settings.MEDIA_ROOT, 'processed', f'blank_{uuid.uuid4().hex[:8]}.pdf')
-                c = canvas.Canvas(temp_blank, pagesize=letter)
-                c.showPage()
-                c.save()
-                
-                blank_reader = PdfReader(temp_blank)
-                writer.add_page(blank_reader.pages[0])
-                os.remove(temp_blank)
-            elif is_replaced and replaced_file_index is not None and replaced_page_num is not None:
-                replace_file = replace_files.get(replaced_file_index)
-                if replace_file:
-                    replace_path = os.path.join(settings.MEDIA_ROOT, 'uploads', replace_file.name)
-                    os.makedirs(os.path.dirname(replace_path), exist_ok=True)
-                    with open(replace_path, 'wb') as f:
-                        for chunk in replace_file.chunks():
-                            f.write(chunk)
-                    
-                    replace_reader = PdfReader(replace_path)
-                    if 0 <= replaced_page_num - 1 < len(replace_reader.pages):
-                        writer.add_page(replace_reader.pages[replaced_page_num - 1])
-                    os.remove(replace_path)
+                width, height = 612, 792
+                if total_pages > 0:
+                    try:
+                        width = float(reader.pages[0].mediabox.width)
+                        height = float(reader.pages[0].mediabox.height)
+                    except Exception:
+                        pass
+                blank_page = writer.add_blank_page(width=width, height=height)
+                if rotation:
+                    blank_page.rotate(rotation)
+                continue
+            elif is_extra and file_idx in extra_readers and page_num is not None:
+                extra_reader = extra_readers[file_idx]
+                if 0 <= page_num - 1 < len(extra_reader.pages):
+                    target_page = copy.copy(extra_reader.pages[page_num - 1])
             else:
                 orig_page = page_info.get('original')
-                if orig_page and 0 <= orig_page - 1 < total_pages:
-                    writer.add_page(reader.pages[orig_page - 1])
-                elif page_idx is not None and 0 <= page_idx < total_pages:
-                    writer.add_page(reader.pages[page_idx])
+                page_idx = page_info.get('index')
+                if orig_page is not None and isinstance(orig_page, int) and 0 <= orig_page - 1 < total_pages:
+                    target_page = copy.copy(reader.pages[orig_page - 1])
+                elif page_idx is not None and isinstance(page_idx, int) and 0 <= page_idx < total_pages:
+                    target_page = copy.copy(reader.pages[page_idx])
+            
+            if target_page is not None:
+                if rotation:
+                    target_page.rotate(rotation)
+                writer.add_page(target_page)
         
         with open(output_path, 'wb') as f:
             writer.write(f)
         
-        job.result.save(output_filename, open(output_path, 'rb'))
-        os.remove(output_path)
+        with open(output_path, 'rb') as f:
+            job.result.save(output_filename, f)
+        
+        if os.path.exists(output_path):
+            os.remove(output_path)
         
         job.status = 'done'
         job.save()

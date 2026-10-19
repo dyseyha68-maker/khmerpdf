@@ -1,0 +1,21 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="{{ import_po_url }}"
+       class="addlink"
+       style="background: #3b82f6; color: white;"
+       title="Import or update all translation keys from locale/km/LC_MESSAGES/django.po">
+      📥 Import from .po
+    </a>
+  </li>
+  <li>
+    <a href="{{ compile_mo_url }}"
+       class="addlink"
+       style="background: #10b981; color: white;"
+       title="Compile all active translations to binary django.mo files">
+      ⚡ Compile to .mo
+    </a>
+  </li>
+  {{ block.super }}
+{% endblock %}

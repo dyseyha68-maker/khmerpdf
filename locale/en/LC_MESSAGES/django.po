@@ -530,3 +530,88 @@ msgstr ""
 
 msgid "Protecting PDF..."
 msgstr ""
+
+# Organize PDF with insertion and rotation
+msgid "Reorder, rotate, insert, or delete pages in your PDF file."
+msgstr ""
+
+msgid "Remove & Start Over"
+msgstr ""
+
+msgid "Insert & Add"
+msgstr ""
+
+msgid "Insert PDF"
+msgstr ""
+
+msgid "Rotate Pages"
+msgstr ""
+
+msgid "Rotate Left"
+msgstr ""
+
+msgid "Rotate Right"
+msgstr ""
+
+msgid "Selection & Delete"
+msgstr ""
+
+msgid "Deselect"
+msgstr ""
+
+msgid "Save & Download PDF"
+msgstr ""
+
+msgid "Applies to"
+msgstr ""
+
+msgid "selected page(s)"
+msgstr ""
+
+msgid "Applies to all pages"
+msgstr ""
+
+msgid "Upload a PDF to view, reorder, rotate, or insert pages."
+msgstr ""
+
+msgid "Processing PDF..."
+msgstr ""
+
+msgid "Rotate Left (90°)"
+msgstr ""
+
+msgid "Rotate Right (90°)"
+msgstr ""
+
+msgid "Delete Page"
+msgstr ""
+
+msgid "+ Insert PDF"
+msgstr ""
+
+msgid "Click to insert another PDF file at the end"
+msgstr ""
+
+msgid "Inserting PDF pages..."
+msgstr ""
+
+msgid "Inserting"
+msgstr ""
+
+msgid "Rendering page"
+msgstr ""
+
+msgid "Error loading PDF file"
+msgstr ""
+
+msgid "Error inserting PDF"
+msgstr ""
+
+msgid "Replacing selected pages..."
+msgstr ""
+
+msgid "Blank Page"
+msgstr ""
+
+msgid "Blank"
+msgstr ""

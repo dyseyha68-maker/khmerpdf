@@ -478,9 +478,12 @@ def organize_api(request):
     
     replace_files = {}
     for key in request.FILES:
-        if key.startswith('replace_file_'):
-            idx = int(key.split('_')[-1])
-            replace_files[idx] = request.FILES[key]
+        if key.startswith(('replace_file_', 'extra_file_', 'insert_file_')):
+            try:
+                idx = int(key.rsplit('_', 1)[-1])
+                replace_files[idx] = request.FILES[key]
+            except Exception:
+                pass
     
     logger.info(f'organize_api called, file: {file}, page_order length: {len(page_order_json)}, replace_files: {list(replace_files.keys())}')
     
@@ -500,8 +503,10 @@ def organize_api(request):
         logger.error(f'Error parsing page_order: {e}')
         page_order = []
     
+    orig_name = getattr(file, 'name', '') or 'organized.pdf'
     job = Job.objects.create(
         file=file,
+        original_filename=orig_name,
         tool='split',
         page_range=json.dumps(page_order),
         compression_level='organize',
