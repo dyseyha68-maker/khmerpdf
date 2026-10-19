@@ -344,52 +344,7 @@
             color: var(--text-secondary);
         }
 
-        .account-area {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
 
-        .account-username {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        .account-username i { font-size: 16px; }
-
-        .account-btn,
-        .admin-header-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--surface-hover);
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 13.5px;
-            font-weight: 600;
-            padding: 8px 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .account-btn:hover,
-        .admin-header-btn:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-        .admin-header-btn i {
-            font-size: 15px;
-        }
-
-        @media (max-width: 480px) {
-            .account-username-text { display: none; }
-            .account-btn { padding: 8px 10px; }
-        }
 
         .hamburger {
             display: none;
@@ -731,15 +686,7 @@
                 </form>
             </div>
 
-            <div class="account-area">
-                <a href="/admin/" class="admin-header-btn">
-                    <i class="ti ti-settings"></i>
-                    <span>Admin</span>
-                </a>
-                {% if user.is_authenticated %}
-                    <a href="{% url 'logout' %}" class="account-btn" title="{% trans 'Log Out' %}"><i class="ti ti-logout"></i></a>
-                {% endif %}
-            </div>
+
 
             <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="{% trans 'Toggle theme' %}">
                 <i class="ti ti-moon" id="themeIcon" aria-hidden="true"></i>
