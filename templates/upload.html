@@ -126,13 +126,13 @@
         background: var(--surface) !important;
         border: 1.5px solid var(--border) !important;
         border-radius: 20px !important;
-        padding: 34px 32px !important;
+        padding: 36px 34px !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
         align-items: stretch !important;
         text-align: left !important;
-        min-height: 410px !important;
+        min-height: 420px !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
@@ -175,63 +175,71 @@
         color: #0f172a;
     }
     
-    .ocr-format-pill {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--primary);
-        background: rgba(37, 99, 235, 0.08);
-        padding: 5px 12px;
-        border-radius: 20px;
-        border: 1px solid rgba(37, 99, 235, 0.15);
-    }
-    [data-theme="dark"] .ocr-format-pill {
-        background: rgba(96, 165, 250, 0.12);
-        color: #60a5fa;
-        border-color: rgba(96, 165, 250, 0.2);
-    }
+
     
     .ocr-card-content {
-        margin: 20px 0;
+        margin: 22px 0 !important;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
     
-    .ocr-clean-title {
-        font-size: 25px;
-        font-weight: 700;
-        color: var(--text);
-        margin: 0 0 16px 0;
-        line-height: 1.45;
-        letter-spacing: -0.2px;
+    .ocr-bento-card h3,
+    .ocr-bento-card .ocr-clean-title {
+        font-size: 27px !important;
+        font-weight: 700 !important;
+        color: var(--text) !important;
+        margin: 0 0 18px 0 !important;
+        line-height: 1.45 !important;
+        letter-spacing: -0.3px !important;
     }
     
-    .ocr-clean-desc {
-        font-size: 15px;
-        color: var(--text-secondary);
-        line-height: 1.75;
-        margin: 0 0 22px 0;
-        max-width: 490px;
+    .ocr-bento-card p,
+    .ocr-bento-card .ocr-clean-desc {
+        font-size: 15.5px !important;
+        color: var(--text-secondary) !important;
+        line-height: 1.85 !important;
+        margin: 0 0 26px 0 !important;
+        max-width: 520px !important;
+    }
+
+    body.lang-kh .ocr-bento-card h3,
+    body.lang-kh .ocr-bento-card .ocr-clean-title {
+        font-size: 24px !important;
+        line-height: 1.65 !important;
+        margin: 0 0 18px 0 !important;
+    }
+
+    body.lang-kh .ocr-bento-card p,
+    body.lang-kh .ocr-bento-card .ocr-clean-desc {
+        font-size: 15px !important;
+        line-height: 1.95 !important;
+        margin: 0 0 26px 0 !important;
     }
     
     .ocr-flow-strip {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         background: var(--surface-hover);
         border: 1px solid var(--border);
-        padding: 8px 16px;
+        padding: 9px 18px;
         border-radius: 10px;
+        width: fit-content;
         margin-top: 4px;
-        margin-bottom: 32px;
+        margin-bottom: 28px;
     }
     .flow-step {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        font-size: 12.5px;
+        font-size: 13px;
         font-weight: 600;
         color: var(--text-secondary);
     }
     .flow-arrow {
-        font-size: 13px;
+        font-size: 14px;
         color: var(--primary);
     }
     .flow-target {
@@ -398,11 +406,17 @@
             border-radius: 18px !important;
             min-height: 260px !important;
         }
-        .ocr-clean-title {
-            font-size: 21px;
+        .ocr-bento-card h3,
+        .ocr-bento-card .ocr-clean-title {
+            font-size: 22px !important;
+            margin-bottom: 12px !important;
+            line-height: 1.4 !important;
         }
-        .ocr-clean-desc {
-            font-size: 13.5px;
+        .ocr-bento-card p,
+        .ocr-bento-card .ocr-clean-desc {
+            font-size: 14px !important;
+            line-height: 1.75 !important;
+            margin-bottom: 20px !important;
         }
         .tool-card {
             padding: 22px 14px;
@@ -480,7 +494,6 @@
             <div class="ocr-icon-wrapper">
                 <i class="ti ti-scan"></i>
             </div>
-            <span class="ocr-format-pill">PDF → Word (.docx)</span>
         </div>
         
         <div class="ocr-card-content">
