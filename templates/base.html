@@ -267,54 +267,7 @@
         .nav-dropdown-menu a i {
             font-size: 17px;
         }
-        .nav-ocr-highlight {
-            position: relative;
-        }
-        .nav-ai-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-            color: #ffffff !important;
-            font-size: 11px;
-            font-weight: 800;
-            line-height: 1;
-            padding: 3px 7px;
-            border-radius: 999px;
-            letter-spacing: 0.4px;
-            margin-left: 3px;
-            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.35);
-            animation: pulse-subtle 2.5s infinite;
-        }
-        @keyframes pulse-subtle {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.06); }
-        }
-        .dropdown-ocr-featured {
-            font-weight: 700 !important;
-            color: var(--primary) !important;
-            background: rgba(37, 99, 235, 0.08) !important;
-            border-radius: 8px;
-            margin-bottom: 4px !important;
-        }
-        .dropdown-ocr-featured:hover {
-            background: var(--primary) !important;
-            color: #ffffff !important;
-        }
-        .dropdown-ai-tag {
-            margin-left: auto;
-            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .dropdown-divider {
-            height: 1px;
-            background: var(--border);
-            margin: 6px 0;
-        }
+
         @media (max-width: 900px) {
             .nav-dropdown-menu {
                 position: static;
@@ -407,22 +360,30 @@
         }
         .account-username i { font-size: 16px; }
 
-        .account-btn {
+        .account-btn,
+        .admin-header-btn {
             display: inline-flex;
             align-items: center;
+            gap: 6px;
             background: var(--surface-hover);
             color: var(--primary);
             text-decoration: none;
-            font-size: 13px;
+            font-size: 13.5px;
             font-weight: 600;
             padding: 8px 14px;
             border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
             transition: all 0.2s;
             white-space: nowrap;
         }
-        .account-btn:hover {
+        .account-btn:hover,
+        .admin-header-btn:hover {
             background: var(--primary);
             color: #fff;
+            border-color: var(--primary);
+        }
+        .admin-header-btn i {
+            font-size: 15px;
         }
 
         @media (max-width: 480px) {
@@ -731,16 +692,14 @@
         </div>
 
         <nav class="nav-links" :class="{ 'open': navOpen }">
-            <a href="/pdf-ocr/" class="nav-ocr-highlight">
-                <i class="ti ti-scan"></i>{% trans "OCR" %}<span class="nav-ai-pill">AI</span>
+            <a href="/pdf-ocr/">
+                <i class="ti ti-scan"></i>{% trans "OCR" %}
             </a>
             <div class="nav-dropdown" @click.outside="toolsOpen = false">
                 <button type="button" class="nav-dropdown-trigger" :class="{ active: toolsOpen }" @click="toolsOpen = !toolsOpen">
                     <i class="ti ti-tools"></i>{% trans "Tools" %}<i class="ti ti-chevron-down nav-caret" :class="{ 'nav-caret-open': toolsOpen }"></i>
                 </button>
                 <div class="nav-dropdown-menu" x-show="toolsOpen" x-cloak x-transition @click="toolsOpen = false">
-                    <a href="/pdf-ocr/" class="dropdown-ocr-featured"><i class="ti ti-scan"></i><span>{% trans "OCR (PDF to Word)" %}</span><span class="dropdown-ai-tag">AI</span></a>
-                    <div class="dropdown-divider"></div>
                     <a href="/pdf-compress/"><i class="ti ti-file-zip"></i>{% trans "Compress" %}</a>
                     <a href="/pdf-merge/"><i class="ti ti-files"></i>{% trans "Merge" %}</a>
                     <a href="/pdf-split/"><i class="ti ti-scissors"></i>{% trans "Split" %}</a>
@@ -748,6 +707,7 @@
                     <a href="/pdf-protect/"><i class="ti ti-lock"></i>{% trans "Protect" %}</a>
                     <a href="/pdf-to-image/"><i class="ti ti-photo"></i>{% trans "PDF to Image" %}</a>
                     <a href="/image-to-pdf/"><i class="ti ti-file-upload"></i>{% trans "Image to PDF" %}</a>
+                    <a href="/pdf-ocr/"><i class="ti ti-scan"></i>{% trans "OCR" %}</a>
                 </div>
             </div>
             <a href="/pdf-calendar/"><i class="ti ti-calendar"></i>{% trans "Calendar" %}</a>
@@ -772,11 +732,12 @@
             </div>
 
             <div class="account-area">
+                <a href="/admin/" class="admin-header-btn">
+                    <i class="ti ti-settings"></i>
+                    <span>Admin</span>
+                </a>
                 {% if user.is_authenticated %}
-                    <span class="account-username"><i class="ti ti-user-circle" aria-hidden="true"></i><span class="account-username-text">{{ user.username }}</span></span>
-                    <a href="{% url 'logout' %}" class="account-btn">{% trans "Log Out" %}</a>
-                {% else %}
-                    <a href="{% url 'login' %}" class="account-btn">{% trans "Log In" %}</a>
+                    <a href="{% url 'logout' %}" class="account-btn" title="{% trans 'Log Out' %}"><i class="ti ti-logout"></i></a>
                 {% endif %}
             </div>
 

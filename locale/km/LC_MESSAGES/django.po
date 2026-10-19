@@ -79,6 +79,10 @@ msgid "+ Add Another Range"
 msgstr "+ បន្ថែមចន្លោះ"
 
 # Category: General
+msgid "100% Free"
+msgstr "ឥតគិតថ្លៃ 100%"
+
+# Category: General
 msgid "Actions"
 msgstr "សកម្មភាព"
 
@@ -569,6 +573,10 @@ msgstr "បម្លែងឯកសារ PDF ស្កេន និងរូប
 # Category: OCR
 msgid "Convert scanned PDF and images into editable Word (.docx)"
 msgstr "បម្លែង PDF ស្កេន និងរូបភាពទៅជាឯកសារ Word (.docx)"
+
+# Category: OCR
+msgid "Convert scanned PDF documents and photos into editable Microsoft Word (.docx) with exact Khmer Unicode formatting."
+msgstr "បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជាឯកសារ Word (.docx) ដោយរក្សាអក្សរខ្មែរយូនីកូដត្រឹមត្រូវ។"
 
 # Category: OCR
 msgid "Convert scanned PDF files into editable Word documents with Khmer and English OCR."

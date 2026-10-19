@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}DAMSPEY - Free Khmer PDF Tools & AI OCR | ឧបករណ៍ PDF ខ្មែរ & AI OCR ឥតគិតថ្លៃ{% endblock %}
+{% block title %}DAMSPEY - Free Khmer PDF Tools | ឧបករណ៍ PDF ខ្មែរ ឥតគិតថ្លៃ{% endblock %}
 {% block meta_description %}Free online PDF tools built for Cambodia — OCR PDF to Word (.docx), compress, merge, split, organize, and convert PDF files instantly, no signup required. ឧបករណ៍ PDF & OCR ឥតគិតថ្លៃសម្រាប់ខ្មែរ។{% endblock %}
 {% block page_path %}/{% endblock %}
 {% block og_path %}/{% endblock %}
@@ -143,7 +143,7 @@
     }
 
     /* ══════════════════════════════════════════════════════════════
-       CLEAN MINIMAL OCR BENTO CARD (2 COLUMNS x 2 ROWS)
+       MODERN & CLEAN OCR BENTO CARD (2 COLUMNS x 2 ROWS)
        ══════════════════════════════════════════════════════════════ */
     .ocr-bento-card {
         grid-column: span 2;
@@ -151,106 +151,157 @@
         background: var(--surface) !important;
         border: 1.5px solid var(--border) !important;
         border-radius: 20px !important;
-        padding: 40px 32px !important;
+        padding: 34px 32px !important;
         display: flex !important;
         flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
+        justify-content: space-between !important;
+        align-items: stretch !important;
+        text-align: left !important;
         min-height: 410px !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        position: relative;
     }
     
     .ocr-bento-card:hover {
         transform: translateY(-4px) !important;
         border-color: var(--primary) !important;
-        box-shadow: 0 20px 40px -6px rgba(37, 99, 235, 0.16) !important;
+        box-shadow: 0 18px 36px -4px rgba(37, 99, 235, 0.15) !important;
     }
     
-    .ocr-clean-badge {
-        display: inline-flex;
+    .ocr-card-top {
+        display: flex;
         align-items: center;
-        gap: 6px;
-        background: rgba(37, 99, 235, 0.08);
-        color: var(--primary);
-        padding: 5px 14px;
-        border-radius: 20px;
-        font-size: 12.5px;
-        font-weight: 700;
-        margin-bottom: 20px;
-        border: 1px solid rgba(37, 99, 235, 0.16);
-    }
-    [data-theme="dark"] .ocr-clean-badge {
-        background: rgba(96, 165, 250, 0.12);
-        border-color: rgba(96, 165, 250, 0.22);
+        justify-content: space-between;
     }
     
-    .ocr-clean-icon {
-        width: 72px;
-        height: 72px;
-        border-radius: 18px;
+    .ocr-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
         background: rgba(37, 99, 235, 0.08);
         color: var(--primary);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 38px;
-        margin-bottom: 18px;
+        font-size: 28px;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .ocr-bento-card:hover .ocr-clean-icon {
+    .ocr-bento-card:hover .ocr-icon-wrapper {
         background: var(--primary);
         color: #ffffff;
-        transform: scale(1.08);
+        transform: scale(1.06);
     }
-    [data-theme="dark"] .ocr-clean-icon {
+    [data-theme="dark"] .ocr-icon-wrapper {
         background: rgba(96, 165, 250, 0.12);
+        color: var(--primary);
     }
-    [data-theme="dark"] .ocr-bento-card:hover .ocr-clean-icon {
+    [data-theme="dark"] .ocr-bento-card:hover .ocr-icon-wrapper {
         background: var(--primary);
         color: #0f172a;
     }
     
+    .ocr-format-pill {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--primary);
+        background: rgba(37, 99, 235, 0.08);
+        padding: 5px 12px;
+        border-radius: 20px;
+        border: 1px solid rgba(37, 99, 235, 0.15);
+    }
+    [data-theme="dark"] .ocr-format-pill {
+        background: rgba(96, 165, 250, 0.12);
+        color: #60a5fa;
+        border-color: rgba(96, 165, 250, 0.2);
+    }
+    
+    .ocr-card-content {
+        margin: 18px 0;
+    }
+    
     .ocr-clean-title {
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 700;
         color: var(--text);
-        margin: 0 0 10px 0;
+        margin: 0 0 8px 0;
         line-height: 1.3;
     }
     
     .ocr-clean-desc {
-        font-size: 15px;
+        font-size: 14.5px;
         color: var(--text-secondary);
-        margin: 0 0 24px 0;
-        line-height: 1.5;
-        max-width: 380px;
+        line-height: 1.55;
+        margin: 0 0 16px 0;
+        max-width: 480px;
     }
     
-    .ocr-clean-action {
+    .ocr-flow-strip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        padding: 7px 14px;
+        border-radius: 10px;
+    }
+    .flow-step {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+    .flow-arrow {
+        font-size: 13px;
+        color: var(--primary);
+    }
+    .flow-target {
+        color: var(--primary);
+        font-weight: 700;
+    }
+    
+    .ocr-card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+    }
+    
+    .ocr-clean-cta {
         display: inline-flex;
         align-items: center;
         gap: 8px;
         background: var(--primary);
         color: #ffffff;
-        padding: 11px 24px;
+        padding: 10px 22px;
         border-radius: 10px;
-        font-size: 14.5px;
+        font-size: 14px;
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .ocr-clean-action i {
-        font-size: 16px;
+    .ocr-clean-cta i {
+        font-size: 15px;
         transition: transform 0.2s ease;
     }
-    .ocr-bento-card:hover .ocr-clean-action {
+    .ocr-bento-card:hover .ocr-clean-cta {
         background: var(--primary-dark);
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     }
-    .ocr-bento-card:hover .ocr-clean-action i {
+    .ocr-bento-card:hover .ocr-clean-cta i {
         transform: translateX(4px);
+    }
+    
+    .ocr-free-tag {
+        font-size: 13px;
+        font-weight: 600;
+        color: #10b981;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .ocr-free-tag i {
+        font-size: 15px;
     }
 
     /* Calendar Card Special */
@@ -342,7 +393,7 @@
             grid-column: span 2;
             grid-row: span 1;
             min-height: 280px !important;
-            padding: 32px 24px !important;
+            padding: 28px 24px !important;
         }
     }
     
@@ -365,22 +416,15 @@
         }
         .ocr-bento-card {
             grid-column: span 2;
-            padding: 28px 20px !important;
+            padding: 24px 20px !important;
             border-radius: 18px !important;
             min-height: 260px !important;
         }
-        .ocr-clean-icon {
-            width: 60px;
-            height: 60px;
-            font-size: 32px;
-            margin-bottom: 14px;
-        }
         .ocr-clean-title {
-            font-size: 22px;
+            font-size: 21px;
         }
         .ocr-clean-desc {
-            font-size: 14px;
-            margin-bottom: 18px;
+            font-size: 13.5px;
         }
         .tool-card {
             padding: 22px 14px;
@@ -408,11 +452,20 @@
             font-size: 14px;
         }
         .ocr-bento-card {
-            padding: 22px 16px !important;
+            padding: 20px 16px !important;
             min-height: 240px !important;
         }
-        .ocr-clean-action {
+        .ocr-card-bottom {
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+            text-align: center;
+        }
+        .ocr-clean-cta {
             width: 100%;
+            justify-content: center;
+        }
+        .ocr-free-tag {
             justify-content: center;
         }
         .tool-card {
@@ -434,44 +487,56 @@
 <div class="hero">
     <div class="hero-badge">
         <i class="ti ti-sparkles"></i>
-        <span>{% trans "100% Free Khmer PDF Tools & AI OCR" %}</span>
+        <span>{% trans "100% Free Khmer PDF Tools" %}</span>
     </div>
     <h1>
         {% trans "Free Online PDF Tools" %}
     </h1>
     <p>
-        {% trans "Khmer AI OCR, Compress, Merge, Split, Organize PDF Files and More" %}
+        {% trans "Compress, Merge, Split, Organize PDF Files and More" %}
     </p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
      BENTO GRID OF TOOLS
-     Card 1: OCR PDF to Word (Clean 2x2 Bento Card in First View)
+     Card 1: OCR PDF to Word (Modern & Clean 2x2 Bento Card in First View)
      Cards 2-9: Standard Tools filling remaining cells
      ══════════════════════════════════════════════════════════════ -->
 <div class="cards-container">
-    <!-- 1. OCR CARD (CLEAN & MINIMAL 2x2 BENTO) -->
+    <!-- 1. OCR CARD (MODERN & CLEAN 2x2 BENTO) -->
     <a href="/pdf-ocr/" class="tool-card ocr-bento-card" id="heroOcrCard" aria-label="OCR PDF to Word">
-        <div class="ocr-clean-badge">
-            <i class="ti ti-sparkles"></i>
-            <span>{% trans "AI Powered" %}</span>
+        <div class="ocr-card-top">
+            <div class="ocr-icon-wrapper">
+                <i class="ti ti-scan"></i>
+            </div>
+            <span class="ocr-format-pill">PDF → Word (.docx)</span>
         </div>
         
-        <div class="ocr-clean-icon">
-            <i class="ti ti-scan"></i>
+        <div class="ocr-card-content">
+            <h3 class="ocr-clean-title">
+                {% trans "OCR PDF to Word" %}
+            </h3>
+            
+            <p class="ocr-clean-desc">
+                {% trans "Convert scanned PDF documents and photos into editable Microsoft Word (.docx) with exact Khmer Unicode formatting." %}
+            </p>
+            
+            <div class="ocr-flow-strip">
+                <span class="flow-step"><i class="ti ti-file-text"></i> PDF / Image</span>
+                <i class="ti ti-arrow-right flow-arrow"></i>
+                <span class="flow-step flow-target"><i class="ti ti-file-type-docx"></i> Word (.docx)</span>
+            </div>
         </div>
         
-        <h3 class="ocr-clean-title">
-            {% trans "OCR PDF to Word" %}
-        </h3>
-        
-        <p class="ocr-clean-desc">
-            {% trans "Convert scanned PDF and images into editable Word (.docx)" %}
-        </p>
-        
-        <div class="ocr-clean-action">
-            <span>{% trans "Convert to Word" %}</span>
-            <i class="ti ti-arrow-right"></i>
+        <div class="ocr-card-bottom">
+            <span class="ocr-clean-cta">
+                <span>{% trans "Convert to Word" %}</span>
+                <i class="ti ti-arrow-right"></i>
+            </span>
+            <span class="ocr-free-tag">
+                <i class="ti ti-check"></i>
+                <span>{% trans "100% Free" %}</span>
+            </span>
         </div>
     </a>
     
