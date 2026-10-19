@@ -599,20 +599,95 @@ def deactivate_ad_snippets(modeladmin, request, queryset):
 class AdSnippetAdminForm(forms.ModelForm):
     name = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Optional — auto-names if empty (e.g. "Adsterra Top Banner")'})
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Optional — auto-generated if left blank (e.g. "Adsterra Top Banner")',
+            'style': 'width: 100%; max-width: 600px; padding: 8px 12px; font-size: 14px; border: 1.5px solid #cbd5e1; border-radius: 6px;'
+        })
+    )
+    code = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 10,
+            'style': 'font-family: Consolas, monospace, "Courier New"; font-size: 13px; background: #0f172a; color: #38bdf8; border: 2px solid #38bdf8; padding: 14px; border-radius: 8px; width: 100%; box-sizing: border-box; line-height: 1.5;',
+            'placeholder': '<!-- PASTE YOUR ADSTERRA CODE HERE -->\n<script type="text/javascript">\n    // Paste snippet from beta.publishers.adsterra.com\n</script>'
+        })
+    )
+    placement = forms.ChoiceField(
+        choices=AdSnippet.PLACEMENT_CHOICES,
+        required=False,
+        initial='top_banner'
+    )
+    page_target = forms.ChoiceField(
+        choices=AdSnippet.PAGE_TARGET_CHOICES,
+        required=False,
+        initial='all'
+    )
+    device_target = forms.ChoiceField(
+        choices=AdSnippet.DEVICE_CHOICES,
+        required=False,
+        initial='all'
+    )
+    order = forms.IntegerField(
+        required=False,
+        initial=0,
+        widget=forms.NumberInput(attrs={'style': 'width: 120px; padding: 6px 10px;'})
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 2, 'placeholder': 'Optional internal notes (e.g. Ad unit ID, eCPM notes)'})
     )
 
     class Meta:
         model = AdSnippet
         fields = '__all__'
-        widgets = {
-            'code': forms.Textarea(attrs={
-                'rows': 10,
-                'style': 'font-family: Consolas, monospace, "Courier New"; font-size: 13px; background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box;',
-                'placeholder': '<!-- Paste your Adsterra code here -->\n<script type="text/javascript">\n    // Adsterra snippet\n</script>'
-            }),
-            'notes': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Optional internal notes (e.g. Ad unit ID, eCPM notes)'}),
-        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        name = (cleaned_data.get('name') or '').strip()
+        code = (cleaned_data.get('code') or '').strip()
+        notes = (cleaned_data.get('notes') or '').strip()
+        placement = cleaned_data.get('placement') or 'top_banner'
+        order = cleaned_data.get('order')
+
+        # SMART FALLBACK 1: User pasted the ad code into 'name' field
+        if ('<script' in name.lower() or 'adsterra' in name.lower() or len(name) > 80) and not code:
+            code = name
+            name = ''
+            cleaned_data['code'] = code
+
+        # SMART FALLBACK 2: User pasted the ad code into 'notes' field instead of 'code'
+        if not code and notes and ('<script' in notes.lower() or 'http' in notes.lower() or '//' in notes or len(notes) > 25):
+            code = notes
+            notes = ''
+            cleaned_data['code'] = code
+            cleaned_data['notes'] = notes
+
+        # SMART FALLBACK 3: Auto-generate name if blank or if it was replaced
+        if not name or len(name) > 150:
+            placement_labels = dict(AdSnippet.PLACEMENT_CHOICES)
+            pl_display = placement_labels.get(placement, 'Banner').split(' (')[0]
+            name = f"Adsterra ({pl_display})"
+        cleaned_data['name'] = name
+
+        # SMART FALLBACK 4: Order defaults to 0 if None
+        if order is None:
+            cleaned_data['order'] = 0
+
+        # SMART FALLBACK 5: Ensure targeting defaults
+        if not cleaned_data.get('placement'):
+            cleaned_data['placement'] = 'top_banner'
+        if not cleaned_data.get('page_target'):
+            cleaned_data['page_target'] = 'all'
+        if not cleaned_data.get('device_target'):
+            cleaned_data['device_target'] = 'all'
+
+        # STRICT VALIDATION: Require that some code actually exists in either code or notes
+        if not code:
+            raise forms.ValidationError({
+                'code': 'សូមបិទភ្ជាប់ (Paste) កូដពាណិជ្ជកម្ម Adsterra របស់អ្នកនៅក្នុងប្រអប់នេះ / Please paste your Adsterra ad code into the "Ad / Script Code" box.'
+            })
+
+        return cleaned_data
 
 
 @admin.register(AdSnippet)
@@ -625,17 +700,17 @@ class AdSnippetAdmin(admin.ModelAdmin):
     list_editable = ['is_active', 'order']
     actions = [activate_ad_snippets, deactivate_ad_snippets]
     fieldsets = (
-        ('Basic Information', {
-            'fields': ('name', 'is_active', 'order', 'notes'),
-            'description': 'Configure the label, status, and display priority of this ad unit.'
-        }),
-        ('Ad / Script Code (Adsterra / Networks)', {
+        ('1. Ad / Script Code (Adsterra / Any Network) ⭐ PASTE HERE', {
             'fields': ('code',),
-            'description': 'Paste the raw JavaScript/HTML code snippet from your Adsterra publisher dashboard (beta.publishers.adsterra.com).'
+            'description': '👉 <strong>Step 1:</strong> Copy the code snippet from your <a href="https://beta.publishers.adsterra.com/" target="_blank" style="color:#2563eb; font-weight:700; text-decoration:underline;">Adsterra Dashboard</a> and paste it into the dark code box below.'
         }),
-        ('Placement & Targeting Rules', {
+        ('2. Placement & Targeting', {
             'fields': ('placement', 'page_target', 'device_target'),
-            'description': 'Control precisely where, on which pages, and on which devices this ad appears.'
+            'description': '👉 <strong>Step 2:</strong> Choose where you want this ad unit to appear (Top Banner, Sidebar, Bottom Banner, or Footer for Popunder/Social Bar).'
+        }),
+        ('3. Optional Settings & Status', {
+            'fields': ('name', 'is_active', 'order', 'notes'),
+            'description': 'Optional — you can leave Name blank to auto-name it (e.g., "Adsterra (Top Banner)").'
         }),
     )
 
