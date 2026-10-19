@@ -1572,8 +1572,16 @@ def ocr_pdf(job_id):
             section.left_margin = Inches(1)
             section.right_margin = Inches(1)
 
-        poppler_path = getattr(settings, 'POPPLER_PATH', None)
-        pages = convert_from_path(input_path, dpi=200, poppler_path=poppler_path)
+        ext = os.path.splitext(input_path)[1].lower()
+        if ext in ('.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tif', '.tiff'):
+            from PIL import Image
+            img = Image.open(input_path)
+            if img.mode not in ('RGB', 'L'):
+                img = img.convert('RGB')
+            pages = [img]
+        else:
+            poppler_path = getattr(settings, 'POPPLER_PATH', None)
+            pages = convert_from_path(input_path, dpi=200, poppler_path=poppler_path)
         max_pages = min(len(pages), 30)
         
         def clean_text(text):

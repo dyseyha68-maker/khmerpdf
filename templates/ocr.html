@@ -134,6 +134,7 @@
 
 {% block extra_css %}
 <style>
+    .drop-zone { margin-bottom: 20px; }
     .drop-zone.drag-over { border-color: var(--primary); background: var(--surface-hover); }
     .file-list { margin-bottom: 16px; }
     .file-item {
@@ -266,6 +267,25 @@
         .page-item { width: 100px; padding: 8px; }
         .page-item img { max-width: 80px; max-height: 100px; }
     }
+    .empty-preview {
+        min-height: 360px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        color: var(--text-secondary);
+        opacity: 0.6;
+        padding: 40px 20px;
+        text-align: center;
+    }
+    .empty-preview i {
+        font-size: 48px;
+    }
+    .empty-preview p {
+        font-size: 14px;
+        margin: 0;
+    }
 </style>
 {% endblock %}
 
@@ -286,15 +306,15 @@
              @dragleave.prevent="dragging = false"
              @drop.prevent="onDrop($event)"
              @click="$refs.fileInput.click()">
-            <div class="drop-zone-icon">📄</div>
-            <p>{% trans "Select PDF file or drop here" %}</p>
-            <input type="file" x-ref="fileInput" accept=".pdf" style="display:none"
+            <div class="drop-zone-icon"><i class="ti ti-file-upload"></i></div>
+            <p>{% trans "Select PDF or Image or drop here" %}</p>
+            <input type="file" x-ref="fileInput" accept=".pdf,image/*,.png,.jpg,.jpeg,.webp,.bmp" style="display:none"
                    @change="onFileChange($event)">
         </div>
 
         <div class="file-list" x-show="currentFile" x-cloak>
             <div class="file-item">
-                <span class="file-icon">📄</span>
+                <span class="file-icon" x-text="currentFile && (currentFile.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp)$/i.test(currentFile.name)) ? '🖼️' : '📄'"></span>
                 <span class="file-name" x-text="currentFile ? currentFile.name : ''"></span>
                 <span class="file-size" x-text="currentFile ? toKhNum((currentFile.size/1024/1024).toFixed(2)) + ' MB' : ''"></span>
                 <button class="remove-btn" @click.stop="currentFile = null; renderPreview()">×</button>
@@ -325,10 +345,11 @@
     </div>
 
     <div class="right-panel">
-        <div class="instructions" id="instructions">
-            {% trans "👆 Upload a scanned PDF to preview pages and convert into editable Word (.docx)." %}
-        </div>
         <div class="right-panel-inner">
+            <div class="empty-preview" x-show="!currentFile">
+                <i class="ti ti-files"></i>
+                <p>{% trans "Document preview will appear here" %}</p>
+            </div>
             <div class="page-grid" id="previewGrid"></div>
         </div>
     </div>
@@ -377,7 +398,7 @@ function ocrApp() {
             fd.append('ocr_lang', this.ocrLang);
             try {
                 const d = await fetch('/api/ocr/', { method: 'POST', body: fd }).then(r => r.json());
-                const baseName = (this.currentFile?.name || 'document.pdf').replace(/\.[^/.]+$/, '');
+                const baseName = (this.currentFile?.name || 'document').replace(/\.[^/.]+$/, '');
                 if (d.job_id) this.pollJob(d.job_id, baseName + '.docx');
                 else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
             } catch(err) {
@@ -389,6 +410,22 @@ function ocrApp() {
             const grid = document.getElementById('previewGrid');
             grid.innerHTML = '';
             if (!this.currentFile) return;
+
+            // Preview image directly if file is an image
+            if (this.currentFile.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp|gif|tif|tiff)$/i.test(this.currentFile.name)) {
+                const item = document.createElement('div');
+                item.className = 'page-item';
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(this.currentFile);
+                const num = document.createElement('div');
+                num.className = 'page-num';
+                num.textContent = isKhmer ? 'រូបភាព' : 'Image';
+                item.appendChild(img);
+                item.appendChild(num);
+                grid.appendChild(item);
+                return;
+            }
+
             try {
                 const ab = await this.currentFile.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: ab }).promise;

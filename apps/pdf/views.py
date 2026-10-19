@@ -556,8 +556,9 @@ def ocr_api(request):
     if not file:
         return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
     
-    if not file.name.lower().endswith('.pdf'):
-        return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
+    valid_exts = ('.pdf', '.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tif', '.tiff')
+    if not any(file.name.lower().endswith(e) for e in valid_exts):
+        return Response({'error': 'Only PDF and image files (PNG, JPG, WEBP, BMP) are allowed'}, status=status.HTTP_400_BAD_REQUEST)
     
     if file.size > settings.MAX_UPLOAD_SIZE:
         return Response({'error': 'File too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)

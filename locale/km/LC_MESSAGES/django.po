@@ -587,6 +587,10 @@ msgid "Convert to Word"
 msgstr "បម្លែងទៅជា Word"
 
 # Category: OCR
+msgid "Document preview will appear here"
+msgstr "ការមើលឯកសារជាមុននឹងបង្ហាញនៅទីនេះ"
+
+# Category: OCR
 msgid "Editable .docx Output"
 msgstr "ឯកសារ Word កែសម្រួលបាន"
 
@@ -665,6 +669,10 @@ msgstr "PDF ស្កេន / រូបភាព"
 # Category: OCR
 msgid "Scanned PDF to Word (.docx)"
 msgstr "បម្លែង PDF ស្កេនទៅជា Word (.docx)"
+
+# Category: OCR
+msgid "Select PDF or Image or drop here"
+msgstr "ជ្រើសរើសឯកសារ PDF ឬរូបភាព ឬទម្លាក់ទីនេះ"
 
 # Category: OCR
 msgid "Try Khmer OCR Free"

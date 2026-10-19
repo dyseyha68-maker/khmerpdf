@@ -101,35 +101,7 @@
             letter-spacing: 0.1px;
         }
 
-        /* ── Decorative watermark overlay, behind all page content ──
-           Fixed full-viewport element with z-index:-1 so it always
-           paints below normal-flow content (header, cards, panels)
-           regardless of scroll position, but above the body's own
-           background gradient. Same on every page since it lives in
-           base.html. */
-        .page-watermark {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            pointer-events: none;
-            opacity: 0.5;
-            background-image: url('{% static "watermark-bg.webp" %}');
-            background-repeat: no-repeat;
-            background-position: center 40%;
-            background-size: 560px auto;
-        }
-        @media (max-width: 900px) {
-            .page-watermark {
-                background-size: 400px auto;
-                background-position: center 30%;
-            }
-        }
-        @media (max-width: 480px) {
-            .page-watermark {
-                background-size: 280px auto;
-                background-position: center 22%;
-            }
-        }
+
 
         .header {
             background: var(--surface);
@@ -637,7 +609,6 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% if LANGUAGE_CODE == 'km' %}lang-kh{% else %}lang-en{% endif %}">
-    <div class="page-watermark" aria-hidden="true"></div>
     <header class="header" x-data="{ navOpen: false, toolsOpen: false }">
       <div class="header-inner">
         <div class="header-left">
