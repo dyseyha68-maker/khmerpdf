@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word ឥតគិតថ្លៃ - បម្លែង PDF ស្កេន | DAMSPEY{% else %}OCR PDF to Word Free - Khmer & English OCR | DAMSPEY{% endif %}{% endblock %}
 
@@ -50,13 +50,13 @@
       "step": [
         {
           "@type": "HowToStep",
-          "name": "ជ្រើសរើសឯកសារ PDF",
-          "text": "ទម្លាក់ ឬជ្រើសរើសឯកសារ PDF ស្កេនរបស់អ្នកចូលក្នុងប្រអប់ផ្ទុកឡើង។"
+          "name": "ជ្រើសរើសឯកសារ PDF ឬរូបភាព",
+          "text": "ទម្លាក់ ឬជ្រើសរើសឯកសារ PDF ស្កេន ឬរូបភាពរបស់អ្នកចូលក្នុងប្រអប់ផ្ទុកឡើង។"
         },
         {
           "@type": "HowToStep",
-          "name": "ជ្រើសរើសភាសា OCR",
-          "text": "ជ្រើសរើសភាសាខ្មែរ (Khmer) ឬ ភាសាអង់គ្លេស+ខ្មែរ (English + Khmer)។"
+          "name": "ជ្រើសរើសទំព័រ និងភាសា OCR",
+          "text": "ជ្រើសរើសទំព័រដែលចង់បម្លែង និងជ្រើសរើសភាសាខ្មែរ ឬ អង់គ្លេស។"
         },
         {
           "@type": "HowToStep",
@@ -86,10 +86,10 @@
         },
         {
           "@type": "Question",
-          "name": "តើកម្មវិធីនេះអាចរក្សាទម្រង់តារាង និងប្លង់ឯកសារបានទេ?",
+          "name": "តើកម្មវិធីនេះអាចជ្រើសរើស ឬលុបទំព័រដែលមិនត្រូវការមុនពេល OCR បានទេ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "ពិតជាអាចបាន! ប្រព័ន្ធ AI ឆ្លាតវៃរបស់យើងមានសមត្ថភាពសម្គាល់ប្លង់ឯកសារផ្លូវការ និងបង្កើតជាតារាង ជួរឈរ និងកន្លែងចុះហត្ថលេខាត្រឹមត្រូវក្នុងឯកសារ Word។"
+            "text": "ពិតជាអាចបាន! អ្នកអាចជ្រើសរើសតែទំព័រដែលចង់បម្លែង លុបទំព័រមិនត្រូវការ ឬបញ្ចូលរូបភាព និងឯកសារ PDF បន្ថែមទៀតបានយ៉ាងងាយស្រួល។"
           }
         },
         {
@@ -105,7 +105,7 @@
           "name": "តើឯកសាររបស់ខ្ញុំមានសុវត្ថិភាព និងការសម្ងាត់ដែរឬទេ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "សុវត្ថិភាពទិន្នន័យរបស់អ្នកគឺជាអាទិភាពចម្បងរបស់យើង។ រាល់ឯកសារដែលអ្នកផ្ទុកឡើងត្រូវបានបញ្ជូនតាមប្រព័ន្ធសុវត្ថិភាព SSL/HTTPS ហើយនឹងត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើដោយស្វ័យប្រវត្តិនាពេលដំណើរការរួចរាល់។"
+            "text": "សុវត្ថិភាពទិន្នន័យរបស់អ្នកគឺជាអាទិភាពចម្បងរបស់យើង។ រាល់ឯកសារដែលអ្នកផ្ទុកឡើងត្រូវបានបញ្ជូនតាមប្រព័ន្ធសុវត្ថិភាព SSL/HTTPS ហើយនឹងត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើដោយស្វ័យប្រវត្តិក្នុ្ងរយៈពេល ៦០ នាទី ស្របតាមបទប្បញ្ញត្តិ GDPR។"
           }
         }
       ]
@@ -134,36 +134,97 @@
 
 {% block extra_css %}
 <style>
-    .drop-zone { margin-bottom: 20px; }
+    .drop-zone { margin-bottom: 18px; }
     .drop-zone.drag-over { border-color: var(--primary); background: var(--surface-hover); }
-    .file-list { margin-bottom: 16px; }
-    .file-item {
+
+    /* Left panel loaded summary card */
+    .doc-summary-card {
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px 16px;
+        margin-bottom: 18px;
+    }
+    .doc-summary-header {
         display: flex;
         align-items: center;
-        padding: 10px 12px;
-        background: var(--surface-hover);
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border);
+        justify-content: space-between;
+        margin-bottom: 10px;
     }
-    .file-item .file-icon { font-size: 20px; margin-right: 10px; }
-    .file-item .file-name { flex: 1; font-size: 13px; color: var(--text); word-break: break-all; }
-    .file-item .file-size { font-size: 12px; color: var(--text-secondary); margin-right: 8px; }
-    .file-item .remove-btn {
+    .doc-summary-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .doc-summary-title i {
+        color: var(--primary);
+        font-size: 16px;
+    }
+    .doc-stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        padding: 4px 0;
+    }
+    .doc-stat-val {
+        font-weight: 700;
+        color: var(--text);
+    }
+    .doc-stat-val.highlight {
+        color: var(--primary);
+        font-size: 14px;
+    }
+
+    .doc-actions-col {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--border);
+    }
+
+    .btn-side-add {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-side-add:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--surface-hover);
+    }
+
+    .btn-side-clear {
         background: none;
         border: none;
         color: var(--text-secondary);
+        font-size: 11.5px;
         cursor: pointer;
-        font-size: 18px;
-        line-height: 1;
-        padding: 2px 6px;
-        border-radius: 4px;
-        transition: all 0.15s;
+        text-align: center;
+        transition: color 0.15s;
+        padding: 4px;
     }
-    .file-item .remove-btn:hover {
+    .btn-side-clear:hover {
         color: #ef4444;
-        background: rgba(239, 68, 68, 0.1);
     }
 
+    /* Options section */
     .options-section {
         margin-bottom: 20px;
         padding: 14px;
@@ -221,52 +282,298 @@
         line-height: 1;
     }
 
+    .action-note {
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        text-align: center;
+        margin-top: 10px;
+        line-height: 1.4;
+    }
+
+    /* Right Panel Workspace Toolbar */
+    .ocr-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .selection-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--text);
+    }
+    .selection-badge i {
+        color: var(--primary);
+        font-size: 16px;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-add-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--primary);
+        color: #ffffff;
+        border: none;
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-add-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .btn-tool-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 6px 11px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-tool-pill:hover:not(:disabled) {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+    .btn-tool-pill:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+    .btn-tool-pill.danger:hover:not(:disabled) {
+        border-color: #ef4444;
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    /* Page Grid */
     .page-grid {
         display: flex;
         flex-wrap: wrap;
         gap: 16px;
         justify-content: flex-start;
         align-content: flex-start;
-        padding: 10px;
+        padding: 4px;
+        min-height: 280px;
     }
-    .page-item {
-        width: 180px;
+
+    /* Page Card */
+    .page-card {
+        width: 175px;
         background: var(--surface);
         border: 2px solid var(--border);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 8px;
+        position: relative;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .page-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px -2px rgba(0, 0, 0, 0.08);
+    }
+
+    .page-card.is-selected {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+    }
+
+    .page-card.is-excluded {
+        border-color: var(--border);
+        opacity: 0.55;
+        background: var(--surface-hover);
+    }
+    .page-card.is-excluded:hover {
+        opacity: 0.85;
+    }
+
+    /* Card top floating action bar */
+    .card-top-bar {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 2;
+    }
+
+    .custom-check-pill {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 1.5px solid var(--border);
+        transition: all 0.15s;
+    }
+    [data-theme="dark"] .custom-check-pill {
+        background: rgba(30, 41, 59, 0.92);
+    }
+    .is-selected .custom-check-pill {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #ffffff;
+    }
+    .custom-check-pill i {
+        font-size: 14px;
+        font-weight: 700;
+        display: none;
+    }
+    .is-selected .custom-check-pill i {
+        display: block;
+    }
+
+    .btn-card-trash {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid var(--border);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    [data-theme="dark"] .btn-card-trash {
+        background: rgba(30, 41, 59, 0.92);
+    }
+    .btn-card-trash:hover {
+        background: #ef4444 !important;
+        border-color: #ef4444 !important;
+        color: #ffffff !important;
+        transform: scale(1.1);
+    }
+    .btn-card-trash i {
+        font-size: 13px;
+    }
+
+    /* Thumbnail preview wrapper */
+    .card-thumb-wrap {
+        width: 100%;
+        height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface-hover);
         border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 8px;
+        position: relative;
+    }
+    .card-thumb-wrap img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: filter 0.2s, opacity 0.2s;
+    }
+    .is-excluded .card-thumb-wrap img {
+        filter: grayscale(80%);
+    }
+
+    .excluded-badge {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
-        padding: 12px;
-    }
-    .page-item:hover {
-        border-color: var(--primary);
-        transform: scale(1.02);
-    }
-    .page-item img {
-        max-width: 150px;
-        max-height: 180px;
-        object-fit: contain;
-        margin-bottom: 8px;
-        border-radius: 4px;
-    }
-    .page-item .page-num {
-        font-size: 13px;
+        gap: 4px;
+        color: #ffffff;
+        font-size: 12px;
         font-weight: 600;
-        color: var(--text);
+        backdrop-filter: blur(1.5px);
+    }
+    .excluded-badge i {
+        font-size: 20px;
     }
 
-    @media (max-width: 900px) {
-        .page-item { width: 130px; }
-        .page-item img { max-width: 110px; max-height: 140px; }
+    /* Card footer info */
+    .card-meta-info {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        text-align: center;
     }
-    @media (max-width: 600px) {
-        .page-grid { gap: 10px; }
-        .page-item { width: 100px; padding: 8px; }
-        .page-item img { max-width: 80px; max-height: 100px; }
+    .page-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
     }
+    .page-origin {
+        font-size: 11px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 155px;
+    }
+
+    .grid-loading-box {
+        width: 100%;
+        min-height: 320px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        color: var(--text-secondary);
+    }
+    .grid-spinner {
+        width: 38px;
+        height: 38px;
+        border: 3.5px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
     .empty-preview {
         min-height: 360px;
         display: flex;
@@ -286,41 +593,84 @@
         font-size: 14px;
         margin: 0;
     }
+
+    @media (max-width: 900px) {
+        .page-card { width: 140px; padding: 6px; }
+        .card-thumb-wrap { height: 140px; }
+    }
+    @media (max-width: 600px) {
+        .page-grid { gap: 10px; }
+        .page-card { width: 105px; padding: 5px; }
+        .card-thumb-wrap { height: 110px; }
+        .ocr-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+        .toolbar-actions { justify-content: space-between; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script src="{% static 'js/pdf-lib.min.js' %}"></script>
+<script>if (typeof PDFLib === 'undefined') { document.write('<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"><\/script>'); }</script>
 
 <div class="page-seo-header">
     <h1>{% trans "OCR PDF to Word" %}</h1>
-    <p>{% trans "Convert scanned PDF files into editable Word documents." %}</p>
+    <p>{% trans "Convert scanned PDF and image files into editable Word (.docx) documents." %}</p>
 </div>
 
 <div class="main-content" x-data="ocrApp()">
+    <!-- Hidden multi-file input for Adding More files -->
+    <input type="file" x-ref="addMoreInput" accept=".pdf,image/*,.png,.jpg,.jpeg,.webp,.bmp" multiple style="display:none"
+           @change="onAddFilesChange($event)">
+
+    <!-- Left Control Panel -->
     <div class="left-panel">
+        <!-- Initial Drop Zone when no pages are loaded -->
         <div class="drop-zone"
+             x-show="pages.length === 0"
              :class="{ 'drag-over': dragging }"
              @dragover.prevent="dragging = true"
              @dragleave.prevent="dragging = false"
              @drop.prevent="onDrop($event)"
-             @click="$refs.fileInput.click()">
+             @click="$refs.initialFileInput.click()">
             <div class="drop-zone-icon"><i class="ti ti-file-upload"></i></div>
             <p>{% trans "Select PDF or Image or drop here" %}</p>
-            <input type="file" x-ref="fileInput" accept=".pdf,image/*,.png,.jpg,.jpeg,.webp,.bmp" style="display:none"
-                   @change="onFileChange($event)">
+            <input type="file" x-ref="initialFileInput" accept=".pdf,image/*,.png,.jpg,.jpeg,.webp,.bmp" multiple style="display:none"
+                   @change="onInitialFileChange($event)">
         </div>
 
-        <div class="file-list" x-show="currentFile" x-cloak>
-            <div class="file-item">
-                <span class="file-icon" x-text="currentFile && (currentFile.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp)$/i.test(currentFile.name)) ? '🖼️' : '📄'"></span>
-                <span class="file-name" x-text="currentFile ? currentFile.name : ''"></span>
-                <span class="file-size" x-text="currentFile ? toKhNum((currentFile.size/1024/1024).toFixed(2)) + ' MB' : ''"></span>
-                <button class="remove-btn" @click.stop="currentFile = null; renderPreview()">×</button>
+        <!-- Document Summary Card when pages are loaded -->
+        <div class="doc-summary-card" x-show="pages.length > 0" x-cloak>
+            <div class="doc-summary-header">
+                <span class="doc-summary-title">
+                    <i class="ti ti-files"></i>
+                    <span>{% trans "Document Queue" %}</span>
+                </span>
+                <span style="font-size:12px;color:var(--text-secondary);" x-text="filesCount + ' ' + (isKhmer ? 'ឯកសារ' : 'files')"></span>
+            </div>
+
+            <div class="doc-stat-row">
+                <span>{% trans "Pages Loaded:" %}</span>
+                <span class="doc-stat-val" x-text="toKhNum(pages.length)">0</span>
+            </div>
+            <div class="doc-stat-row">
+                <span>{% trans "Selected for OCR:" %}</span>
+                <span class="doc-stat-val highlight" x-text="toKhNum(selectedCount)">0</span>
+            </div>
+
+            <div class="doc-actions-col">
+                <button type="button" class="btn-side-add" @click="$refs.addMoreInput.click()">
+                    <i class="ti ti-file-plus"></i>
+                    <span>{% trans "+ Add More (PDF / Image)" %}</span>
+                </button>
+                <button type="button" class="btn-side-clear" @click="clearAll()">
+                    <i class="ti ti-trash"></i> {% trans "Remove & Start Over" %}
+                </button>
             </div>
         </div>
 
+        <!-- OCR Language Picker -->
         <div class="options-section">
             <label>{% trans "OCR Language" %}</label>
             <div class="lang-pills">
@@ -339,22 +689,109 @@
             </div>
         </div>
 
-        <button class="action-btn" :disabled="!currentFile" @click="submit()">
-            {% trans "OCR to Word" %}
+        <!-- Action Button -->
+        <button class="action-btn" :disabled="selectedCount === 0 || isLoadingPages" @click="submit()">
+            <span x-text="submitButtonText"></span>
         </button>
+        <p class="action-note" x-show="pages.length > 0" x-cloak>
+            {% trans "Only selected pages will be processed and converted into Word (.docx)." %}
+        </p>
     </div>
 
+    <!-- Right Workspace Panel -->
     <div class="right-panel">
         <div class="right-panel-inner">
-            <div class="empty-preview" x-show="!currentFile">
-                <i class="ti ti-files"></i>
-                <p>{% trans "Document preview will appear here" %}</p>
+            <!-- Workspace Toolbar (Visible when pages > 0) -->
+            <div class="ocr-toolbar" x-show="pages.length > 0" x-cloak>
+                <div class="toolbar-left">
+                    <div class="selection-badge">
+                        <i class="ti ti-checkbox"></i>
+                        <span>
+                            <strong x-text="toKhNum(selectedCount)"></strong> / <span x-text="toKhNum(pages.length)"></span>
+                            {% trans "pages selected" %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="toolbar-actions">
+                    <button type="button" class="btn-add-primary" @click="$refs.addMoreInput.click()" title="{% trans 'Add more PDF files or images' %}">
+                        <i class="ti ti-plus"></i>
+                        <span>{% trans "+ Add (PDF / Image)" %}</span>
+                    </button>
+                    <button type="button" class="btn-tool-pill" @click="selectAll()" :disabled="allSelected" title="{% trans 'Select All' %}">
+                        <i class="ti ti-check-all"></i>
+                        <span>{% trans "Select All" %}</span>
+                    </button>
+                    <button type="button" class="btn-tool-pill" @click="deselectAll()" :disabled="selectedCount === 0" title="{% trans 'Deselect All' %}">
+                        <i class="ti ti-square"></i>
+                        <span>{% trans "Deselect" %}</span>
+                    </button>
+                    <button type="button" class="btn-tool-pill danger" @click="deleteSelected()" :disabled="selectedCount === 0" title="{% trans 'Delete Selected' %}">
+                        <i class="ti ti-trash"></i>
+                        <span>{% trans "Delete Selected" %}</span>
+                    </button>
+                </div>
             </div>
-            <div class="page-grid" id="previewGrid"></div>
+
+            <!-- Page Grid -->
+            <div class="page-grid" id="previewGrid">
+                <!-- Empty Placeholder -->
+                <div class="empty-preview" x-show="pages.length === 0 && !isLoadingPages">
+                    <i class="ti ti-layout-grid"></i>
+                    <p>{% trans "Upload PDF or image files to preview, select, and organize pages before converting." %}</p>
+                </div>
+
+                <!-- Loading State while extracting pages -->
+                <div class="grid-loading-box" x-show="isLoadingPages" x-cloak>
+                    <div class="grid-spinner"></div>
+                    <p style="font-size:14.5px; font-weight:600;" x-text="loadingProgress"></p>
+                </div>
+
+                <!-- Page Thumbnails List -->
+                <template x-for="(page, idx) in pages" :key="page.id">
+                    <div class="page-card"
+                         :class="{ 'is-selected': page.selected, 'is-excluded': !page.selected }"
+                         @click="togglePageSelect(idx)">
+                        
+                        <!-- Floating Card Controls -->
+                        <div class="card-top-bar" @click.stop>
+                            <!-- Checkbox Toggle -->
+                            <div class="custom-check-pill"
+                                 @click.stop="togglePageSelect(idx)"
+                                 :title="page.selected ? (isKhmer ? 'ដោះចេញពីការបម្លែង' : 'Exclude from OCR') : (isKhmer ? 'ជ្រើសរើសដើម្បីបម្លែង' : 'Include in OCR')">
+                                <i class="ti ti-check"></i>
+                            </div>
+
+                            <!-- Single Page Delete Trash Button -->
+                            <button type="button"
+                                    class="btn-card-trash"
+                                    @click.stop="deletePage(idx)"
+                                    title="{% trans 'Delete this page' %}">
+                                <i class="ti ti-trash"></i>
+                            </button>
+                        </div>
+
+                        <!-- Thumbnail Preview -->
+                        <div class="card-thumb-wrap">
+                            <img :src="page.thumb" :alt="page.label">
+                            <div class="excluded-badge" x-show="!page.selected" x-cloak>
+                                <i class="ti ti-eye-off"></i>
+                                <span>{% trans "Excluded" %}</span>
+                            </div>
+                        </div>
+
+                        <!-- Page Label & Source Info -->
+                        <div class="card-meta-info">
+                            <span class="page-title" x-text="page.label"></span>
+                            <span class="page-origin" x-text="page.sourceName" :title="page.sourceName"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Processing Modal -->
     <div class="modal-overlay" x-show="modalVisible" x-cloak>
         <div class="modal">
             <h2>{% trans "Processing OCR..." %}</h2>
@@ -372,89 +809,242 @@
 <script>
 function ocrApp() {
     return baseToolApp({
-        currentFile: null,
+        pages: [],
+        loadedFiles: new Set(),
         ocrLang: (typeof isKhmer !== 'undefined' && isKhmer) ? 'khm' : 'eng+khm',
+        isLoadingPages: false,
+        loadingProgress: '',
+        _nextId: 1,
 
-        handleFileList(list) {
-            if (list.length) {
-                this.currentFile = list[0];
-                this.renderPreview();
-            }
+        get filesCount() {
+            return this.loadedFiles.size;
         },
+
+        get selectedCount() {
+            return this.pages.filter(p => p.selected).length;
+        },
+
+        get allSelected() {
+            return this.pages.length > 0 && this.selectedCount === this.pages.length;
+        },
+
+        get submitButtonText() {
+            const count = this.selectedCount;
+            if (count === 0) {
+                return isKhmer ? 'សូមជ្រើសរើសយ៉ាងហោច ១ ទំព័រ' : 'Select at least 1 page';
+            }
+            if (isKhmer) {
+                return `បម្លែង ${toKhNum(count)} ទំព័រទៅជា Word`;
+            }
+            return `OCR ${count} ${count === 1 ? 'Page' : 'Pages'} to Word`;
+        },
+
         onDrop(e) {
             this.dragging = false;
             this.handleFileList(e.dataTransfer.files);
         },
-        onFileChange(e) {
+        onInitialFileChange(e) {
+            this.handleFileList(e.target.files);
+            e.target.value = '';
+        },
+        onAddFilesChange(e) {
             this.handleFileList(e.target.files);
             e.target.value = '';
         },
 
-        async submit() {
-            if (!this.currentFile) return;
-            this.showModal();
-            const fd = new FormData();
-            fd.append('file', this.currentFile);
-            fd.append('ocr_lang', this.ocrLang);
-            try {
-                const d = await fetch('/api/ocr/', { method: 'POST', body: fd }).then(r => r.json());
-                const baseName = (this.currentFile?.name || 'document').replace(/\.[^/.]+$/, '');
-                if (d.job_id) this.pollJob(d.job_id, baseName + '.docx');
-                else { this.hideModal(); alert(d.error || window.I18N_JS.error); }
-            } catch(err) {
-                this.hideModal(); alert(window.I18N_JS.errorPrefix + ' ' + err.message);
+        async handleFileList(list) {
+            if (!list || !list.length) return;
+            this.isLoadingPages = true;
+            this.loadingProgress = isKhmer ? 'កំពុងផ្ទុក និងដំណើរការទំព័រ...' : 'Loading and rendering pages...';
+
+            for (let i = 0; i < list.length; i++) {
+                const file = list[i];
+                this.loadedFiles.add(file.name);
+                const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                
+                if (file.type.startsWith('image/') || ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tif', '.tiff'].includes(ext)) {
+                    await this.addImagePage(file);
+                } else if (file.type === 'application/pdf' || ext === '.pdf') {
+                    await this.addPdfPages(file);
+                }
             }
+
+            this.isLoadingPages = false;
         },
 
-        async renderPreview() {
-            const grid = document.getElementById('previewGrid');
-            grid.innerHTML = '';
-            if (!this.currentFile) return;
+        async addImagePage(file) {
+            const thumbUrl = URL.createObjectURL(file);
+            const imgCount = this.pages.filter(p => p.sourceType === 'image').length + 1;
+            this.pages.push({
+                id: this._nextId++,
+                sourceFile: file,
+                sourceType: 'image',
+                pageNum: 1,
+                thumb: thumbUrl,
+                label: (isKhmer ? 'រូបភាព ' : 'Image ') + toKhNum(imgCount),
+                sourceName: file.name,
+                selected: true
+            });
+        },
 
-            // Preview image directly if file is an image
-            if (this.currentFile.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp|gif|tif|tiff)$/i.test(this.currentFile.name)) {
-                const item = document.createElement('div');
-                item.className = 'page-item';
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(this.currentFile);
-                const num = document.createElement('div');
-                num.className = 'page-num';
-                num.textContent = isKhmer ? 'រូបភាព' : 'Image';
-                item.appendChild(img);
-                item.appendChild(num);
-                grid.appendChild(item);
-                return;
-            }
-
+        async addPdfPages(file) {
             try {
-                const ab = await this.currentFile.arrayBuffer();
+                const ab = await file.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
                 const total = pdf.numPages;
                 for (let i = 1; i <= total; i++) {
                     const page = await pdf.getPage(i);
                     const vp = page.getViewport({ scale: 0.5 });
                     const canvas = document.createElement('canvas');
-                    canvas.height = vp.height; canvas.width = vp.width;
+                    canvas.height = vp.height;
+                    canvas.width = vp.width;
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
                     
-                    const item = document.createElement('div');
-                    item.className = 'page-item';
-                    
-                    const img = document.createElement('img');
-                    img.src = canvas.toDataURL();
-                    
-                    const num = document.createElement('div');
-                    num.className = 'page-num';
-                    num.textContent = (isKhmer ? 'ទំព័រ ' : 'Page ') + toKhNum(i);
-                    
-                    item.appendChild(img);
-                    item.appendChild(num);
-                    grid.appendChild(item);
+                    this.pages.push({
+                        id: this._nextId++,
+                        sourceFile: file,
+                        sourceType: 'pdf',
+                        pageNum: i,
+                        thumb: canvas.toDataURL('image/jpeg', 0.8),
+                        label: (isKhmer ? 'ទំព័រ ' : 'Page ') + toKhNum(i),
+                        sourceName: file.name,
+                        selected: true
+                    });
                 }
-            } catch(e) {
-                console.error('Preview error:', e);
+            } catch(err) {
+                console.error('Error rendering PDF pages:', err);
+                alert((isKhmer ? 'មិនអាចបើកឯកសារ PDF បានទេ: ' : 'Failed to load PDF: ') + err.message);
             }
         },
+
+        togglePageSelect(index) {
+            if (this.pages[index]) {
+                this.pages[index].selected = !this.pages[index].selected;
+            }
+        },
+
+        deletePage(index) {
+            if (this.pages[index]) {
+                this.pages.splice(index, 1);
+                if (this.pages.length === 0) {
+                    this.loadedFiles.clear();
+                }
+            }
+        },
+
+        selectAll() {
+            this.pages.forEach(p => p.selected = true);
+        },
+
+        deselectAll() {
+            this.pages.forEach(p => p.selected = false);
+        },
+
+        deleteSelected() {
+            const count = this.selectedCount;
+            if (count === 0) return;
+            const msg = isKhmer
+                ? `តើអ្នកពិតជាចង់លុប ${toKhNum(count)} ទំព័រដែលបានជ្រើសរើសមែនទេ?`
+                : `Delete ${count} selected page(s)?`;
+            if (confirm(msg)) {
+                this.pages = this.pages.filter(p => !p.selected);
+                if (this.pages.length === 0) {
+                    this.loadedFiles.clear();
+                }
+            }
+        },
+
+        clearAll() {
+            if (this.pages.length === 0) return;
+            const msg = isKhmer
+                ? 'តើអ្នកចង់ចាប់ផ្តើមឡើងវិញ និងលុបទំព័រទាំងអស់មែនទេ?'
+                : 'Remove all pages and start over?';
+            if (confirm(msg)) {
+                this.pages = [];
+                this.loadedFiles.clear();
+            }
+        },
+
+        async submit() {
+            const activePages = this.pages.filter(p => p.selected);
+            if (!activePages.length) {
+                alert(isKhmer ? 'សូមជ្រើសរើសយ៉ាងហោចណាស់ ១ ទំព័រដើម្បីបម្លែង!' : 'Please select at least 1 page to convert!');
+                return;
+            }
+
+            this.showModal();
+
+            try {
+                let fileToSend = null;
+                const firstSourceName = activePages[0].sourceName.replace(/\.[^/.]+$/, '');
+
+                // Single image shortcut
+                if (activePages.length === 1 && activePages[0].sourceType === 'image') {
+                    fileToSend = activePages[0].sourceFile;
+                } else {
+                    // Multi-page assembly with PDFLib
+                    const outPdf = await PDFLib.PDFDocument.create();
+
+                    for (const page of activePages) {
+                        if (page.sourceType === 'pdf') {
+                            const srcBytes = await page.sourceFile.arrayBuffer();
+                            const srcDoc = await PDFLib.PDFDocument.load(srcBytes);
+                            const [copied] = await outPdf.copyPages(srcDoc, [page.pageNum - 1]);
+                            outPdf.addPage(copied);
+                        } else if (page.sourceType === 'image') {
+                            const jpgBytes = await this.imageToJpgBytes(page.sourceFile);
+                            const embeddedImg = await outPdf.embedJpg(jpgBytes);
+                            const imgPage = outPdf.addPage([embeddedImg.width, embeddedImg.height]);
+                            imgPage.drawImage(embeddedImg, {
+                                x: 0,
+                                y: 0,
+                                width: embeddedImg.width,
+                                height: embeddedImg.height,
+                            });
+                        }
+                    }
+
+                    const pdfBytes = await outPdf.save();
+                    fileToSend = new File([pdfBytes], firstSourceName + '_selected.pdf', { type: 'application/pdf' });
+                }
+
+                const fd = new FormData();
+                fd.append('file', fileToSend);
+                fd.append('ocr_lang', this.ocrLang);
+
+                const d = await fetch('/api/ocr/', { method: 'POST', body: fd }).then(r => r.json());
+                const baseName = firstSourceName || 'document';
+                if (d.job_id) {
+                    this.pollJob(d.job_id, baseName + '.docx');
+                } else {
+                    this.hideModal();
+                    alert(d.error || window.I18N_JS.error);
+                }
+            } catch(err) {
+                this.hideModal();
+                alert(window.I18N_JS.errorPrefix + ' ' + err.message);
+            }
+        },
+
+        async imageToJpgBytes(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || img.width;
+                    canvas.height = img.naturalHeight || img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob((blob) => {
+                        blob.arrayBuffer().then(resolve).catch(reject);
+                    }, 'image/jpeg', 0.92);
+                };
+                img.onerror = reject;
+                img.src = URL.createObjectURL(file);
+            });
+        }
     });
 }
 </script>

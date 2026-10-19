@@ -211,6 +211,10 @@ msgid "Email"
 msgstr "អ៊ីមែល"
 
 # Category: General
+msgid "English"
+msgstr "អង់គ្លេស"
+
+# Category: General
 msgid "Error loading PDF file"
 msgstr "កំហុសក្នុងការបើកឯកសារ PDF"
 
@@ -281,6 +285,10 @@ msgstr "ថ្ងៃសីល"
 # Category: General
 msgid "KHQR donation code"
 msgstr "កូដ KHQR សម្រាប់បរិច្ចាគ"
+
+# Category: General
+msgid "Khmer"
+msgstr "ខ្មែរ"
 
 # Category: General
 msgid "Legal & Privacy"
@@ -579,6 +587,14 @@ msgid "👆 Add PDF files to merge. Click Merge to combine them."
 msgstr "👆 បន្ថែមឯកសារ PDF ដើម្បីបញ្ជូល ចុច Merge ដើម្បីបញ្ជូលគ្នា"
 
 # Category: OCR
+msgid "+ Add (PDF / Image)"
+msgstr "+ បន្ថែម (PDF / រូបភាព)"
+
+# Category: OCR
+msgid "+ Add More (PDF / Image)"
+msgstr "+ បន្ថែមទៀត (PDF / រូបភាព)"
+
+# Category: OCR
 msgid "100% Free Khmer PDF Tools & AI OCR"
 msgstr "ឧបករណ៍ PDF ខ្មែរ & AI OCR ឥតគិតថ្លៃ 100%"
 
@@ -591,12 +607,20 @@ msgid "AI Powered"
 msgstr "បច្ចេកវិទ្យា AI"
 
 # Category: OCR
+msgid "Add more PDF files or images"
+msgstr "បន្ថែមឯកសារ PDF ឬរូបភាពទៀត"
+
+# Category: OCR
 msgid "Claude AI Vision"
 msgstr "បច្ចេកវិទ្យា Claude AI"
 
 # Category: OCR
 msgid "Convert scanned Khmer documents and images into editable Microsoft Word (.docx) with 100% Khmer Unicode accuracy, preserving tables, columns, and document layout."
 msgstr "បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជាឯកសារ Word (.docx) ជាភាសាខ្មែរ ដោយរក្សាទម្រង់តារាង ជួរឈរ និងអក្សរយូនីកូដត្រឹមត្រូវ 100%។"
+
+# Category: OCR
+msgid "Convert scanned PDF and image files into editable Word (.docx) documents."
+msgstr "បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជាឯកសារ Word (.docx) ដែលអាចកែសម្រួលបាន។"
 
 # Category: OCR
 msgid "Convert scanned PDF and images into editable Word (.docx)"
@@ -615,6 +639,10 @@ msgid "Convert to Word"
 msgstr "បម្លែងទៅជា Word"
 
 # Category: OCR
+msgid "Document Queue"
+msgstr "បញ្ជីឯកសារ"
+
+# Category: OCR
 msgid "Document preview will appear here"
 msgstr "ការមើលឯកសារជាមុននឹងបង្ហាញនៅទីនេះ"
 
@@ -627,6 +655,10 @@ msgid "Editable Word (.docx)"
 msgstr "ឯកសារ Word (.docx)"
 
 # Category: OCR
+msgid "Excluded"
+msgstr "មិនរាប់បញ្ចូល"
+
+# Category: OCR
 msgid "Free, secure and private online PDF tools with Khmer Unicode AI OCR."
 msgstr "ឧបករណ៍ PDF លើអនឡាញឥតគិតថ្លៃ មានសុវត្ថិភាពខ្ពស់ និង AI OCR ខ្មែរយូនីកូដត្រឹមត្រូវ។"
 
@@ -637,6 +669,10 @@ msgstr "ស្គាល់អក្សរដោយ AI ភ្លាមៗ"
 # Category: OCR
 msgid "Instant • 100% Free • No registration needed"
 msgstr "រហ័ស • ឥតគិតថ្លៃ 100% • មិនបាច់ចុះឈ្មោះ"
+
+# Category: OCR
+msgid "Khmer + Eng"
+msgstr "ខ្មែរ + អង់គ្លេស"
 
 # Category: OCR
 msgid "Khmer AI OCR"
@@ -683,8 +719,16 @@ msgid "OCR PDF to Word - Khmer & English"
 msgstr "បម្លែង PDF ស្កេនទៅជា Word (OCR) - ខ្មែរ និងអង់គ្លេស"
 
 # Category: OCR
+msgid "Only selected pages will be processed and converted into Word (.docx)."
+msgstr "មានតែទំព័រដែលបានជ្រើសរើសប៉ុណ្ណោះដែលនឹងត្រូវបម្លែងទៅជា Word (.docx)។"
+
+# Category: OCR
 msgid "PDF / Image → Word (.docx)"
 msgstr "PDF / រូបភាព → Word (.docx)"
+
+# Category: OCR
+msgid "Pages Loaded:"
+msgstr "ទំព័របានផ្ទុក:"
 
 # Category: OCR
 msgid "Preserves Tables & Layout"
@@ -707,12 +751,24 @@ msgid "Select PDF or Image or drop here"
 msgstr "ជ្រើសរើសឯកសារ PDF ឬរូបភាព ឬទម្លាក់ទីនេះ"
 
 # Category: OCR
+msgid "Selected for OCR:"
+msgstr "បានជ្រើសរើសសម្រាប់ OCR:"
+
+# Category: OCR
 msgid "Try Khmer OCR Free"
 msgstr "សាកល្បង OCR ខ្មែរ ឥតគិតថ្លៃ"
 
 # Category: OCR
+msgid "Upload PDF or image files to preview, select, and organize pages before converting."
+msgstr "ផ្ទុកឡើងឯកសារ PDF ឬរូបភាព ដើម្បីមើលជាមុន ជ្រើសរើស និងរៀបចំទំព័រមុនពេលបម្លែង។"
+
+# Category: OCR
 msgid "Upload a scanned PDF or image-based PDF to convert it into a searchable PDF with selectable text. Supports English and Khmer languages."
 msgstr "បង្ហាញ PDF ស្កេន ឬ PDF ដោយផ្អែកលើរូបភាព ដើម្បីបំលែងទៅជា PDF ដែលអាចស្វែងរកបាន គាំទ្រភាសាអង់គ្លេស និង ខ្មែរ"
+
+# Category: OCR
+msgid "pages selected"
+msgstr "ទំព័របានជ្រើសរើស"
 
 # Category: Organize
 msgid "+ Insert PDF"
@@ -729,6 +785,10 @@ msgstr "ចុចដើម្បីបញ្ចូលឯកសារ PDF ផ្�
 # Category: Organize
 msgid "Compress, Merge, Split, Organize PDF Files and More"
 msgstr "បង្រួម បញ្ចូល បំបែង រៀបចំ PDF និងច្រើនទៀត"
+
+# Category: Organize
+msgid "Delete this page"
+msgstr "លុបទំព័រនេះ"
 
 # Category: Organize
 msgid "Error inserting PDF"
