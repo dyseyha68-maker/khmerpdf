@@ -339,33 +339,7 @@
     .calendar-card p {
         color: #ffffff !important;
     }
-    
-    .trust-bar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-        margin-top: 44px;
-        color: var(--text-secondary);
-        font-size: 13px;
-        font-weight: 500;
-        flex-wrap: wrap;
-    }
-    
-    .trust-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .trust-item i {
-        color: var(--primary);
-        font-size: 16px;
-    }
-    
-    .trust-dot {
-        opacity: 0.4;
-    }
+
     
     /* ══════════════════════════════════════════════════════════════
        RESPONSIVE BREAKPOINTS
@@ -596,23 +570,6 @@
         <h3>{% trans "Calendar" %}</h3>
         <p>{% trans "Public holidays & lunar" %}</p>
     </a>
-</div>
-
-<div class="trust-bar">
-    <div class="trust-item">
-        <i class="ti ti-bolt"></i>
-        <span>{% trans "Instant & Free" %}</span>
-    </div>
-    <div class="trust-dot">•</div>
-    <div class="trust-item">
-        <i class="ti ti-shield-check"></i>
-        <span>{% trans "Private & Secure" %}</span>
-    </div>
-    <div class="trust-dot">•</div>
-    <div class="trust-item">
-        <i class="ti ti-heart"></i>
-        <span>{% trans "Built for Cambodia" %}</span>
-    </div>
 </div>
 {% endblock %}
 

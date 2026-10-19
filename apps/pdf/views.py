@@ -231,6 +231,14 @@ def contact_page(request):
     return render(request, 'contact.html')
 
 
+def privacy_page(request):
+    return render(request, 'privacy.html')
+
+
+def terms_page(request):
+    return render(request, 'terms.html')
+
+
 @csrf_exempt
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])

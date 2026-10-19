@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% if LANGUAGE_CODE == 'km' %}លក្ខខណ្ឌនៃការប្រើប្រាស់ (Terms of Service) - DAMSPEY{% else %}Terms and Conditions - DAMSPEY{% endif %}{% endblock %}
+
+{% block meta_description %}{% if LANGUAGE_CODE == 'km' %}លក្ខខណ្ឌនៃការប្រើប្រាស់សេវាកម្ម DAMSPEY។ អ្នកប្រើប្រាស់រក្សាកម្មសិទ្ធិបញ្ញា ១០០% លើឯកសារផ្ទុកឡើងទាំងអស់ ស្របតាមបទប្បញ្ញត្តិ GDPR។{% else %}DAMSPEY Terms of Service and Conditions. Understand your rights, our 100% user copyright retention guarantee, acceptable use, and GDPR data protection adherence.{% endif %}{% endblock %}
+
+{% block page_path %}/terms/{% endblock %}
+{% block og_path %}/terms/{% endblock %}
+{% block og_title %}{% if LANGUAGE_CODE == 'km' %}លក្ខខណ្ឌនៃការប្រើប្រាស់ - DAMSPEY{% else %}Terms and Conditions - DAMSPEY{% endif %}{% endblock %}
+{% block og_description %}{% if LANGUAGE_CODE == 'km' %}អ្នកប្រើប្រាស់រក្សាកម្មសិទ្ធិបញ្ញា ១០០% លើឯកសារទាំងអស់។{% else %}You retain 100% ownership of your documents. Free, private, and GDPR-compliant PDF processing.{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .legal-container {
+        max-width: 860px;
+        margin: 20px auto 60px;
+        padding: 0 20px;
+    }
+
+    .legal-header {
+        text-align: center;
+        margin-bottom: 36px;
+    }
+
+    .legal-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 14px;
+    }
+
+    .legal-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 10px;
+        line-height: 1.3;
+    }
+
+    .legal-meta {
+        font-size: 13.5px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .legal-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 40px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 600px) {
+        .legal-card { padding: 24px 18px; border-radius: 14px; }
+        .legal-title { font-size: 24px; }
+    }
+
+    .legal-highlight-box {
+        background: rgba(37, 99, 235, 0.06);
+        border-left: 4px solid var(--primary);
+        border-radius: 0 12px 12px 0;
+        padding: 16px 20px;
+        margin-bottom: 32px;
+    }
+
+    .legal-highlight-box p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.65;
+        color: var(--text);
+    }
+
+    .legal-section {
+        margin-bottom: 32px;
+    }
+
+    .legal-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .legal-section h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .legal-section h2 .sec-num {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--primary);
+        background: rgba(37, 99, 235, 0.1);
+        padding: 2px 8px;
+        border-radius: 6px;
+    }
+
+    .legal-section p {
+        font-size: 14.5px;
+        line-height: 1.75;
+        color: var(--text);
+        margin-bottom: 12px;
+    }
+
+    .legal-section ul {
+        margin: 10px 0 16px 22px;
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.75;
+    }
+
+    .legal-section li {
+        margin-bottom: 6px;
+    }
+
+    .contact-cta-box {
+        background: var(--surface-hover);
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        padding: 22px;
+        text-align: center;
+        margin-top: 28px;
+    }
+
+    .contact-cta-box h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text);
+    }
+
+    .contact-cta-box p {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 14px;
+    }
+
+    .contact-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        color: #ffffff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13.5px;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    .contact-btn:hover { background: var(--primary-dark); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-container">
+    <div class="legal-header">
+        <div class="legal-badge">
+            <i class="ti ti-file-certificate"></i>
+            {% if LANGUAGE_CODE == 'km' %}លក្ខខណ្ឌសេវាកម្មស្របតាមច្បាប់{% else %}Terms of Service & Usage Rights{% endif %}
+        </div>
+        <h1 class="legal-title">
+            {% if LANGUAGE_CODE == 'km' %}លក្ខខណ្ឌនៃការប្រើប្រាស់ (Terms & Conditions){% else %}Terms and Conditions{% endif %}
+        </h1>
+        <div class="legal-meta">
+            <span><i class="ti ti-calendar"></i> {% if LANGUAGE_CODE == 'km' %}កាលបរិច្ឆេទធ្វើបច្ចុប្បន្នភាព: ថ្ងៃទី១៩ ខែតុលា ឆ្នាំ២០២៦{% else %}Effective Date: October 19, 2026{% endif %}</span>
+            <span>•</span>
+            <span><i class="ti ti-shield-check"></i> {% if LANGUAGE_CODE == 'km' %}ការពារកម្មសិទ្ធិបញ្ញា ១០០%{% else %}100% User Ownership Protected{% endif %}</span>
+        </div>
+    </div>
+
+    <div class="legal-card">
+        <div class="legal-highlight-box">
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                <strong>ការសង្ខេបយ៉ាងខ្លី៖</strong> អ្នករក្សានូវកម្មសិទ្ធិបញ្ញា និងសិទ្ធិអ្នកនិពន្ធ ១០០% លើរាល់ឯកសារទាំងអស់ដែលអ្នកផ្ទុកឡើង។ ឯកសាររបស់អ្នកត្រូវបានដំណើរការបណ្ដោះអាសន្ន និងលុបចេញដោយស្វ័យប្រវត្តិក្នុ្ងរយៈពេល ៦០ នាទី ស្របតាមបទប្បញ្ញត្តិ GDPR។
+                {% else %}
+                <strong>Summary at a glance:</strong> You retain 100% copyright, intellectual property, and ownership over all uploaded files and converted outputs. We never claim ownership, never sell your files, and permanently purge all documents within 60 minutes in full accordance with the EU GDPR.
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- 1. Acceptance -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">01</span>
+                {% if LANGUAGE_CODE == 'km' %}ការយល់ព្រមលើលក្ខខណ្ឌ (Acceptance of Terms){% else %}Acceptance of Terms{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                តាមរយៈការចូលប្រើប្រាស់ ឬការប្រើប្រាស់គេហទំព័រ <strong>DAMSPEY</strong> (https://damspey.com) អ្នកយល់ព្រមគោរពតាមលក្ខខណ្ឌនៃការប្រើប្រាស់ទាំងនេះ និង <a href="/privacy/">គោលការណ៍ឯកជនភាព GDPR របស់យើង</a>។ ប្រសិនបើអ្នកមិនយល់ព្រមលើលក្ខខណ្ឌណាមួយទេ សូមកុំប្រើប្រាស់សេវាកម្មរបស់យើង។
+                {% else %}
+                By accessing or using <strong>DAMSPEY</strong> (accessible at <a href="https://damspey.com">https://damspey.com</a>), you agree to be bound by these Terms and Conditions and our <a href="/privacy/">GDPR-compliant Privacy Policy</a>. If you do not agree with any part of these terms, please discontinue using our tools.
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- 2. Services Description -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">02</span>
+                {% if LANGUAGE_CODE == 'km' %}ការពិពណ៌នាអំពីសេវាកម្ម (Description of Service){% else %}Description of Service{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                DAMSPEY ផ្តល់ជូននូវឧបករណ៍ជំនួយឯកសារ PDF លើអនឡាញឥតគិតថ្លៃ រួមមាន OCR PDF ទៅជា Word, ការបង្រួមទំហំ PDF, ការបញ្ចូល PDF, ការបំបែក PDF, ការរៀបចំទំព័រ, ការដាក់ពាក្យសម្ងាត់ការពារ, និងការបម្លែងរូបភាព។ សេវាកម្មទាំងអស់ត្រូវបានផ្តល់ជូនដោយឥតគិតថ្លៃ ១០០% ដោយមិនទាមទារការចុះឈ្មោះគណនីឡើយ។
+                {% else %}
+                DAMSPEY provides free, browser-based PDF utilities including OCR PDF to Word conversion (specializing in Khmer Unicode and complex tables), PDF Compression, Merging, Splitting, Page Organization, Password Protection, Image conversions, and Calendar utilities. All services are free to use without mandatory user account creation.
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- 3. Intellectual Property Rights -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">03</span>
+                {% if LANGUAGE_CODE == 'km' %}កម្មសិទ្ធិបញ្ញា និងភាពជាម្ចាស់លើឯកសារ (User Intellectual Property Rights){% else %}Intellectual Property & Document Ownership{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                <strong>អ្នករក្សាកម្មសិទ្ធិបញ្ញាពេញលេញ ១០០%៖</strong> DAMSPEY មិនទាមទារសិទ្ធិ កម្មសិទ្ធិ ឬផលប្រយោជន៍ណាមួយលើឯកសារ រូបភាព ឬអត្ថបទដែលអ្នកផ្ទុកឡើង ឬឯកសារលទ្ធផលដែលទើបបង្កើតរួចឡើយ។
+                {% else %}
+                <strong>You Retain 100% Full Ownership:</strong> DAMSPEY asserts zero ownership, copyright, or licensing claims over the documents, text, images, or metadata you upload, nor over the converted files generated. All intellectual property rights remain exclusively with you or the rightful copyright holder.
+                {% endif %}
+            </p>
+            <ul>
+                <li>
+                    {% if LANGUAGE_CODE == 'km' %}
+                    <strong>អាជ្ញាប័ណ្ណបណ្ដោះអាសន្ន:</strong> អ្នកគ្រាន់តែផ្តល់អាជ្ញាប័ណ្ណបច្ចេកទេសបណ្ដោះអាសន្នដល់ DAMSPEY ក្នុងគោលបំណងតែមួយគត់គឺដំណើរការបម្លែងឯកសារតាមការស្នើសុំរបស់អ្នក។
+                    {% else %}
+                    <strong>Limited Technical License:</strong> You grant DAMSPEY only the narrow, non-exclusive, transient license necessary to execute the requested processing algorithms on your files.
+                    {% endif %}
+                </li>
+                <li>
+                    {% if LANGUAGE_CODE == 'km' %}
+                    <strong>គ្មានការរក្សាទុក ឬលក់ទិន្នន័យ:</strong> ឯកសាររបស់អ្នកមិនដែលត្រូវបានលក់ ចែករំលែក ឬប្រើប្រាស់ដើម្បីបង្វឹកម៉ូដែល AI ឡើយ។
+                    {% else %}
+                    <strong>No Data Commercialization:</strong> User documents are never monetized, distributed, publicized, or utilized for AI training.
+                    {% endif %}
+                </li>
+            </ul>
+        </section>
+
+        <!-- 4. Acceptable Use Policy -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">04</span>
+                {% if LANGUAGE_CODE == 'km' %}គោលការណ៍ប្រើប្រាស់ត្រឹមត្រូវ (Acceptable Use Policy){% else %}Acceptable Use & User Obligations{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                នៅពេលប្រើប្រាស់សេវាកម្មរបស់យើង អ្នកសន្យា និងធានាថា៖
+                {% else %}
+                By using our platform, you agree and warrant that you will not:
+                {% endif %}
+            </p>
+            <ul>
+                <li>{% if LANGUAGE_CODE == 'km' %}មិនផ្ទុកឡើងនូវឯកសារដែលមានផ្ទុកមេរោគ (Viruses, Trojans, Malware) ឬកូដដែលបង្កគ្រោះថ្នាក់។{% else %}Upload files containing viruses, malicious code, trojans, ransomware, or disruptive scripts.{% endif %}</li>
+                <li>{% if LANGUAGE_CODE == 'km' %}មិនផ្ទុកឡើងនូវឯកសារដែលបំពានច្បាប់ បំពានសិទ្ធិអ្នកដទៃ ឬរំលោភលើកម្មសិទ្ធិបញ្ញារបស់ភាគីទីបីដោយគ្មានការអនុញ្ញាត។{% else %}Upload material that infringes upon third-party copyrights, patents, trademarks, or privacy rights without legal authorization.{% endif %}</li>
+                <li>{% if LANGUAGE_CODE == 'km' %}មិនព្យាយាមវាយប្រហារ កកាយ ឬធ្វើឱ្យខូចខាតដល់ប្រព័ន្ធម៉ាស៊ីនបម្រើ (DDoS attacks, unauthorized probing)។{% else %}Attempt to overwhelm, disrupt, reverse-engineer, or execute automated denial-of-service attacks against our infrastructure.{% endif %}</li>
+            </ul>
+        </section>
+
+        <!-- 5. Automated OCR & AI Processing -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">05</span>
+                {% if LANGUAGE_CODE == 'km' %}ដំណើរការ OCR និងបច្ចេកវិទ្យា AI (Automated Processing Disclaimer){% else %}Automated Processing & OCR Disclaimer{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                ការស្រង់អក្សរ និងការបម្លែងឯកសារ (ដូចជា OCR ខ្មែរទៅជា Word) ត្រូវបានដំណើរការដោយប្រព័ន្ធ AI និងក្បួនដោះស្រាយស្វ័យប្រវត្តិ។ ទោះបីជាយើងខិតខំផ្តល់នូវភាពត្រឹមត្រូវខ្ពស់បំផុតលើអក្សរខ្មែរយូនីកូដ និងទម្រង់តារាងក៏ដោយ អ្នកប្រើប្រាស់ត្រូវបានលើកទឹកចិត្តឱ្យត្រួតពិនិត្យឯកសារលទ្ធផលឡើងវិញ មុនពេលយកទៅប្រើប្រាស់ក្នុងកិច្ចការផ្លូវការ ឬផ្លូវច្បាប់។
+                {% else %}
+                Optical Character Recognition (OCR) and document conversions are automated computational processes. While our algorithms and vision models provide industry-leading Khmer Unicode and layout accuracy, converted outputs should be reviewed for formal, legal, or financial use. DAMSPEY does not guarantee 100% lexical perfection across all scan qualities.
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- 6. Ephemeral Storage & GDPR Deletion -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">06</span>
+                {% if LANGUAGE_CODE == 'km' %}ការលុបទិន្នន័យស្របតាម GDPR (Automated Deletion Guarantee){% else %}Data Deletion & GDPR Compliance{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                ឯកសារទាំងអស់ត្រូវបានលុបចេញជាអចិន្ត្រៃយ៍ពីម៉ាស៊ីនបម្រើក្នុងរយៈពេល ៦០ នាទី។ DAMSPEY មិនទទួលខុសត្រូវចំពោះការបាត់បង់ឯកសារបន្ទាប់ពីផុតកំណត់រយៈពេលនេះឡើយ។ សូមទាញយកឯកសារលទ្ធផលរបស់អ្នកភ្លាមៗបន្ទាប់ពីដំណើរការរួចរាល់។
+                {% else %}
+                All files are automatically and permanently deleted from our servers within 60 minutes after processing. DAMSPEY is not an archival storage provider. Users are responsible for downloading and safeguarding their converted files immediately after processing.
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- 7. Disclaimer of Warranties -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">07</span>
+                {% if LANGUAGE_CODE == 'km' %}ការមិនធានា (Disclaimer of Warranties){% else %}Disclaimer of Warranties ("As Is"){% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                សេវាកម្មនេះត្រូវបានផ្តល់ជូននៅលើមូលដ្ឋាន "ដូចដែលមាន" (AS IS) និង "តាមលទ្ធភាពដែលអាចផ្តល់បាន" (AS AVAILABLE) ដោយគ្មានការធានាប្រភេទណាមួយឡើយ មិនថាជាការធានាច្បាស់លាស់ ឬបង្កប់ន័យឡើយ។
+                {% else %}
+                The service is provided on an "AS IS" and "AS AVAILABLE" basis, without any warranties of any kind, either express or implied, including but not limited to implied warranties of merchantability, fitness for a particular purpose, or non-infringement.
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- 8. Limitation of Liability -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">08</span>
+                {% if LANGUAGE_CODE == 'km' %}កម្រិតនៃការទទួលខុសត្រូវ (Limitation of Liability){% else %}Limitation of Liability{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                ក្នុងកម្រិតអតិបរមាដែលច្បាប់អនុញ្ញាត DAMSPEY ឬអ្នកគ្រប់គ្រង មិនទទួលខុសត្រូវចំពោះការខូចខាតដោយប្រយោល ការបាត់បង់ទិន្នន័យ ឬការខាតបង់អាជីវកម្មដែលកើតចេញពីការប្រើប្រាស់ ឬអសមត្ថភាពក្នុងការប្រើប្រាស់សេវាកម្មនេះឡើយ។
+                {% else %}
+                To the maximum extent permitted by applicable law, DAMSPEY and its maintainers shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of data, profits, or business interruption, resulting from your use of or inability to use the service.
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- 9. Changes to Terms & Contact -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">09</span>
+                {% if LANGUAGE_CODE == 'km' %}ការកែប្រែលក្ខខណ្ឌ និងទំនាក់ទំនង (Modifications & Contact){% else %}Modifications to Terms & Contact{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                យើងខ្ញុំអាចកែប្រែលក្ខខណ្ឌទាំងនេះនៅពេលណាមួយដើម្បីឆ្លើយតបទៅនឹងការផ្លាស់ប្តូរបច្ចេកវិទ្យា ឬបទប្បញ្ញត្តិច្បាប់។ ការបន្តប្រើប្រាស់គេហទំព័ររបស់អ្នក បញ្ជាក់ពីការយល់ព្រមលើលក្ខខណ្ឌថ្មី។
+                {% else %}
+                We reserve the right to revise these Terms at any time to reflect operational, legal, or regulatory updates. Continued use of the platform after updates indicates acceptance of the amended terms.
+                {% endif %}
+            </p>
+            <div class="contact-cta-box">
+                <h3>{% if LANGUAGE_CODE == 'km' %}មានសំណួរអំពីលក្ខខណ្ឌប្រើប្រាស់?{% else %}Questions Regarding Our Terms?{% endif %}</h3>
+                <p>Email: <strong>support@damspey.com</strong> • Phnom Penh, Cambodia</p>
+                <a href="/contact/" class="contact-btn">
+                    <i class="ti ti-mail"></i>
+                    {% if LANGUAGE_CODE == 'km' %}ទាក់ទងមកយើងខ្ញុំ{% else %}Contact Support{% endif %}
+                </a>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

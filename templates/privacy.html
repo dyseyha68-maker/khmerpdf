@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% if LANGUAGE_CODE == 'km' %}គោលការណ៍ឯកជនភាព (GDPR) - DAMSPEY{% else %}Privacy Policy (GDPR Compliant) - DAMSPEY{% endif %}{% endblock %}
+
+{% block meta_description %}{% if LANGUAGE_CODE == 'km' %}គោលការណ៍ឯកជនភាពស្របតាមបទប្បញ្ញត្តិ GDPR របស់ DAMSPEY។ ឯកសាររបស់អ្នកត្រូវបានលុបចេញដោយស្វ័យប្រវត្តិក្នុ្ងរយៈពេល ៦០ នាទី មិនមានការរក្សាទុកជាអចិន្ត្រៃយ៍ និងមិនប្រើប្រាស់ដើម្បីបង្វឹក AI ឡើយ។{% else %}DAMSPEY GDPR-compliant Privacy Policy. Learn how we protect your personal data, ensure automatic 60-minute file deletion, and respect your rights under EU GDPR Regulation 2016/679.{% endif %}{% endblock %}
+
+{% block page_path %}/privacy/{% endblock %}
+{% block og_path %}/privacy/{% endblock %}
+{% block og_title %}{% if LANGUAGE_CODE == 'km' %}គោលការណ៍ឯកជនភាព (GDPR) - DAMSPEY{% else %}Privacy Policy (GDPR Compliant) - DAMSPEY{% endif %}{% endblock %}
+{% block og_description %}{% if LANGUAGE_CODE == 'km' %}ឯកសាររបស់អ្នកមានសុវត្ថិភាពខ្ពស់ និងលុបចេញពីម៉ាស៊ីនបម្រើដោយស្វ័យប្រវត្តិ។{% else %}Learn how DAMSPEY complies with GDPR: zero permanent storage, automatic file purge, and full user data rights.{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .legal-container {
+        max-width: 860px;
+        margin: 20px auto 60px;
+        padding: 0 20px;
+    }
+
+    .legal-header {
+        text-align: center;
+        margin-bottom: 36px;
+    }
+
+    .legal-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 14px;
+    }
+
+    .legal-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 10px;
+        line-height: 1.3;
+    }
+
+    .legal-meta {
+        font-size: 13.5px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .legal-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 40px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 600px) {
+        .legal-card { padding: 24px 18px; border-radius: 14px; }
+        .legal-title { font-size: 24px; }
+    }
+
+    /* Key GDPR highlights bar */
+    .gdpr-highlight-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 36px;
+    }
+
+    .gdpr-highlight-item {
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .gdpr-highlight-item .icon {
+        font-size: 24px;
+        color: var(--primary);
+        margin-bottom: 4px;
+    }
+
+    .gdpr-highlight-item .label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .gdpr-highlight-item .desc {
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    /* Section styling */
+    .legal-section {
+        margin-bottom: 32px;
+    }
+
+    .legal-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .legal-section h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .legal-section h2 .sec-num {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--primary);
+        background: rgba(37, 99, 235, 0.1);
+        padding: 2px 8px;
+        border-radius: 6px;
+    }
+
+    .legal-section p {
+        font-size: 14.5px;
+        line-height: 1.75;
+        color: var(--text);
+        margin-bottom: 12px;
+    }
+
+    .legal-section ul {
+        margin: 10px 0 16px 22px;
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.75;
+    }
+
+    .legal-section li {
+        margin-bottom: 6px;
+    }
+
+    .legal-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0 20px;
+        font-size: 13.5px;
+    }
+
+    .legal-table th,
+    .legal-table td {
+        padding: 12px 14px;
+        text-align: left;
+        border: 1px solid var(--border);
+    }
+
+    .legal-table th {
+        background: var(--surface-hover);
+        color: var(--text);
+        font-weight: 600;
+    }
+
+    .legal-table td {
+        color: var(--text-secondary);
+    }
+
+    .gdpr-alert-box {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 20px 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .gdpr-alert-box i {
+        font-size: 22px;
+        color: #10b981;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .gdpr-alert-box p {
+        margin: 0;
+        font-size: 13.5px;
+        line-height: 1.6;
+        color: var(--text);
+    }
+
+    .contact-cta-box {
+        background: var(--surface-hover);
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        padding: 22px;
+        text-align: center;
+        margin-top: 28px;
+    }
+
+    .contact-cta-box h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text);
+    }
+
+    .contact-cta-box p {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 14px;
+    }
+
+    .contact-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        color: #ffffff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13.5px;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    .contact-btn:hover { background: var(--primary-dark); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-container">
+    <div class="legal-header">
+        <div class="legal-badge">
+            <i class="ti ti-shield-lock"></i>
+            {% if LANGUAGE_CODE == 'km' %}អនុលោមតាមស្តង់ដារ GDPR (Regulation EU 2016/679){% else %}EU GDPR Compliant (Regulation EU 2016/679){% endif %}
+        </div>
+        <h1 class="legal-title">
+            {% if LANGUAGE_CODE == 'km' %}គោលការណ៍ឯកជនភាព (Privacy Policy){% else %}Privacy Policy{% endif %}
+        </h1>
+        <div class="legal-meta">
+            <span><i class="ti ti-calendar"></i> {% if LANGUAGE_CODE == 'km' %}កាលបរិច្ឆេទធ្វើបច្ចុប្បន្នភាព: ថ្ងៃទី១៩ ខែតុលា ឆ្នាំ២០២៦{% else %}Effective Date: October 19, 2026{% endif %}</span>
+            <span>•</span>
+            <span><i class="ti ti-world"></i> https://damspey.com</span>
+        </div>
+    </div>
+
+    <!-- Quick GDPR Guarantees -->
+    <div class="gdpr-highlight-grid">
+        <div class="gdpr-highlight-item">
+            <div class="icon"><i class="ti ti-trash"></i></div>
+            <div class="label">{% if LANGUAGE_CODE == 'km' %}លុបស្វ័យប្រវត្តិក្នុ្ង ៦០ នាទី{% else %}Auto-Deleted in 60 Mins{% endif %}</div>
+            <div class="desc">{% if LANGUAGE_CODE == 'km' %}ឯកសារទាំងអស់ត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើដោយស្វ័យប្រវត្តិ។{% else %}All uploaded files & outputs are permanently purged within 1 hour.{% endif %}</div>
+        </div>
+        <div class="gdpr-highlight-item">
+            <div class="icon"><i class="ti ti-brain"></i></div>
+            <div class="label">{% if LANGUAGE_CODE == 'km' %}គ្មានការបង្វឹក AI លើឯកសារ{% else %}No AI Training on Files{% endif %}</div>
+            <div class="desc">{% if LANGUAGE_CODE == 'km' %}ឯកសាររបស់អ្នកមិនត្រូវបានប្រើប្រាស់ដើម្បីបង្វឹកម៉ូដែល AI ឡើយ។{% else %}Your documents are never stored, logged, or used to train AI models.{% endif %}</div>
+        </div>
+        <div class="gdpr-highlight-item">
+            <div class="icon"><i class="ti ti-lock"></i></div>
+            <div class="label">{% if LANGUAGE_CODE == 'km' %}កូដនីយកម្ម SSL/TLS 100%{% else %}End-to-End Encryption{% endif %}</div>
+            <div class="desc">{% if LANGUAGE_CODE == 'km' %}ការបញ្ជូនទិន្នន័យទាំងអស់ត្រូវបានការពារដោយ HTTPS / TLS 1.3។{% else %}All transfers in transit are strictly encrypted via HTTPS / TLS 1.3.{% endif %}</div>
+        </div>
+        <div class="gdpr-highlight-item">
+            <div class="icon"><i class="ti ti-user-check"></i></div>
+            <div class="label">{% if LANGUAGE_CODE == 'km' %}សិទ្ធិ GDPR ពេញលេញ{% else %}Full GDPR User Rights{% endif %}</div>
+            <div class="desc">{% if LANGUAGE_CODE == 'km' %}សិទ្ធិក្នុងការលុប សិទ្ធិទទួលបានទិន្នន័យ និងសិទ្ធិជំទាស់ (Art. 15-22)។{% else %}Full rights to access, rectification, erasure, and objection (Art. 15–22).{% endif %}</div>
+        </div>
+    </div>
+
+    <div class="legal-card">
+        <!-- 1. Introduction & Controller -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">01</span>
+                {% if LANGUAGE_CODE == 'km' %}ស្ថាប័នគ្រប់គ្រងទិន្នន័យ (Data Controller){% else %}Data Controller Information{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                សេវាកម្ម <strong>DAMSPEY</strong> (គេហទំព័រ: <a href="https://damspey.com">https://damspey.com</a>) គឺជាអ្នកគ្រប់គ្រងទិន្នន័យ (Data Controller) ទទួលខុសត្រូវលើទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នក ស្របតាមបទប្បញ្ញត្តិស្តីពីការការពារទិន្នន័យទូទៅរបស់សហភាពអឺរ៉ុប (General Data Protection Regulation - <strong>GDPR EU 2016/679</strong>)។
+                {% else %}
+                This Privacy Policy applies to <strong>DAMSPEY</strong> (operating at <a href="https://damspey.com">https://damspey.com</a>), hereafter referred to as "we", "us", or "the Service". DAMSPEY acts as the <strong>Data Controller</strong> under the General Data Protection Regulation (<strong>EU Regulation 2016/679 - GDPR</strong>). We are firmly dedicated to ensuring full transparency, confidentiality, and data minimization in all our operations.
+                {% endif %}
+            </p>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                យើងខ្ញុំផ្តល់ជូននូវឧបករណ៍បម្លែង និងគ្រប់គ្រងឯកសារ PDF ដោយឥតគិតថ្លៃ ១០០% ដោយគោរពតាមគោលការណ៍កាត់បន្ថយទិន្នន័យអតិបរមា (Data Minimization)។ អ្នកប្រើប្រាស់មិនតម្រូវឱ្យបង្កើតគណនី ឬចុះឈ្មោះឡើយ។
+                {% else %}
+                DAMSPEY provides free online PDF utilities without requiring account registration, personal profile creation, or subscriptions. We operate on a strict <em>data minimization</em> principle.
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- 2. What Data We Process -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">02</span>
+                {% if LANGUAGE_CODE == 'km' %}ប្រភេទនៃទិន្នន័យដែលយើងដំណើរការ (Categories of Data){% else %}Categories of Personal Data We Process{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                អាស្រ័យលើការប្រើប្រាស់ឧបករណ៍របស់អ្នក យើងដំណើរការតែទិន្នន័យចាំបាច់បំផុតប៉ុណ្ណោះ៖
+                {% else %}
+                In accordance with Article 5(1)(c) of the GDPR, we collect only the minimal data strictly required to fulfill your requested document operations:
+                {% endif %}
+            </p>
+            <ul>
+                <li>
+                    <strong>{% if LANGUAGE_CODE == 'km' %}ឯកសារដែលអ្នកផ្ទុកឡើង (Uploaded Files):{% else %}Uploaded Files & Documents:{% endif %}</strong>
+                    {% if LANGUAGE_CODE == 'km' %}ឯកសារ PDF ឬរូបភាពដែលអ្នកផ្ទុកឡើងសម្រាប់ OCR, ការបង្រួម (Compress), បញ្ចូល (Merge), បំបែក (Split), ឬរៀបចំទំព័រ (Organize)។{% else %}PDF files, images (.png, .jpg, .webp), and text content you voluntarily upload to execute operations (OCR to Word, compress, merge, split, protect, or organize).{% endif %}
+                </li>
+                <li>
+                    <strong>{% if LANGUAGE_CODE == 'km' %}ទិន្នន័យបច្ចេកទេសបណ្ដោះអាសន្ន (Transient Technical Data):{% else %}Transient Technical Metadata:{% endif %}</strong>
+                    {% if LANGUAGE_CODE == 'km' %}អាសយដ្ឋាន IP, ប្រភេទកម្មវិធីរុករក (User-Agent), និងពេលវេលានៃការស្នើសុំ សម្រាប់ការពារប្រព័ន្ធប្រឆាំងនឹងការវាយប្រហារ (DDoS & Spam) និងការគ្រប់គ្រងកម្រិតប្រើប្រាស់ (Rate Limiting)។{% else %}IP addresses, browser user-agent strings, and request timestamps logged ephemerally to prevent denial-of-service (DDoS) attacks, abuse, and enforce rate limits.{% endif %}
+                </li>
+                <li>
+                    <strong>{% if LANGUAGE_CODE == 'km' %}ខូគីបច្ចេកទេសចាំបាច់ (Strictly Necessary Cookies):{% else %}Strictly Necessary Functional Cookies & Local Storage:{% endif %}</strong>
+                    {% if LANGUAGE_CODE == 'km' %}យើងប្រើតែខូគីចាំបាច់បំផុត ដូចជាការកំណត់ភាសា (<code>django_language</code>), របៀបពន្លឺ/ងងឹត (<code>pdf_theme</code>), និងសន្តិសុខទម្រង់ (<code>csrftoken</code>)។ យើងមិនប្រើប្រាស់ខូគីផ្សាយពាណិជ្ជកម្ម ឬតាមដានអ្នកប្រើប្រាស់ឡើយ។{% else %}We only store essential functional keys: your preferred language (<code>django_language</code>), color theme (<code>pdf_theme</code>), and CSRF security tokens. <em>We do not use advertising, marketing, or behavioral tracking cookies.</em>{% endif %}
+                </li>
+            </ul>
+        </section>
+
+        <!-- 3. Legal Basis for Processing -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">03</span>
+                {% if LANGUAGE_CODE == 'km' %}មូលដ្ឋានច្បាប់នៃការដំណើរការទិន្នន័យ (Lawful Basis - Art. 6 GDPR){% else %}Lawful Basis for Data Processing (Article 6 GDPR){% endif %}
+            </h2>
+            <table class="legal-table">
+                <thead>
+                    <tr>
+                        <th>{% if LANGUAGE_CODE == 'km' %}គោលបំណង{% else %}Processing Purpose{% endif %}</th>
+                        <th>{% if LANGUAGE_CODE == 'km' %}ប្រភេទនៃទិន្នន័យ{% else %}Data Category{% endif %}</th>
+                        <th>{% if LANGUAGE_CODE == 'km' %}មូលដ្ឋានច្បាប់ GDPR{% else %}GDPR Legal Basis{% endif %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{% if LANGUAGE_CODE == 'km' %}ដំណើរការបម្លែងឯកសារ (OCR, Compress, Merge...){% else %}Executing requested PDF conversion & processing{% endif %}</td>
+                        <td>{% if LANGUAGE_CODE == 'km' %}ឯកសារ PDF និងរូបភាពដែលបានផ្ទុកឡើង{% else %}Uploaded files & converted outputs{% endif %}</td>
+                        <td><strong>Article 6(1)(b)</strong> — {% if LANGUAGE_CODE == 'km' %}ការអនុវត្តកិច្ចសន្យា/សេវាកម្មតាមការស្នើសុំរបស់អ្នកប្រើប្រាស់{% else %}Performance of a contract / requested service{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td>{% if LANGUAGE_CODE == 'km' %}សុវត្ថិភាពម៉ាស៊ីនបម្រើ និងការទប់ស្កាត់ការរំលោភបំពាន{% else %}Server security, spam prevention & DDoS protection{% endif %}</td>
+                        <td>{% if LANGUAGE_CODE == 'km' %}អាសយដ្ឋាន IP និងកំណត់ហេតុបច្ចេកទេស{% else %}IP addresses & technical access logs{% endif %}</td>
+                        <td><strong>Article 6(1)(f)</strong> — {% if LANGUAGE_CODE == 'km' %}ផលប្រយោជន៍ស្របច្បាប់ក្នុងការការពារសុវត្ថិភាពប្រព័ន្ធ{% else %}Legitimate interests in securing network integrity{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td>{% if LANGUAGE_CODE == 'km' %}ការចងចាំចំណូលចិត្តរបស់អ្នក (ភាសា និង Dark Mode){% else %}Remembering your UI preferences (language & theme){% endif %}</td>
+                        <td>{% if LANGUAGE_CODE == 'km' %}ទិន្នន័យមូលដ្ឋានក្នុង LocalStorage / Cookies{% else %}Functional LocalStorage / Cookies{% endif %}</td>
+                        <td><strong>Article 6(1)(f)</strong> — {% if LANGUAGE_CODE == 'km' %}ផលប្រយោជន៍ស្របច្បាប់ក្នុងការផ្តល់បទពិសោធន៍រលូន{% else %}Legitimate interests in user experience{% endif %}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 4. Retention & Deletion Policy -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">04</span>
+                {% if LANGUAGE_CODE == 'km' %}គោលការណ៍លុបទិន្នន័យស្វ័យប្រវត្តិ (Storage Limitation - Art. 5(1)(e)){% else %}Automated Data Retention & Deletion Policy (Article 5(1)(e)){% endif %}
+            </h2>
+            <div class="gdpr-alert-box">
+                <i class="ti ti-clock-hour-4"></i>
+                <p>
+                    {% if LANGUAGE_CODE == 'km' %}
+                    <strong>គោលការណ៍លុបស្វ័យប្រវត្តិក្នុ្ងរយៈពេល ៦០ នាទី៖</strong> រាល់ឯកសារដើមដែលអ្នកបានផ្ទុកឡើង និងឯកសារលទ្ធផលដែលទើបបម្លែងរួច ត្រូវបានរក្សាទុកតែបណ្តោះអាសន្នប៉ុណ្ណោះ។ ប្រព័ន្ធស្វ័យប្រវត្តិកម្មរបស់យើងដំណើរការលុបចោលជាអចិន្ត្រៃយ៍ចេញពីថាសផ្ទុក (Disk) ក្នុងរយៈពេលមិនលើសពី ៦០ នាទីឡើយ។
+                    {% else %}
+                    <strong>Strict 60-Minute Ephemeral Processing:</strong> All user-uploaded documents and processed outputs exist temporarily on our servers. An automated cron daemon permanently purges all files from the disk within <strong>60 minutes</strong> of creation.
+                    {% endif %}
+                </p>
+            </div>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                យើងខ្ញុំមិនបង្កើតឯកសារចម្លងបម្រុងទុក (Backups) នៃឯកសាររបស់អ្នកប្រើប្រាស់ឡើយ។ នៅពេលឯកសារត្រូវបានលុប វាមិនអាចទាញយកមកវិញបានឡើយ។
+                {% else %}
+                We maintain no long-term archives, secondary backups, or cached copies of user files. Once purged, files cannot be recovered.
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- 5. Third-Party Sub-processors & AI -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">05</span>
+                {% if LANGUAGE_CODE == 'km' %}ភាគីទីបី និងបច្ចេកវិទ្យា AI OCR (Sub-processors & AI Processing){% else %}Sub-processors & AI Processing Standards{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                ដើម្បីផ្តល់នូវគុណភាពបម្លែងអក្សរខ្មែរយូនីកូដស្អាតឥតខ្ចោះក្នុងឧបករណ៍ <strong>OCR PDF to Word</strong> យើងអាចប្រើប្រាស់បច្ចេកវិទ្យា AI Vision (Claude API) តាមរយៈការបញ្ជូនកូដនីយកម្ម SSL/TLS សុវត្ថិភាពខ្ពស់។
+                {% else %}
+                For our advanced <strong>OCR PDF to Word</strong> engine (specialized in Khmer Unicode and complex tables), page images are processed via enterprise AI Vision APIs (Anthropic Claude).
+                {% endif %}
+            </p>
+            <ul>
+                <li>
+                    {% if LANGUAGE_CODE == 'km' %}
+                    <strong>គ្មានការបង្វឹកម៉ូដែល (Zero Model Training):</strong> ស្របតាមកិច្ចព្រមព្រៀងដំណើរការទិន្នន័យ (Data Processing Agreement - DPA) ឯកសាររបស់អ្នកមិនត្រូវបានប្រើប្រាស់ដើម្បីបង្វឹក ឬកែលម្អម៉ូដែល AI ឡើយ។
+                    {% else %}
+                    <strong>Zero Data Retention for Training:</strong> Governed by strict enterprise Data Processing Agreements (DPA), customer inputs and outputs are <em>never</em> used to train or refine artificial intelligence models.
+                    {% endif %}
+                </li>
+                <li>
+                    {% if LANGUAGE_CODE == 'km' %}
+                    <strong>ការលុបចោលភ្លាមៗ:</strong> ទិន្នន័យត្រូវបានដំណើរការភ្លាមៗសម្រាប់ការស្រង់អត្ថបទ និងប្លង់ រួចត្រូវលុបចេញពីប្រព័ន្ធភ្លាមបន្ទាប់ពីដំណើរការរួចរាល់។
+                    {% else %}
+                    <strong>Instant Ephemeral Processing:</strong> Data is parsed solely to reconstruct text, columns, and tables into Microsoft Word (.docx), then immediately discarded.
+                    {% endif %}
+                </li>
+            </ul>
+        </section>
+
+        <!-- 6. Your Rights Under GDPR -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">06</span>
+                {% if LANGUAGE_CODE == 'km' %}សិទ្ធិការពារទិន្នន័យរបស់អ្នក (Your GDPR Rights - Articles 15–22){% else %}Your Data Subject Rights Under GDPR (Articles 15–22){% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                ក្រោមបទប្បញ្ញត្តិ GDPR អ្នកមានសិទ្ធិស្របច្បាប់ដូចខាងក្រោម៖
+                {% else %}
+                As an individual protected under the GDPR, you have comprehensive rights regarding your personal data:
+                {% endif %}
+            </p>
+            <ul>
+                <li><strong>Art. 15 GDPR — Right of Access:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិស្នើសុំព័ត៌មានថាតើយើងដំណើរការទិន្នន័យរបស់អ្នកឬទេ។{% else %}The right to obtain confirmation as to whether personal data concerning you is being processed.{% endif %}</li>
+                <li><strong>Art. 16 GDPR — Right to Rectification:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិកែតម្រូវទិន្នន័យមិនត្រឹមត្រូវ។{% else %}The right to rectify inaccurate personal data.{% endif %}</li>
+                <li><strong>Art. 17 GDPR — Right to Erasure ("Right to be Forgotten"):</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិស្នើសុំលុបទិន្នន័យរបស់អ្នកចោលភ្លាមៗ (ប្រព័ន្ធរបស់យើងលុបស្វ័យប្រវត្តិក្នុ្ង ៦០ នាទី)។{% else %}The right to request immediate erasure of your data (automatically fulfilled within 60 minutes by our purging mechanism).{% endif %}</li>
+                <li><strong>Art. 18 GDPR — Right to Restriction:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិកម្រិតការដំណើរការទិន្នន័យរបស់អ្នក។{% else %}The right to restrict processing under certain conditions.{% endif %}</li>
+                <li><strong>Art. 20 GDPR — Right to Data Portability:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិទទួលបានទិន្នន័យរបស់អ្នកក្នុងទម្រង់ស្តង់ដារ។{% else %}The right to receive your personal data in a structured, commonly used, and machine-readable format.{% endif %}</li>
+                <li><strong>Art. 21 GDPR — Right to Object:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិជំទាស់នឹងការដំណើរការទិន្នន័យ។{% else %}The right to object at any time to the processing of your personal data based on legitimate interests.{% endif %}</li>
+                <li><strong>Art. 77 GDPR — Right to Lodge a Complaint:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិដាក់ពាក្យបណ្តឹងទៅកាន់អាជ្ញាធរការពារទិន្នន័យ (Data Protection Authority) នៅក្នុងសហភាពអឺរ៉ុប។{% else %}The right to lodge a complaint with an EU Data Protection Supervisory Authority in your member state.{% endif %}</li>
+            </ul>
+        </section>
+
+        <!-- 7. Security Measures -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">07</span>
+                {% if LANGUAGE_CODE == 'km' %}វិធានការសន្តិសុខបច្ចេកវិទ្យា (Security Measures - Art. 32 GDPR){% else %}Technical and Organizational Security (Article 32 GDPR){% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                យើងខ្ញុំអនុវត្តវិធានការបច្ចេកទេស និងការរៀបចំយ៉ាងតឹងរ៉ឹងដើម្បីការពារទិន្នន័យ៖
+                {% else %}
+                We implement state-of-the-art security measures to protect your documents against unauthorized access, loss, or alteration:
+                {% endif %}
+            </p>
+            <ul>
+                <li>{% if LANGUAGE_CODE == 'km' %}ការបញ្ជូនទិន្នន័យទាំងអស់ត្រូវបានការពារដោយ HTTPS និងវិញ្ញាបនបត្រ SSL/TLS 1.3 ទំនើបបំផុត។{% else %}All network transmissions are strictly encrypted via HTTPS using TLS 1.3 encryption.{% endif %}</li>
+                <li>{% if LANGUAGE_CODE == 'km' %}បរិស្ថានដំណើរការត្រូវបានដាក់ដាច់ដោយឡែក (Sandboxed Docker Containers) ដោយមិនអនុញ្ញាតឱ្យចូលប្រើប្រាស់ពីខាងក្រៅ។{% else %}Processing tasks run in isolated, sandboxed Docker containers with non-root privileges.{% endif %}</li>
+                <li>{% if LANGUAGE_CODE == 'km' %}ប្រព័ន្ធសម្អាតស្វ័យប្រវត្តិតាមដានថាសផ្ទុកជាប្រចាំ ដើម្បីលុបឯកសារដែលលើសពីអាយុកាលកំណត់។{% else %}Continuous disk-monitoring background daemons execute verified cryptographic deletion of transient files.{% endif %}</li>
+            </ul>
+        </section>
+
+        <!-- 8. Contact & Data Protection Officer -->
+        <section class="legal-section">
+            <h2>
+                <span class="sec-num">08</span>
+                {% if LANGUAGE_CODE == 'km' %}ទំនាក់ទំនង និងការអនុវត្តសិទ្ធិ (Contact Us){% else %}Contact & Exercising Your GDPR Rights{% endif %}
+            </h2>
+            <p>
+                {% if LANGUAGE_CODE == 'km' %}
+                ប្រសិនបើអ្នកមានសំណួរអំពីគោលការណ៍ឯកជនភាពនេះ ឬមានបំណងអនុវត្តសិទ្ធិណាមួយរបស់អ្នកក្រោមបទប្បញ្ញត្តិ GDPR សូមទាក់ទងមកកាន់យើងខ្ញុំដោយផ្ទាល់តាមរយៈ៖
+                {% else %}
+                If you have any questions, inquiries, or wish to exercise your rights under the GDPR, please contact our team directly:
+                {% endif %}
+            </p>
+            <div class="contact-cta-box">
+                <h3>DAMSPEY Data Privacy Team</h3>
+                <p>Email: <strong>support@damspey.com</strong> • Phnom Penh, Cambodia</p>
+                <a href="/contact/" class="contact-btn">
+                    <i class="ti ti-mail"></i>
+                    {% if LANGUAGE_CODE == 'km' %}ទាក់ទងមកយើងខ្ញុំ{% else %}Contact Privacy Support{% endif %}
+                </a>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

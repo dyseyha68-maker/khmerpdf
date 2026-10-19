@@ -87,6 +87,10 @@ msgid "Actions"
 msgstr "សកម្មភាព"
 
 # Category: General
+msgid "All rights reserved. Documents are permanently purged within 60 minutes."
+msgstr "រក្សាសិទ្ធិគ្រប់យ៉ាង។ ឯកសារត្រូវបានលុបជាអចិន្ត្រៃយ៍ក្នុងរយៈពេល ៦០ នាទី។"
+
+# Category: General
 msgid "Already have an account?"
 msgstr "មានគណនីរួចហើយមែនទេ?"
 
@@ -255,6 +259,10 @@ msgid "Format"
 msgstr "ទម្រង់"
 
 # Category: General
+msgid "GDPR Compliant • Ephemeral 60-min Auto-Purge"
+msgstr "អនុលោមតាមស្តង់ដារ GDPR • លុបស្វ័យប្រវត្តិក្នុ្ង ៦០ នាទី"
+
+# Category: General
 msgid "Get in touch with DAMSPEY, or support the project by becoming a sponsor."
 msgstr "ទាក់ទងមក DAMSPEY ឬគាំទ្រគម្រោងនេះដោយក្លាយជាអ្នកឧបត្ថម្ភ។"
 
@@ -273,6 +281,10 @@ msgstr "ថ្ងៃសីល"
 # Category: General
 msgid "KHQR donation code"
 msgstr "កូដ KHQR សម្រាប់បរិច្ចាគ"
+
+# Category: General
+msgid "Legal & Privacy"
+msgstr "ច្បាប់ និងឯកជនភាព"
 
 # Category: General
 msgid "Loading PDF pages..."
@@ -337,6 +349,14 @@ msgstr "សូមបញ្ចូលកាលបរិច្ឆេទឱ្យត
 # Category: General
 msgid "Please wait while your PDF is being processed..."
 msgstr "សូមរង់ចាំ ឯកសារ PDF របស់អ្នកកំពុងដំណើរការ..."
+
+# Category: General
+msgid "Privacy Policy"
+msgstr "គោលការណ៍ឯកជនភាព"
+
+# Category: General
+msgid "Privacy Policy (GDPR)"
+msgstr "គោលការណ៍ឯកជនភាព (GDPR)"
 
 # Category: General
 msgid "Processed and ready to download."
@@ -449,6 +469,14 @@ msgstr "គាំទ្រពួកយើងជាមួយទឹកចិត្
 # Category: General
 msgid "Telegram"
 msgstr "តេឡេក្រាម"
+
+# Category: General
+msgid "Terms & Conditions"
+msgstr "លក្ខខណ្ឌនៃការប្រើប្រាស់"
+
+# Category: General
+msgid "Terms of Service"
+msgstr "លក្ខខណ្ឌនៃការប្រើប្រាស់"
 
 # Category: General
 msgid "Thank You!"
@@ -597,6 +625,10 @@ msgstr "ឯកសារ Word កែសម្រួលបាន"
 # Category: OCR
 msgid "Editable Word (.docx)"
 msgstr "ឯកសារ Word (.docx)"
+
+# Category: OCR
+msgid "Free, secure and private online PDF tools with Khmer Unicode AI OCR."
+msgstr "ឧបករណ៍ PDF លើអនឡាញឥតគិតថ្លៃ មានសុវត្ថិភាពខ្ពស់ និង AI OCR ខ្មែរយូនីកូដត្រឹមត្រូវ។"
 
 # Category: OCR
 msgid "Instant AI Recognition"
@@ -905,6 +937,14 @@ msgstr "ទាក់ទងមកយើងខ្ញុំ"
 # Category: Tools
 msgid "Free Online PDF Tools"
 msgstr "កម្មវិធីជំនួយប្រភេទឯកសារ PDF ដោយឥតគិតថ្លៃ"
+
+# Category: Tools
+msgid "More Tools"
+msgstr "ឧបករណ៍ផ្សេងទៀត"
+
+# Category: Tools
+msgid "Popular Tools"
+msgstr "ឧបករណ៍ពេញនិយម"
 
 # Category: Tools
 msgid "Support this tool"

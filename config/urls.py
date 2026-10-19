@@ -7,7 +7,11 @@ from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
 from django.views.generic import RedirectView
-from apps.pdf.views import index, split_page, merge_page, compress_page, organize_page, calendar_page, khqr, ocr_page, pdf_to_image_page, image_to_pdf_page, download_file, contact_page, protect_page
+from apps.pdf.views import (
+    index, split_page, merge_page, compress_page, organize_page, calendar_page,
+    khqr, ocr_page, pdf_to_image_page, image_to_pdf_page, download_file,
+    contact_page, protect_page, privacy_page, terms_page
+)
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),  # set_language endpoint
@@ -28,6 +32,8 @@ urlpatterns = [
     path('pdf-to-image/', pdf_to_image_page, name='pdf_to_image'),
     path('image-to-pdf/', image_to_pdf_page, name='image_to_pdf'),
     path('contact/', contact_page, name='contact'),
+    path('privacy/', privacy_page, name='privacy'),
+    path('terms/', terms_page, name='terms'),
 
     # SEO files
     path('robots.txt', RedirectView.as_view(url='/static/robots.txt', permanent=False)),
