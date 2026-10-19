@@ -618,6 +618,7 @@ class AdSnippetAdminForm(forms.ModelForm):
 @admin.register(AdSnippet)
 class AdSnippetAdmin(admin.ModelAdmin):
     form = AdSnippetAdminForm
+    save_on_top = True
     list_display = ['name', 'placement_badge', 'page_target_badge', 'device_badge', 'is_active', 'order', 'updated_at']
     list_filter = ['placement', 'page_target', 'device_target', 'is_active']
     search_fields = ['name', 'code', 'notes']

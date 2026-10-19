@@ -1,0 +1,85 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Make submit-row prominent, colorful, and impossible to miss */
+    .submit-row {
+        background: #1e293b !important;
+        padding: 14px 20px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        margin: 20px 0 !important;
+    }
+    .submit-row input[type="submit"] {
+        padding: 10px 22px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border-radius: 6px !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+    }
+    .submit-row input[name="_save"] {
+        background: #2563eb !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+    }
+    .submit-row input[name="_save"]:hover {
+        background: #1d4ed8 !important;
+        transform: translateY(-1px) !important;
+    }
+    .submit-row input[name="_addanother"] {
+        background: #0f172a !important;
+        color: #94a3b8 !important;
+        border: 1px solid #334155 !important;
+    }
+    .submit-row input[name="_continue"] {
+        background: #334155 !important;
+        color: #f1f5f9 !important;
+    }
+    .adsterra-guide-box {
+        background: #0f172a;
+        border: 1.5px solid #1e293b;
+        border-left: 4px solid #38bdf8;
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        color: #e2e8f0;
+        font-size: 13.5px;
+        line-height: 1.6;
+    }
+    .adsterra-guide-box h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #38bdf8;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .adsterra-guide-box ul {
+        margin: 6px 0 0 20px;
+        padding: 0;
+    }
+    .adsterra-guide-box li {
+        margin-bottom: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block form_top %}
+<div class="adsterra-guide-box">
+    <h3>💡 Quick Guide: How to Add Adsterra Ads</h3>
+    <ul>
+        <li><strong>Step 1:</strong> Log in to <a href="https://beta.publishers.adsterra.com/" target="_blank" style="color:#38bdf8; font-weight:700; text-decoration:underline;">beta.publishers.adsterra.com</a> and copy your ad snippet.</li>
+        <li><strong>Step 2:</strong> Paste the code into the <strong>Ad / Script Code</strong> box below.</li>
+        <li><strong>Step 3:</strong> Choose the <strong>Placement Slot</strong> (Top Banner, Sidebar, Bottom Banner, or Footer Scripts for Social Bar / Popunder).</li>
+        <li><strong>Step 4:</strong> Click the bright blue <strong>រក្សាទុក (Save)</strong> button at the top or bottom of this page!</li>
+    </ul>
+</div>
+{{ block.super }}
+{% endblock %}
