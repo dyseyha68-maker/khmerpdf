@@ -555,6 +555,10 @@ msgid "100% Khmer Unicode"
 msgstr "អក្សរខ្មែរយូនីកូដ 100%"
 
 # Category: OCR
+msgid "AI Powered"
+msgstr "បច្ចេកវិទ្យា AI"
+
+# Category: OCR
 msgid "Claude AI Vision"
 msgstr "បច្ចេកវិទ្យា Claude AI"
 
@@ -563,8 +567,16 @@ msgid "Convert scanned Khmer documents and images into editable Microsoft Word (
 msgstr "បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជាឯកសារ Word (.docx) ជាភាសាខ្មែរ ដោយរក្សាទម្រង់តារាង ជួរឈរ និងអក្សរយូនីកូដត្រឹមត្រូវ 100%។"
 
 # Category: OCR
+msgid "Convert scanned PDF and images into editable Word (.docx)"
+msgstr "បម្លែង PDF ស្កេន និងរូបភាពទៅជាឯកសារ Word (.docx)"
+
+# Category: OCR
 msgid "Convert scanned PDF files into editable Word documents with Khmer and English OCR."
 msgstr "បម្លែងឯកសារ PDF ដែលបានស្កេនទៅជាឯកសារ Word ដែលអាចកែសម្រួលបាន គាំទ្រភាសាខ្មែរ និងអង់គ្លេស។"
+
+# Category: OCR
+msgid "Convert to Word"
+msgstr "បម្លែងទៅជា Word"
 
 # Category: OCR
 msgid "Editable .docx Output"
@@ -617,6 +629,10 @@ msgstr "ភាសា OCR"
 # Category: OCR
 msgid "OCR PDF"
 msgstr "OCR PDF"
+
+# Category: OCR
+msgid "OCR PDF to Word"
+msgstr "OCR PDF ទៅជា Word"
 
 # Category: OCR
 msgid "OCR PDF to Word - Khmer & English"
