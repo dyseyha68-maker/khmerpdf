@@ -52,7 +52,7 @@
           "name": "{% if LANGUAGE_CODE == 'km' %}តើឯកសារដែលខ្ញុំផ្ទុកឡើងមានសុវត្ថិភាពដែរឬទេ?{% else %}Are my uploaded documents safe and private?{% endif %}",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "{% if LANGUAGE_CODE == 'km' %}ឯកសាររបស់អ្នកមានសុវត្ថិភាពកម្រិតខ្ពស់បំផុត។ រាល់ឯកសារដែលបានផ្ទុកឡើងត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើ (Server) ដោយស្វ័យប្រវត្តក្នុងរយៈពេល 60 នាទីបន្ទាប់ពីដំណើរការរួច។ គ្មាននរណាម្នាក់អាចមើលឃើញ ឬទាញយកឯកសាររបស់អ្នកបានឡើយ។{% else %}Your documents are completely safe. All uploaded and converted files are automatically and permanently purged from our servers within 60 minutes. Nobody has access to your private files.{% endif %}"
+            "text": "{% if LANGUAGE_CODE == 'km' %}ឯកសាររបស់អ្នកមានសុវត្ថិភាពកម្រិតខ្ពស់បំផុត។ រាល់ឯកសារដែលបានផ្ទុកឡើងត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើ (Server) ជាអចិន្ត្រៃយ៍បន្ទាប់ពីដំណើរការរួចរាល់។ គ្មាននរណាម្នាក់អាចមើលឃើញ ឬទាញយកឯកសាររបស់អ្នកបានឡើយ។{% else %}Your documents are completely safe. Documents are permanently purged from our servers after completed operation. Nobody has access to your private files.{% endif %}"
           }
         },
         {
@@ -986,7 +986,7 @@
                 <i class="ti ti-shield-check"></i>
             </div>
             <h3>{% if LANGUAGE_CODE == 'km' %}ឥតគិតថ្លៃ & សម្ងាត់ 100%{% else %}100% Free & Private{% endif %}</h3>
-            <p>{% if LANGUAGE_CODE == 'km' %}មិនបាច់ចុះឈ្មោះ មិនគិតប្រាក់ ហើយឯកសារទាំងអស់ត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើដោយស្វ័យប្រវត្តក្នុងរយៈពេល 60 នាទី។{% else %}No registration or credit card required. All uploaded and processed files are automatically purged after 60 minutes for your privacy.{% endif %}</p>
+            <p>{% if LANGUAGE_CODE == 'km' %}មិនបាច់ចុះឈ្មោះ មិនគិតប្រាក់ ហើយឯកសារទាំងអស់ត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើជាអចិន្ត្រៃយ៍បន្ទាប់ពីដំណើរការរួចរាល់។{% else %}No registration or credit card required. Documents are permanently purged after completed operation for your privacy.{% endif %}</p>
         </div>
     </div>
 
@@ -1049,9 +1049,9 @@
                 </button>
                 <div class="faq-answer" x-show="openFaq === 3" x-cloak x-transition>
                     {% if LANGUAGE_CODE == 'km' %}
-                        ឯកសាររបស់អ្នកមានសុវត្ថិភាពកម្រិតខ្ពស់បំផុត។ រាល់ឯកសារដែលបានផ្ទុកឡើងត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើ (Server) ដោយស្វ័យប្រវត្តក្នុងរយៈពេល 60 នាទីបន្ទាប់ពីដំណើរការរួច។ គ្មាននរណាម្នាក់អាចមើលឃើញ ឬទាញយកឯកសាររបស់អ្នកបានឡើយ។
+                        ឯកសាររបស់អ្នកមានសុវត្ថិភាពកម្រិតខ្ពស់បំផុត។ រាល់ឯកសារដែលបានផ្ទុកឡើងត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើ (Server) ជាអចិន្ត្រៃយ៍បន្ទាប់ពីដំណើរការរួចរាល់។ គ្មាននរណាម្នាក់អាចមើលឃើញ ឬទាញយកឯកសាររបស់អ្នកបានឡើយ។
                     {% else %}
-                        Your documents are completely safe. All uploaded and converted files are automatically and permanently purged from our servers within 60 minutes. Nobody has access to your private files.
+                        Your documents are completely safe. Documents are permanently purged from our servers after completed operation. Nobody has access to your private files.
                     {% endif %}
                 </div>
             </div>

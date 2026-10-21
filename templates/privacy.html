@@ -3,7 +3,7 @@
 
 {% block title %}{% if LANGUAGE_CODE == 'km' %}គោលការណ៍ឯកជនភាព (GDPR) - DAMSPEY{% else %}Privacy Policy (GDPR Compliant) - DAMSPEY{% endif %}{% endblock %}
 
-{% block meta_description %}{% if LANGUAGE_CODE == 'km' %}គោលការណ៍ឯកជនភាពស្របតាមបទប្បញ្ញត្តិ GDPR របស់ DAMSPEY។ ឯកសាររបស់អ្នកត្រូវបានលុបចេញដោយស្វ័យប្រវត្តិក្នុ្ងរយៈពេល ៦០ នាទី មិនមានការរក្សាទុកជាអចិន្ត្រៃយ៍ និងមិនប្រើប្រាស់ដើម្បីបង្វឹក AI ឡើយ។{% else %}DAMSPEY GDPR-compliant Privacy Policy. Learn how we protect your personal data, ensure automatic 60-minute file deletion, and respect your rights under EU GDPR Regulation 2016/679.{% endif %}{% endblock %}
+{% block meta_description %}{% if LANGUAGE_CODE == 'km' %}គោលការណ៍ឯកជនភាពស្របតាមបទប្បញ្ញត្តិ GDPR របស់ DAMSPEY។ ឯកសាររបស់អ្នកត្រូវបានលុបចេញជាអចិន្ត្រៃយ៍ភ្លាមៗបន្ទាប់ពីដំណើរការរួចរាល់ មិនមានការរក្សាទុក និងមិនប្រើប្រាស់ដើម្បីបង្វឹក AI ឡើយ។{% else %}DAMSPEY GDPR-compliant Privacy Policy. Learn how we protect your personal data, ensure documents are permanently purged after completed operation, and respect your rights under EU GDPR Regulation 2016/679.{% endif %}{% endblock %}
 
 {% block page_path %}/privacy/{% endblock %}
 {% block og_path %}/privacy/{% endblock %}
@@ -260,8 +260,8 @@
     <div class="gdpr-highlight-grid">
         <div class="gdpr-highlight-item">
             <div class="icon"><i class="ti ti-trash"></i></div>
-            <div class="label">{% if LANGUAGE_CODE == 'km' %}លុបស្វ័យប្រវត្តិក្នុ្ង ៦០ នាទី{% else %}Auto-Deleted in 60 Mins{% endif %}</div>
-            <div class="desc">{% if LANGUAGE_CODE == 'km' %}ឯកសារទាំងអស់ត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើដោយស្វ័យប្រវត្តិ។{% else %}All uploaded files & outputs are permanently purged within 1 hour.{% endif %}</div>
+            <div class="label">{% if LANGUAGE_CODE == 'km' %}លុបចេញភ្លាមៗក្រោយដំណើរការរួច{% else %}Purged After Operation{% endif %}</div>
+            <div class="desc">{% if LANGUAGE_CODE == 'km' %}ឯកសារទាំងអស់ត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើជាអចិន្ត្រៃយ៍បន្ទាប់ពីដំណើរការរួចរាល់។{% else %}Documents are permanently purged after completed operation.{% endif %}</div>
         </div>
         <div class="gdpr-highlight-item">
             <div class="icon"><i class="ti ti-brain"></i></div>
@@ -376,9 +376,9 @@
                 <i class="ti ti-clock-hour-4"></i>
                 <p>
                     {% if LANGUAGE_CODE == 'km' %}
-                    <strong>គោលការណ៍លុបស្វ័យប្រវត្តិក្នុ្ងរយៈពេល ៦០ នាទី៖</strong> រាល់ឯកសារដើមដែលអ្នកបានផ្ទុកឡើង និងឯកសារលទ្ធផលដែលទើបបម្លែងរួច ត្រូវបានរក្សាទុកតែបណ្តោះអាសន្នប៉ុណ្ណោះ។ ប្រព័ន្ធស្វ័យប្រវត្តិកម្មរបស់យើងដំណើរការលុបចោលជាអចិន្ត្រៃយ៍ចេញពីថាសផ្ទុក (Disk) ក្នុងរយៈពេលមិនលើសពី ៦០ នាទីឡើយ។
+                    <strong>គោលការណ៍លុបឯកសារភ្លាមៗ៖</strong> រាល់ឯកសារដើមដែលអ្នកបានផ្ទុកឡើង និងឯកសារលទ្ធផលដែលទើបបម្លែងរួច ត្រូវបានរក្សាទុកតែបណ្តោះអាសន្នប៉ុណ្ណោះ។ ឯកសារទាំងអស់ត្រូវបានលុបចោលជាអចិន្ត្រៃយ៍ចេញពីថាសផ្ទុក (Disk) ភ្លាមៗបន្ទាប់ពីដំណើរការប្រតិបត្តិការរួចរាល់។
                     {% else %}
-                    <strong>Strict 60-Minute Ephemeral Processing:</strong> All user-uploaded documents and processed outputs exist temporarily on our servers. An automated cron daemon permanently purges all files from the disk within <strong>60 minutes</strong> of creation.
+                    <strong>Immediate Ephemeral Processing:</strong> All user-uploaded documents and processed outputs exist temporarily on our servers solely to fulfill your request. Documents are permanently purged from disk after completed operation.
                     {% endif %}
                 </p>
             </div>
@@ -438,7 +438,7 @@
             <ul>
                 <li><strong>Art. 15 GDPR — Right of Access:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិស្នើសុំព័ត៌មានថាតើយើងដំណើរការទិន្នន័យរបស់អ្នកឬទេ។{% else %}The right to obtain confirmation as to whether personal data concerning you is being processed.{% endif %}</li>
                 <li><strong>Art. 16 GDPR — Right to Rectification:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិកែតម្រូវទិន្នន័យមិនត្រឹមត្រូវ។{% else %}The right to rectify inaccurate personal data.{% endif %}</li>
-                <li><strong>Art. 17 GDPR — Right to Erasure ("Right to be Forgotten"):</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិស្នើសុំលុបទិន្នន័យរបស់អ្នកចោលភ្លាមៗ (ប្រព័ន្ធរបស់យើងលុបស្វ័យប្រវត្តិក្នុ្ង ៦០ នាទី)។{% else %}The right to request immediate erasure of your data (automatically fulfilled within 60 minutes by our purging mechanism).{% endif %}</li>
+                <li><strong>Art. 17 GDPR — Right to Erasure ("Right to be Forgotten"):</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិស្នើសុំលុបទិន្នន័យរបស់អ្នកចោលភ្លាមៗ (ឯកសារទាំងអស់ត្រូវបានលុបចេញជាអចិន្ត្រៃយ៍បន្ទាប់ពីដំណើរការរួចរាល់)។{% else %}The right to request immediate erasure of your data (documents are permanently purged after completed operation).{% endif %}</li>
                 <li><strong>Art. 18 GDPR — Right to Restriction:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិកម្រិតការដំណើរការទិន្នន័យរបស់អ្នក។{% else %}The right to restrict processing under certain conditions.{% endif %}</li>
                 <li><strong>Art. 20 GDPR — Right to Data Portability:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិទទួលបានទិន្នន័យរបស់អ្នកក្នុងទម្រង់ស្តង់ដារ។{% else %}The right to receive your personal data in a structured, commonly used, and machine-readable format.{% endif %}</li>
                 <li><strong>Art. 21 GDPR — Right to Object:</strong> {% if LANGUAGE_CODE == 'km' %}សិទ្ធិជំទាស់នឹងការដំណើរការទិន្នន័យ។{% else %}The right to object at any time to the processing of your personal data based on legitimate interests.{% endif %}</li>
