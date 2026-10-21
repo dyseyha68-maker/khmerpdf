@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}DAMSPEY - OCR ខ្មែរ ទៅជា Word & Free Khmer PDF Tools | ឧបករណ៍ PDF ខ្មែរ{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Free online PDF tools built for Cambodia — Khmer AI OCR (PDF to Word .docx), compress, merge, split, organize, and protect PDF files instantly, no signup required. ឧបករណ៍ PDF & OCR ខ្មែរ ឥតគិតថ្លៃ។{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Free online PDF tools built for Cambodia — Khmer OCR (PDF to Word .docx), compress, merge, split, organize, and protect PDF files instantly, no signup required. ឧបករណ៍ PDF & OCR ខ្មែរ ឥតគិតថ្លៃ។{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}OCR ខ្មែរ, Khmer OCR, OCR Khmer to Word, បម្លែង PDF ទៅជា Word ខ្មែរ, ស្រង់អក្សរខ្មែរពី PDF, PDF tools Cambodia, Khmer PDF tools, compress PDF Cambodia, merge PDF Khmer, split PDF Cambodia, ឧបករណ៍ PDF ខ្មែរ, បង្រួម PDF, បំបែក PDF, បញ្ចូល PDF{% endblock %}">
     <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
     <meta name="geo.region" content="KH">
@@ -180,29 +180,6 @@
             color: white;
         }
 
-        .nav-ocr-link {
-            position: relative;
-        }
-        .nav-ai-pill {
-            font-size: 11px;
-            font-weight: 800;
-            line-height: 1;
-            padding: 3px 6px;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-            color: #ffffff !important;
-            letter-spacing: 0.5px;
-            margin-left: 4px;
-            display: inline-flex;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
-            animation: pulse-ai 2.5s infinite ease-in-out;
-            vertical-align: middle;
-        }
-        @keyframes pulse-ai {
-            0%, 100% { transform: scale(1); opacity: 0.95; }
-            50% { transform: scale(1.08); opacity: 1; }
-        }
 
         /* ── "Tools" dropdown — groups Compress/Merge/Split/Organize/Protect
            under one nav item so the header stays short. Toggled via Alpine
@@ -724,7 +701,7 @@
         "@type": "WebApplication",
         "name": "DAMSPEY",
         "alternateName": ["ឧបករណ៍ PDF ខ្មែរ", "OCR ខ្មែរ", "Khmer OCR", "Khmer OCR PDF to Word", "បម្លែង PDF ទៅជា Word ខ្មែរ"],
-        "description": "Free online PDF tools and AI OCR built for Cambodia — convert scanned Khmer PDF and images to Word (.docx), compress, merge, split, organize, and protect PDF files instantly.",
+        "description": "Free online PDF tools and Khmer OCR built for Cambodia — convert scanned Khmer PDF and images to Word (.docx), compress, merge, split, organize, and protect PDF files instantly.",
         "url": "https://damspey.com/",
         "image": "https://damspey.com/static/og-image.jpg",
         "applicationCategory": "UtilitiesApplication",
@@ -733,7 +710,7 @@
         "inLanguage": ["km", "en"],
         "isAccessibleForFree": true,
         "featureList": [
-            "Khmer AI OCR to Word (.docx)",
+            "Khmer OCR to Word (.docx)",
             "Accurate Khmer Unicode Text Extraction",
             "Table and Layout Formatting Preservation",
             "Compress PDF without Quality Loss",
@@ -773,8 +750,8 @@
         </div>
 
         <nav class="nav-links" :class="{ 'open': navOpen }">
-            <a href="/pdf-ocr/" class="nav-ocr-link">
-                <i class="ti ti-scan"></i>{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ{% else %}Khmer OCR{% endif %}<span class="nav-ai-pill">AI</span>
+            <a href="/pdf-ocr/">
+                <i class="ti ti-scan"></i>{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ{% else %}Khmer OCR{% endif %}
             </a>
             <div class="nav-dropdown" @click.outside="toolsOpen = false">
                 <button type="button" class="nav-dropdown-trigger" :class="{ active: toolsOpen }" @click="toolsOpen = !toolsOpen">

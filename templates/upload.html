@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer AI OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
-{% block meta_description %}{% if LANGUAGE_CODE == 'km' %}បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word ខ្មែរ (.docx) ដោយឥតគិតថ្លៃ តាមរយៈ AI OCR។ ស្រង់អក្សរខ្មែរយូនីកូដត្រឹមត្រូវ 100% មិនបាក់ជើង មិនលោតស្រៈ និងឧបករណ៍ PDF ខ្មែរគ្រប់មុខ។{% else %}Convert scanned Khmer PDF and images to editable Word (.docx) free with AI OCR. 100% accurate Khmer Unicode, plus compress, merge, split, and protect PDF tools.{% endif %}{% endblock %}
-{% block meta_keywords %}OCR ខ្មែរ, Khmer OCR, OCR Khmer to Word, បម្លែង PDF ទៅជា Word ខ្មែរ, ស្រង់អក្សរខ្មែរពី PDF, AI OCR Cambodia, Khmer Unicode OCR, ឧបករណ៍ PDF ខ្មែរ, បង្រួម PDF, បញ្ចូល PDF, បំបែក PDF, DAMSPEY{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
+{% block meta_description %}{% if LANGUAGE_CODE == 'km' %}បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word ខ្មែរ (.docx) ដោយឥតគិតថ្លៃ តាមរយៈ OCR ខ្មែរ។ ស្រង់អក្សរខ្មែរយូនីកូដត្រឹមត្រូវ 100% មិនបាក់ជើង មិនលោតស្រៈ និងឧបករណ៍ PDF ខ្មែរគ្រប់មុខ។{% else %}Convert scanned Khmer PDF and images to editable Word (.docx) free with Khmer OCR. 100% accurate Khmer Unicode, plus compress, merge, split, and protect PDF tools.{% endif %}{% endblock %}
+{% block meta_keywords %}OCR ខ្មែរ, Khmer OCR, OCR Khmer to Word, បម្លែង PDF ទៅជា Word ខ្មែរ, ស្រង់អក្សរខ្មែរពី PDF, Khmer Unicode OCR, ឧបករណ៍ PDF ខ្មែរ, បង្រួម PDF, បញ្ចូល PDF, បំបែក PDF, DAMSPEY{% endblock %}
 {% block page_path %}/{% endblock %}
 {% block og_path %}/{% endblock %}
-{% block og_title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer AI OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
-{% block og_description %}{% if LANGUAGE_CODE == 'km' %}បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word ខ្មែរ (.docx) ដោយឥតគិតថ្លៃ តាមរយៈ AI OCR ត្រឹមត្រូវ 100%។{% else %}Convert scanned Khmer PDFs and images to editable Word (.docx) free with AI OCR.{% endif %}{% endblock %}
-{% block twitter_title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer AI OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
-{% block twitter_description %}{% if LANGUAGE_CODE == 'km' %}ស្រង់អក្សរខ្មែរពី PDF ស្កេនទៅជា Word (.docx) ឥតគិតថ្លៃជាមួយ DAMSPEY AI OCR។{% else %}Convert scanned Khmer PDFs and images to editable Word with DAMSPEY AI OCR.{% endif %}{% endblock %}
+{% block og_title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
+{% block og_description %}{% if LANGUAGE_CODE == 'km' %}បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word ខ្មែរ (.docx) ដោយឥតគិតថ្លៃ តាមរយៈ OCR ត្រឹមត្រូវ 100%។{% else %}Convert scanned Khmer PDFs and images to editable Word (.docx) free with Khmer OCR.{% endif %}{% endblock %}
+{% block twitter_title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
+{% block twitter_description %}{% if LANGUAGE_CODE == 'km' %}ស្រង់អក្សរខ្មែរពី PDF ស្កេនទៅជា Word (.docx) ឥតគិតថ្លៃជាមួយ DAMSPEY OCR។{% else %}Convert scanned Khmer PDFs and images to editable Word with DAMSPEY Khmer OCR.{% endif %}{% endblock %}
 
 {% block extra_head %}
 <!-- Homepage Structured Data (JSON-LD) with FAQPage for Rich Search Snippets -->
@@ -36,7 +36,7 @@
           "name": "{% if LANGUAGE_CODE == 'km' %}តើ OCR ខ្មែរ ទៅជា Word លើ DAMSPEY ដំណើរការយ៉ាងដូចម្តេច?{% else %}How does Khmer OCR to Word work on DAMSPEY?{% endif %}",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "{% if LANGUAGE_CODE == 'km' %}DAMSPEY ប្រើប្រាស់បច្ចេកវិទ្យា AI OCR ទំនើបដើម្បីសម្គាល់តួអក្សរខ្មែរ ស្រៈ ព្យញ្ជនៈ និងជើងអក្សរ ពីរូបភាព ឬឯកសារ PDF ស្កេន រួចបម្លែងចេញជាឯកសារ Microsoft Word (.docx) ដែលមានទម្រង់ខ្មែរយូនីកូដ (Khmer Unicode) ត្រឹមត្រូវ 100% មិនបាក់ជើង។{% else %}DAMSPEY uses modern AI OCR technology to recognize Khmer characters, vowels, consonants, and subscripts from scanned PDFs or images, outputting fully editable Microsoft Word (.docx) documents with 100% compliant Khmer Unicode, accurate and error-free.{% endif %}"
+            "text": "{% if LANGUAGE_CODE == 'km' %}DAMSPEY ប្រើប្រាស់បច្ចេកវិទ្យា OCR ទំនើបដើម្បីសម្គាល់តួអក្សរខ្មែរ ស្រៈ ព្យញ្ជនៈ និងជើងអក្សរ ពីរូបភាព ឬឯកសារ PDF ស្កេន រួចបម្លែងចេញជាឯកសារ Microsoft Word (.docx) ដែលមានទម្រង់ខ្មែរយូនីកូដ (Khmer Unicode) ត្រឹមត្រូវ 100% មិនបាក់ជើង។{% else %}DAMSPEY uses modern OCR technology to recognize Khmer characters, vowels, consonants, and subscripts from scanned PDFs or images, outputting fully editable Microsoft Word (.docx) documents with 100% compliant Khmer Unicode, accurate and error-free.{% endif %}"
           }
         },
         {
@@ -60,7 +60,7 @@
           "name": "{% if LANGUAGE_CODE == 'km' %}តើខ្ញុំអាចបម្លែងឯកសារជាទម្រង់រូបភាព (JPG, PNG) បានដែរឬទេ?{% else %}Can I convert image formats like JPG and PNG to Word?{% endif %}",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "{% if LANGUAGE_CODE == 'km' %}ពិតជាបាន! ប្រព័ន្ធ AI OCR របស់យើងគាំទ្រទាំងឯកសារ PDF ស្កេន និងរូបភាពជាច្រើនប្រភេទដូចជា JPG, PNG, WEBP ជាដើម ដោយស្រង់អក្សរខ្មែរចេញមកជា Word (.docx) បានភ្លាមៗ។{% else %}Yes! Our AI OCR tool supports both scanned PDF files and common image formats including JPG, PNG, and WEBP, instantly converting them into editable Word documents.{% endif %}"
+            "text": "{% if LANGUAGE_CODE == 'km' %}ពិតជាបាន! ប្រព័ន្ធ OCR របស់យើងគាំទ្រទាំងឯកសារ PDF ស្កេន និងរូបភាពជាច្រើនប្រភេទដូចជា JPG, PNG, WEBP ជាដើម ដោយស្រង់អក្សរខ្មែរចេញមកជា Word (.docx) បានភ្លាមៗ។{% else %}Yes! Our OCR tool supports both scanned PDF files and common image formats including JPG, PNG, and WEBP, instantly converting them into editable Word documents.{% endif %}"
           }
         }
       ]
@@ -803,14 +803,14 @@
         {% if LANGUAGE_CODE == 'km' %}
             OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ
         {% else %}
-            Khmer AI OCR to Word & Free PDF Tools
+            Khmer OCR to Word & Free PDF Tools
         {% endif %}
     </h1>
     <p class="hero-subtitle">
         {% if LANGUAGE_CODE == 'km' %}
-            បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word (.docx) ដោយ AI ស្រង់អក្សរខ្មែរយូនីកូដត្រឹមត្រូវ 100% មិនបាក់ជើង រក្សាទម្រង់តារាង និងឧបករណ៍ PDF គ្រប់មុខឥតគិតថ្លៃ។
+            បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word (.docx) ស្រង់អក្សរខ្មែរយូនីកូដត្រឹមត្រូវ 100% មិនបាក់ជើង រក្សាទម្រង់តារាង និងឧបករណ៍ PDF គ្រប់មុខឥតគិតថ្លៃ។
         {% else %}
-            Convert scanned documents and images into editable Word (.docx) with 100% accurate Khmer Unicode AI recognition and full suite of free PDF tools.
+            Convert scanned documents and images into editable Word (.docx) with 100% accurate Khmer Unicode recognition and full suite of free PDF tools.
         {% endif %}
     </p>
 </div>
@@ -932,13 +932,13 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     KHMER AI OCR SEO SHOWCASE & FAQ SECTION
+     KHMER OCR SEO SHOWCASE & FAQ SECTION
      ══════════════════════════════════════════════════════════════ -->
 <section class="seo-showcase-section" id="khmer-ocr-showcase">
     <div class="seo-section-header">
         <span class="seo-badge-pill">
             <i class="ti ti-sparkles"></i>
-            {% if LANGUAGE_CODE == 'km' %}បច្ចេកវិទ្យា AI ស្រង់អក្សរខ្មែរ{% else %}Next-Gen AI Khmer OCR{% endif %}
+            {% if LANGUAGE_CODE == 'km' %}បច្ចេកវិទ្យាស្រង់អក្សរខ្មែរ{% else %}High-Accuracy Khmer OCR{% endif %}
         </span>
         <h2>
             {% if LANGUAGE_CODE == 'km' %}
@@ -949,9 +949,9 @@
         </h2>
         <p>
             {% if LANGUAGE_CODE == 'km' %}
-                DAMSPEY ផ្តល់ជូននូវបច្ចេកវិទ្យា AI OCR ភាសាខ្មែរ ដែលអាចស្រង់អត្ថបទពីឯកសារស្កេន និងរូបថតចេញជាឯកសារ Microsoft Word (.docx) បានយ៉ាងរហ័ស ត្រឹមត្រូវ 100% មិនបាក់ជើង មិនលោតស្រៈ និងរក្សាទម្រង់តារាងស្អាតដូចដើម។
+                DAMSPEY ផ្តល់ជូននូវបច្ចេកវិទ្យា OCR ភាសាខ្មែរ ដែលអាចស្រង់អត្ថបទពីឯកសារស្កេន និងរូបថតចេញជាឯកសារ Microsoft Word (.docx) បានយ៉ាងរហ័ស ត្រឹមត្រូវ 100% មិនបាក់ជើង មិនលោតស្រៈ និងរក្សាទម្រង់តារាងស្អាតដូចដើម។
             {% else %}
-                DAMSPEY offers advanced AI Khmer OCR that accurately extracts Khmer Unicode text from scanned PDFs and photos into fully editable Microsoft Word (.docx) documents, preserving tables and document formatting without broken characters.
+                DAMSPEY offers advanced Khmer OCR that accurately extracts Khmer Unicode text from scanned PDFs and photos into fully editable Microsoft Word (.docx) documents, preserving tables and document formatting without broken characters.
             {% endif %}
         </p>
     </div>
@@ -994,7 +994,7 @@
     <div class="seo-ocr-cta-banner">
         <div class="seo-ocr-cta-content">
             <h3>{% if LANGUAGE_CODE == 'km' %}ត្រូវការបម្លែង PDF ស្កេន ឬរូបភាពទៅជា Word ឥឡូវនេះ?{% else %}Ready to Convert Scanned Khmer Documents to Word?{% endif %}</h3>
-            <p>{% if LANGUAGE_CODE == 'km' %}សាកល្បងឧបករណ៍ OCR ខ្មែរ ដោយឥតគិតថ្លៃ — ងាយស្រួលប្រើប្រាស់ លឿន និងមានប្រសិទ្ធភាពខ្ពស់បំផុត។{% else %}Try our free Khmer AI OCR tool today — fast, accurate, and completely free with no software installation required.{% endif %}</p>
+            <p>{% if LANGUAGE_CODE == 'km' %}សាកល្បងឧបករណ៍ OCR ខ្មែរ ដោយឥតគិតថ្លៃ — ងាយស្រួលប្រើប្រាស់ លឿន និងមានប្រសិទ្ធភាពខ្ពស់បំផុត។{% else %}Try our free Khmer OCR tool today — fast, accurate, and completely free with no software installation required.{% endif %}</p>
         </div>
         <a href="/pdf-ocr/" class="seo-ocr-cta-btn">
             <i class="ti ti-scan"></i>
@@ -1019,9 +1019,9 @@
                 </button>
                 <div class="faq-answer" x-show="openFaq === 1" x-cloak x-transition>
                     {% if LANGUAGE_CODE == 'km' %}
-                        DAMSPEY ប្រើប្រាស់បច្ចេកវិទ្យា AI OCR ទំនើបដើម្បីសម្គាល់តួអក្សរខ្មែរ ស្រៈ ព្យញ្ជនៈ និងជើងអក្សរ ពីរូបភាព ឬឯកសារ PDF ស្កេន រួចបម្លែងចេញជាឯកសារ Microsoft Word (.docx) ដែលមានទម្រង់ខ្មែរយូនីកូដ (Khmer Unicode) ត្រឹមត្រូវ 100% មិនបាក់ជើង។
+                        DAMSPEY ប្រើប្រាស់បច្ចេកវិទ្យា OCR ទំនើបដើម្បីសម្គាល់តួអក្សរខ្មែរ ស្រៈ ព្យញ្ជនៈ និងជើងអក្សរ ពីរូបភាព ឬឯកសារ PDF ស្កេន រួចបម្លែងចេញជាឯកសារ Microsoft Word (.docx) ដែលមានទម្រង់ខ្មែរយូនីកូដ (Khmer Unicode) ត្រឹមត្រូវ 100% មិនបាក់ជើង។
                     {% else %}
-                        DAMSPEY uses modern AI OCR technology to recognize Khmer characters, vowels, consonants, and subscripts from scanned PDFs or images, outputting fully editable Microsoft Word (.docx) documents with 100% compliant Khmer Unicode, accurate and error-free.
+                        DAMSPEY uses modern OCR technology to recognize Khmer characters, vowels, consonants, and subscripts from scanned PDFs or images, outputting fully editable Microsoft Word (.docx) documents with 100% compliant Khmer Unicode, accurate and error-free.
                     {% endif %}
                 </div>
             </div>
@@ -1064,9 +1064,9 @@
                 </button>
                 <div class="faq-answer" x-show="openFaq === 4" x-cloak x-transition>
                     {% if LANGUAGE_CODE == 'km' %}
-                        ពិតជាបាន! ប្រព័ន្ធ AI OCR របស់យើងគាំទ្រទាំងឯកសារ PDF ស្កេន និងរូបភាពជាច្រើនប្រភេទដូចជា JPG, PNG, WEBP ជាដើម ដោយស្រង់អក្សរខ្មែរចេញមកជា Word (.docx) បានភ្លាមៗ។
+                        ពិតជាបាន! ប្រព័ន្ធ OCR របស់យើងគាំទ្រទាំងឯកសារ PDF ស្កេន និងរូបភាពជាច្រើនប្រភេទដូចជា JPG, PNG, WEBP ជាដើម ដោយស្រង់អក្សរខ្មែរចេញមកជា Word (.docx) បានភ្លាមៗ។
                     {% else %}
-                        Yes! Our AI OCR tool supports both scanned PDF files and common image formats including JPG, PNG, and WEBP, instantly converting them into editable Word documents.
+                        Yes! Our OCR tool supports both scanned PDF files and common image formats including JPG, PNG, and WEBP, instantly converting them into editable Word documents.
                     {% endif %}
                 </div>
             </div>
