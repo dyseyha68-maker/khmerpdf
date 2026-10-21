@@ -1,10 +1,74 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}DAMSPEY - Free Khmer PDF Tools | ឧបករណ៍ PDF ខ្មែរ ឥតគិតថ្លៃ{% endblock %}
-{% block meta_description %}Free online PDF tools built for Cambodia — OCR PDF to Word (.docx), compress, merge, split, organize, and convert PDF files instantly, no signup required. ឧបករណ៍ PDF & OCR ឥតគិតថ្លៃសម្រាប់ខ្មែរ។{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer AI OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
+{% block meta_description %}{% if LANGUAGE_CODE == 'km' %}បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word ខ្មែរ (.docx) ដោយឥតគិតថ្លៃ តាមរយៈ AI OCR។ ស្រង់អក្សរខ្មែរយូនីកូដត្រឹមត្រូវ 100% មិនបាក់ជើង មិនលោតស្រៈ និងឧបករណ៍ PDF ខ្មែរគ្រប់មុខ។{% else %}Convert scanned Khmer PDF and images to editable Word (.docx) free with AI OCR. 100% accurate Khmer Unicode, plus compress, merge, split, and protect PDF tools.{% endif %}{% endblock %}
+{% block meta_keywords %}OCR ខ្មែរ, Khmer OCR, OCR Khmer to Word, បម្លែង PDF ទៅជា Word ខ្មែរ, ស្រង់អក្សរខ្មែរពី PDF, AI OCR Cambodia, Khmer Unicode OCR, ឧបករណ៍ PDF ខ្មែរ, បង្រួម PDF, បញ្ចូល PDF, បំបែក PDF, DAMSPEY{% endblock %}
 {% block page_path %}/{% endblock %}
 {% block og_path %}/{% endblock %}
+{% block og_title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer AI OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
+{% block og_description %}{% if LANGUAGE_CODE == 'km' %}បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word ខ្មែរ (.docx) ដោយឥតគិតថ្លៃ តាមរយៈ AI OCR ត្រឹមត្រូវ 100%។{% else %}Convert scanned Khmer PDFs and images to editable Word (.docx) free with AI OCR.{% endif %}{% endblock %}
+{% block twitter_title %}{% if LANGUAGE_CODE == 'km' %}OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ | DAMSPEY{% else %}Khmer AI OCR to Word & Free PDF Tools | DAMSPEY{% endif %}{% endblock %}
+{% block twitter_description %}{% if LANGUAGE_CODE == 'km' %}ស្រង់អក្សរខ្មែរពី PDF ស្កេនទៅជា Word (.docx) ឥតគិតថ្លៃជាមួយ DAMSPEY AI OCR។{% else %}Convert scanned Khmer PDFs and images to editable Word with DAMSPEY AI OCR.{% endif %}{% endblock %}
+
+{% block extra_head %}
+<!-- Homepage Structured Data (JSON-LD) with FAQPage for Rich Search Snippets -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "name": "DAMSPEY",
+      "alternateName": ["ឧបករណ៍ PDF ខ្មែរ", "DAMSPEY Khmer OCR"],
+      "url": "https://damspey.com/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://damspey.com/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "{% if LANGUAGE_CODE == 'km' %}តើ OCR ខ្មែរ ទៅជា Word លើ DAMSPEY ដំណើរការយ៉ាងដូចម្តេច?{% else %}How does Khmer OCR to Word work on DAMSPEY?{% endif %}",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "{% if LANGUAGE_CODE == 'km' %}DAMSPEY ប្រើប្រាស់បច្ចេកវិទ្យា AI OCR ទំនើបដើម្បីសម្គាល់តួអក្សរខ្មែរ ស្រៈ ព្យញ្ជនៈ និងជើងអក្សរ ពីរូបភាព ឬឯកសារ PDF ស្កេន រួចបម្លែងចេញជាឯកសារ Microsoft Word (.docx) ដែលមានទម្រង់ខ្មែរយូនីកូដ (Khmer Unicode) ត្រឹមត្រូវ 100% មិនបាក់ជើង។{% else %}DAMSPEY uses modern AI OCR technology to recognize Khmer characters, vowels, consonants, and subscripts from scanned PDFs or images, outputting fully editable Microsoft Word (.docx) documents with 100% compliant Khmer Unicode, accurate and error-free.{% endif %}"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "{% if LANGUAGE_CODE == 'km' %}តើសេវាកម្ម OCR ខ្មែរ និងឧបករណ៍ PDF ផ្សេងទៀតឥតគិតថ្លៃមែនទេ?{% else %}Is Khmer OCR and other PDF tools completely free to use?{% endif %}",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "{% if LANGUAGE_CODE == 'km' %}បាទ/ចាស! រាល់ឧបករណ៍ទាំងអស់នៅលើ DAMSPEY រួមទាំង OCR ខ្មែរ, បង្រួម PDF, បញ្ចូល PDF, បំបែក PDF និងការពារ PDF គឺឥតគិតថ្លៃ 100% ដោយមិនចាំបាច់ចុះឈ្មោះ ឬបង់ប្រាក់ឡើយ។{% else %}Yes! All tools on DAMSPEY, including Khmer OCR, PDF compression, merging, splitting, and password protection, are 100% free with no account registration or payment required.{% endif %}"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "{% if LANGUAGE_CODE == 'km' %}តើឯកសារដែលខ្ញុំផ្ទុកឡើងមានសុវត្ថិភាពដែរឬទេ?{% else %}Are my uploaded documents safe and private?{% endif %}",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "{% if LANGUAGE_CODE == 'km' %}ឯកសាររបស់អ្នកមានសុវត្ថិភាពកម្រិតខ្ពស់បំផុត។ រាល់ឯកសារដែលបានផ្ទុកឡើងត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើ (Server) ដោយស្វ័យប្រវត្តក្នុងរយៈពេល 60 នាទីបន្ទាប់ពីដំណើរការរួច។ គ្មាននរណាម្នាក់អាចមើលឃើញ ឬទាញយកឯកសាររបស់អ្នកបានឡើយ។{% else %}Your documents are completely safe. All uploaded and converted files are automatically and permanently purged from our servers within 60 minutes. Nobody has access to your private files.{% endif %}"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "{% if LANGUAGE_CODE == 'km' %}តើខ្ញុំអាចបម្លែងឯកសារជាទម្រង់រូបភាព (JPG, PNG) បានដែរឬទេ?{% else %}Can I convert image formats like JPG and PNG to Word?{% endif %}",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "{% if LANGUAGE_CODE == 'km' %}ពិតជាបាន! ប្រព័ន្ធ AI OCR របស់យើងគាំទ្រទាំងឯកសារ PDF ស្កេន និងរូបភាពជាច្រើនប្រភេទដូចជា JPG, PNG, WEBP ជាដើម ដោយស្រង់អក្សរខ្មែរចេញមកជា Word (.docx) បានភ្លាមៗ។{% else %}Yes! Our AI OCR tool supports both scanned PDF files and common image formats including JPG, PNG, and WEBP, instantly converting them into editable Word documents.{% endif %}"
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -446,14 +510,309 @@
             font-size: 12px;
         }
     }
+
+    .hero-subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        margin-top: 12px;
+        max-width: 780px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SEO SHOWCASE & FAQ SECTION
+       ══════════════════════════════════════════════════════════════ */
+    .seo-showcase-section {
+        max-width: 1200px;
+        width: 100%;
+        margin-top: 56px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+    
+    .seo-section-header {
+        text-align: center;
+        max-width: 840px;
+        margin: 0 auto;
+    }
+    
+    .seo-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.09);
+        color: var(--primary);
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        letter-spacing: 0.3px;
+    }
+    [data-theme="dark"] .seo-badge-pill {
+        background: rgba(96, 165, 250, 0.15);
+    }
+    
+    .seo-section-header h2 {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text);
+        margin: 0 0 10px;
+        line-height: 1.35;
+    }
+    
+    .seo-section-header p {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .seo-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    
+    .seo-feature-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .seo-feature-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.06);
+        border-color: var(--primary);
+    }
+    
+    .seo-feat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+    [data-theme="dark"] .seo-feat-icon {
+        background: rgba(96, 165, 250, 0.15);
+    }
+    
+    .seo-feature-card h3 {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 8px;
+        line-height: 1.4;
+    }
+    
+    .seo-feature-card p {
+        font-size: 13.5px;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin: 0;
+    }
+    
+    /* CTA Box */
+    .seo-ocr-cta-banner {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #4f46e5 100%);
+        border-radius: 20px;
+        padding: 34px 40px;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        box-shadow: 0 16px 32px -8px rgba(37, 99, 235, 0.35);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .seo-ocr-cta-content {
+        max-width: 680px;
+    }
+    
+    .seo-ocr-cta-content h3 {
+        font-size: 22px;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0 0 8px;
+        line-height: 1.3;
+    }
+    
+    .seo-ocr-cta-content p {
+        font-size: 14.5px;
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+        line-height: 1.55;
+    }
+    
+    .seo-ocr-cta-btn {
+        background: #ffffff;
+        color: #1e3a8a !important;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 13px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .seo-ocr-cta-btn:hover {
+        transform: translateY(-2px);
+        background: #f8fafc;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    }
+    
+    /* FAQ Section */
+    .seo-faq-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 34px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    
+    .seo-faq-header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    
+    .seo-faq-header h3 {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text);
+        margin: 0 0 8px;
+    }
+    
+    .seo-faq-header p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+    
+    .faq-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .faq-item {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        overflow: hidden;
+        transition: border-color 0.2s;
+    }
+    
+    .faq-item.active {
+        border-color: var(--primary);
+    }
+    
+    .faq-question-btn {
+        width: 100%;
+        text-align: left;
+        padding: 16px 20px;
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 15.5px;
+        font-weight: 700;
+        color: var(--text);
+        cursor: pointer;
+        transition: color 0.15s;
+    }
+    
+    .faq-question-btn:hover {
+        color: var(--primary);
+    }
+    
+    .faq-icon-arrow {
+        font-size: 18px;
+        color: var(--text-secondary);
+        transition: transform 0.2s;
+        flex-shrink: 0;
+    }
+    
+    .faq-icon-arrow.open {
+        transform: rotate(180deg);
+        color: var(--primary);
+    }
+    
+    .faq-answer {
+        padding: 0 20px 18px;
+        font-size: 14px;
+        line-height: 1.65;
+        color: var(--text-secondary);
+    }
+    
+    @media (max-width: 1000px) {
+        .seo-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .seo-ocr-cta-banner {
+            flex-direction: column;
+            text-align: center;
+            align-items: center;
+            padding: 28px 24px;
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .seo-grid {
+            grid-template-columns: 1fr;
+        }
+        .seo-faq-section {
+            padding: 24px 16px;
+        }
+        .hero h1 {
+            font-size: 26px;
+        }
+        .hero-subtitle {
+            font-size: 14px;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="hero">
     <h1>
-        {% trans "Free Online PDF Tools" %}
+        {% if LANGUAGE_CODE == 'km' %}
+            OCR ខ្មែរ ទៅជា Word & ឧបករណ៍ PDF ឥតគិតថ្លៃ
+        {% else %}
+            Khmer AI OCR to Word & Free PDF Tools
+        {% endif %}
     </h1>
+    <p class="hero-subtitle">
+        {% if LANGUAGE_CODE == 'km' %}
+            បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word (.docx) ដោយ AI ស្រង់អក្សរខ្មែរយូនីកូដត្រឹមត្រូវ 100% មិនបាក់ជើង រក្សាទម្រង់តារាង និងឧបករណ៍ PDF គ្រប់មុខឥតគិតថ្លៃ។
+        {% else %}
+            Convert scanned documents and images into editable Word (.docx) with 100% accurate Khmer Unicode AI recognition and full suite of free PDF tools.
+        {% endif %}
+    </p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -571,6 +930,149 @@
         <p>{% trans "Public holidays & lunar" %}</p>
     </a>
 </div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     KHMER AI OCR SEO SHOWCASE & FAQ SECTION
+     ══════════════════════════════════════════════════════════════ -->
+<section class="seo-showcase-section" id="khmer-ocr-showcase">
+    <div class="seo-section-header">
+        <span class="seo-badge-pill">
+            <i class="ti ti-sparkles"></i>
+            {% if LANGUAGE_CODE == 'km' %}បច្ចេកវិទ្យា AI ស្រង់អក្សរខ្មែរ{% else %}Next-Gen AI Khmer OCR{% endif %}
+        </span>
+        <h2>
+            {% if LANGUAGE_CODE == 'km' %}
+                បម្លែង PDF ស្កេន និងរូបភាព ទៅជា Word ខ្មែរ ដោយឥតគិតថ្លៃ
+            {% else %}
+                Convert Scanned Khmer PDFs & Photos into Editable Word Free
+            {% endif %}
+        </h2>
+        <p>
+            {% if LANGUAGE_CODE == 'km' %}
+                DAMSPEY ផ្តល់ជូននូវបច្ចេកវិទ្យា AI OCR ភាសាខ្មែរ ដែលអាចស្រង់អត្ថបទពីឯកសារស្កេន និងរូបថតចេញជាឯកសារ Microsoft Word (.docx) បានយ៉ាងរហ័ស ត្រឹមត្រូវ 100% មិនបាក់ជើង មិនលោតស្រៈ និងរក្សាទម្រង់តារាងស្អាតដូចដើម។
+            {% else %}
+                DAMSPEY offers advanced AI Khmer OCR that accurately extracts Khmer Unicode text from scanned PDFs and photos into fully editable Microsoft Word (.docx) documents, preserving tables and document formatting without broken characters.
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="seo-grid">
+        <div class="seo-feature-card">
+            <div class="seo-feat-icon">
+                <i class="ti ti-typography"></i>
+            </div>
+            <h3>{% if LANGUAGE_CODE == 'km' %}100% ខ្មែរយូនីកូដត្រឹមត្រូវ{% else %}100% Accurate Khmer Unicode{% endif %}</h3>
+            <p>{% if LANGUAGE_CODE == 'km' %}ស្រង់ព្យញ្ជនៈ ស្រៈ ជើងអក្សរ និងលេខខ្មែរបានច្បាស់លាស់ មិនរញ៉េរញ៉ៃ ប្រើប្រាស់ពុម្ពអក្សរ Kantumruy Pro ដែលងាយស្រួលបើកកែសម្រួល។{% else %}Extracts Khmer consonants, vowels, subscripts, and numerals with precision. Uses standard Kantumruy Pro font ready for immediate editing.{% endif %}</p>
+        </div>
+
+        <div class="seo-feature-card">
+            <div class="seo-feat-icon">
+                <i class="ti ti-table"></i>
+            </div>
+            <h3>{% if LANGUAGE_CODE == 'km' %}រក្សាទម្រង់តារាង & ប្លង់{% else %}Preserves Tables & Layout{% endif %}</h3>
+            <p>{% if LANGUAGE_CODE == 'km' %}រៀបចំក្បាលទំព័រ កថាខណ្ឌ និងតារាងទិន្នន័យឱ្យនៅស្អាតដូចឯកសារដើម មិនបាច់ចំណាយពេលអង្គុយវាយ ឬរៀបចំឡើងវិញឡើយ។{% else %}Reconstructs headers, paragraphs, lists, and tabular data faithfully into clean Microsoft Word tables and paragraphs.{% endif %}</p>
+        </div>
+
+        <div class="seo-feature-card">
+            <div class="seo-feat-icon">
+                <i class="ti ti-photo-scan"></i>
+            </div>
+            <h3>{% if LANGUAGE_CODE == 'km' %}គាំទ្រទាំង PDF & រូបភាព{% else %}Supports PDFs & Photos{% endif %}</h3>
+            <p>{% if LANGUAGE_CODE == 'km' %}អាចដំណើរការឯកសារ PDF ស្កេនច្រើនទំព័រ ឬរូបថត JPG, PNG, WEBP ពីកាមេរ៉ាទូរស័ព្ទដៃបានយ៉ាងរហ័ស។{% else %}Seamlessly process multi-page scanned PDF documents or photos taken directly from your smartphone (JPG, PNG, WEBP).{% endif %}</p>
+        </div>
+
+        <div class="seo-feature-card">
+            <div class="seo-feat-icon">
+                <i class="ti ti-shield-check"></i>
+            </div>
+            <h3>{% if LANGUAGE_CODE == 'km' %}ឥតគិតថ្លៃ & សម្ងាត់ 100%{% else %}100% Free & Private{% endif %}</h3>
+            <p>{% if LANGUAGE_CODE == 'km' %}មិនបាច់ចុះឈ្មោះ មិនគិតប្រាក់ ហើយឯកសារទាំងអស់ត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើដោយស្វ័យប្រវត្តក្នុងរយៈពេល 60 នាទី។{% else %}No registration or credit card required. All uploaded and processed files are automatically purged after 60 minutes for your privacy.{% endif %}</p>
+        </div>
+    </div>
+
+    <!-- Banner Call-to-Action to /pdf-ocr/ -->
+    <div class="seo-ocr-cta-banner">
+        <div class="seo-ocr-cta-content">
+            <h3>{% if LANGUAGE_CODE == 'km' %}ត្រូវការបម្លែង PDF ស្កេន ឬរូបភាពទៅជា Word ឥឡូវនេះ?{% else %}Ready to Convert Scanned Khmer Documents to Word?{% endif %}</h3>
+            <p>{% if LANGUAGE_CODE == 'km' %}សាកល្បងឧបករណ៍ OCR ខ្មែរ ដោយឥតគិតថ្លៃ — ងាយស្រួលប្រើប្រាស់ លឿន និងមានប្រសិទ្ធភាពខ្ពស់បំផុត។{% else %}Try our free Khmer AI OCR tool today — fast, accurate, and completely free with no software installation required.{% endif %}</p>
+        </div>
+        <a href="/pdf-ocr/" class="seo-ocr-cta-btn">
+            <i class="ti ti-scan"></i>
+            <span>{% if LANGUAGE_CODE == 'km' %}សាកល្បង OCR ខ្មែរ ឥឡូវនេះ{% else %}Try Khmer OCR Now{% endif %}</span>
+            <i class="ti ti-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Interactive FAQ Section matching FAQPage Schema -->
+    <div class="seo-faq-section" x-data="{ openFaq: null }">
+        <div class="seo-faq-header">
+            <h3>{% if LANGUAGE_CODE == 'km' %}សំណួរញឹកញាប់អំពី OCR ខ្មែរ (FAQ){% else %}Frequently Asked Questions About Khmer OCR{% endif %}</h3>
+            <p>{% if LANGUAGE_CODE == 'km' %}ចម្លើយចំពោះសំណួរទូទៅអំពីការបម្លែងឯកសារ និងសុវត្ថិភាព{% else %}Everything you need to know about our Khmer OCR and PDF processing{% endif %}</p>
+        </div>
+
+        <div class="faq-accordion">
+            <!-- FAQ 1 -->
+            <div class="faq-item" :class="{ 'active': openFaq === 1 }">
+                <button type="button" class="faq-question-btn" @click="openFaq = (openFaq === 1 ? null : 1)">
+                    <span>{% if LANGUAGE_CODE == 'km' %}តើ OCR ខ្មែរ ទៅជា Word លើ DAMSPEY ដំណើរការយ៉ាងដូចម្តេច?{% else %}How does Khmer OCR to Word work on DAMSPEY?{% endif %}</span>
+                    <i class="ti ti-chevron-down faq-icon-arrow" :class="{ 'open': openFaq === 1 }"></i>
+                </button>
+                <div class="faq-answer" x-show="openFaq === 1" x-cloak x-transition>
+                    {% if LANGUAGE_CODE == 'km' %}
+                        DAMSPEY ប្រើប្រាស់បច្ចេកវិទ្យា AI OCR ទំនើបដើម្បីសម្គាល់តួអក្សរខ្មែរ ស្រៈ ព្យញ្ជនៈ និងជើងអក្សរ ពីរូបភាព ឬឯកសារ PDF ស្កេន រួចបម្លែងចេញជាឯកសារ Microsoft Word (.docx) ដែលមានទម្រង់ខ្មែរយូនីកូដ (Khmer Unicode) ត្រឹមត្រូវ 100% មិនបាក់ជើង។
+                    {% else %}
+                        DAMSPEY uses modern AI OCR technology to recognize Khmer characters, vowels, consonants, and subscripts from scanned PDFs or images, outputting fully editable Microsoft Word (.docx) documents with 100% compliant Khmer Unicode, accurate and error-free.
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="faq-item" :class="{ 'active': openFaq === 2 }">
+                <button type="button" class="faq-question-btn" @click="openFaq = (openFaq === 2 ? null : 2)">
+                    <span>{% if LANGUAGE_CODE == 'km' %}តើសេវាកម្ម OCR ខ្មែរ និងឧបករណ៍ PDF ផ្សេងទៀតឥតគិតថ្លៃមែនទេ?{% else %}Is Khmer OCR and other PDF tools completely free to use?{% endif %}</span>
+                    <i class="ti ti-chevron-down faq-icon-arrow" :class="{ 'open': openFaq === 2 }"></i>
+                </button>
+                <div class="faq-answer" x-show="openFaq === 2" x-cloak x-transition>
+                    {% if LANGUAGE_CODE == 'km' %}
+                        បាទ/ចាស! រាល់ឧបករណ៍ទាំងអស់នៅលើ DAMSPEY រួមទាំង OCR ខ្មែរ, បង្រួម PDF, បញ្ចូល PDF, បំបែក PDF និងការពារ PDF គឺឥតគិតថ្លៃ 100% ដោយមិនចាំបាច់ចុះឈ្មោះ ឬបង់ប្រាក់ឡើយ។
+                    {% else %}
+                        Yes! All tools on DAMSPEY, including Khmer OCR, PDF compression, merging, splitting, and password protection, are 100% free with no account registration or payment required.
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="faq-item" :class="{ 'active': openFaq === 3 }">
+                <button type="button" class="faq-question-btn" @click="openFaq = (openFaq === 3 ? null : 3)">
+                    <span>{% if LANGUAGE_CODE == 'km' %}តើឯកសារដែលខ្ញុំផ្ទុកឡើងមានសុវត្ថិភាពដែរឬទេ?{% else %}Are my uploaded documents safe and private?{% endif %}</span>
+                    <i class="ti ti-chevron-down faq-icon-arrow" :class="{ 'open': openFaq === 3 }"></i>
+                </button>
+                <div class="faq-answer" x-show="openFaq === 3" x-cloak x-transition>
+                    {% if LANGUAGE_CODE == 'km' %}
+                        ឯកសាររបស់អ្នកមានសុវត្ថិភាពកម្រិតខ្ពស់បំផុត។ រាល់ឯកសារដែលបានផ្ទុកឡើងត្រូវបានលុបចេញពីម៉ាស៊ីនបម្រើ (Server) ដោយស្វ័យប្រវត្តក្នុងរយៈពេល 60 នាទីបន្ទាប់ពីដំណើរការរួច។ គ្មាននរណាម្នាក់អាចមើលឃើញ ឬទាញយកឯកសាររបស់អ្នកបានឡើយ។
+                    {% else %}
+                        Your documents are completely safe. All uploaded and converted files are automatically and permanently purged from our servers within 60 minutes. Nobody has access to your private files.
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="faq-item" :class="{ 'active': openFaq === 4 }">
+                <button type="button" class="faq-question-btn" @click="openFaq = (openFaq === 4 ? null : 4)">
+                    <span>{% if LANGUAGE_CODE == 'km' %}តើខ្ញុំអាចបម្លែងឯកសារជាទម្រង់រូបភាព (JPG, PNG) បានដែរឬទេ?{% else %}Can I convert image formats like JPG and PNG to Word?{% endif %}</span>
+                    <i class="ti ti-chevron-down faq-icon-arrow" :class="{ 'open': openFaq === 4 }"></i>
+                </button>
+                <div class="faq-answer" x-show="openFaq === 4" x-cloak x-transition>
+                    {% if LANGUAGE_CODE == 'km' %}
+                        ពិតជាបាន! ប្រព័ន្ធ AI OCR របស់យើងគាំទ្រទាំងឯកសារ PDF ស្កេន និងរូបភាពជាច្រើនប្រភេទដូចជា JPG, PNG, WEBP ជាដើម ដោយស្រង់អក្សរខ្មែរចេញមកជា Word (.docx) បានភ្លាមៗ។
+                    {% else %}
+                        Yes! Our AI OCR tool supports both scanned PDF files and common image formats including JPG, PNG, and WEBP, instantly converting them into editable Word documents.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
