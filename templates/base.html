@@ -372,17 +372,22 @@
         }
 
         /* ── Ad Banners & Code Snippets ── */
-        .ad-container {
+        .ad-container,
+        .ad-top-container,
+        .ad-bottom-container,
+        .ad-footer-container {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 12px auto;
-            text-align: center;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
             clear: both;
             position: relative;
             z-index: 5;
+            box-sizing: border-box;
         }
         .ad-top-container {
             max-width: 1400px;
@@ -396,19 +401,39 @@
             margin-top: 24px;
             margin-bottom: 16px;
         }
-        .ad-unit {
-            display: inline-block;
-            margin: 0 auto;
-            overflow: hidden;
-            text-align: center;
+        .ad-footer-container {
+            margin-top: 14px;
+            margin-bottom: 14px;
+            padding: 0 16px;
         }
-        .ad-unit iframe, .ad-unit img {
-            max-width: 100%;
-            height: auto;
+        .ad-unit,
+        .ad-footer-unit {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 auto !important;
+            text-align: center !important;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+        .ad-unit iframe,
+        .ad-unit img,
+        .ad-unit > div,
+        .ad-unit ins,
+        .ad-footer-unit iframe,
+        .ad-footer-unit img,
+        .ad-footer-unit > div,
+        .ad-footer-unit ins {
+            display: block !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            max-width: 100% !important;
+            text-align: center !important;
         }
         @media (max-width: 768px) {
             .ad-unit-desktop { display: none !important; }
-            .ad-top-container, .ad-bottom-container { padding: 0 12px; }
+            .ad-top-container, .ad-bottom-container, .ad-footer-container { padding: 0 12px; }
         }
         @media (min-width: 769px) {
             .ad-unit-mobile { display: none !important; }
@@ -919,8 +944,14 @@
 
     {% block scripts %}{% endblock %}
 
-    {% for snippet in ad_footer_codes %}
-        {{ snippet.code }}
-    {% endfor %}
+    {% if ad_footer_codes %}
+    <div class="ad-footer-container">
+        {% for snippet in ad_footer_codes %}
+        <div class="ad-footer-unit ad-unit-{{ snippet.device_target }}">
+            {{ snippet.code }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </body>
 </html>
