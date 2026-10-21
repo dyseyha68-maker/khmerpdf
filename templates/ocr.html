@@ -447,20 +447,35 @@
         background: rgba(239, 68, 68, 0.05);
     }
 
-    /* Page Grid */
-    .page-grid {
+    /* Right Workspace Panel & Grid */
+    .right-panel {
+        min-width: 0;
+    }
+    .right-panel-inner {
+        min-height: 480px;
         display: flex;
-        flex-wrap: wrap;
+        flex-direction: column;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Page Grid (4 equal columns filling 100% of panel width) */
+    .page-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
         gap: 16px;
-        justify-content: flex-start;
         align-content: flex-start;
         padding: 4px;
         min-height: 280px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Page Card */
     .page-card {
-        width: 175px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
         background: var(--surface);
         border: 2px solid var(--border);
         border-radius: 12px;
@@ -565,7 +580,7 @@
     /* Thumbnail preview wrapper */
     .card-thumb-wrap {
         width: 100%;
-        height: 180px;
+        height: 200px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -622,7 +637,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 155px;
+        max-width: 100%;
     }
 
     .grid-loading-box {
@@ -742,16 +757,36 @@
         border-color: var(--primary);
     }
 
-    @media (max-width: 900px) {
-        .page-card { width: 140px; padding: 6px; }
-        .card-thumb-wrap { height: 140px; }
+    @media (max-width: 1200px) {
+        .page-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+        .card-thumb-wrap { height: 180px; }
     }
-    @media (max-width: 600px) {
-        .page-grid { gap: 10px; }
-        .page-card { width: 105px; padding: 5px; }
-        .card-thumb-wrap { height: 110px; }
+    @media (max-width: 900px) {
+        .page-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .card-thumb-wrap { height: 170px; }
+    }
+    @media (max-width: 650px) {
+        .page-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .page-card { padding: 6px; }
+        .card-thumb-wrap { height: 140px; }
         .ocr-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
         .toolbar-actions { justify-content: space-between; }
+    }
+    @media (max-width: 400px) {
+        .page-grid {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .card-thumb-wrap { height: 180px; }
     }
 </style>
 {% endblock %}
@@ -830,18 +865,18 @@
                 </span>
             </div>
             <div class="lang-pills">
-                <button type="button" class="lang-pill" :class="{ active: ocrLang === 'khm' }" @click="ocrLang = 'khm'">
+                <button type="button" class="lang-pill" :class="{ active: ocrLang === 'khm' }" @click="selectOcrLang('khm')">
                     <span class="fi fi-kh modern-flag"></span>
                     <span class="pill-name">{% trans "Khmer" %}</span>
                 </button>
-                <button type="button" class="lang-pill" :class="{ active: ocrLang === 'eng+khm' }" @click="ocrLang = 'eng+khm'">
+                <button type="button" class="lang-pill" :class="{ active: ocrLang === 'eng+khm' }" @click="selectOcrLang('eng+khm')">
                     <div class="dual-flags">
                         <span class="fi fi-kh modern-flag flag-left"></span>
                         <span class="fi fi-us modern-flag flag-right"></span>
                     </div>
                     <span class="pill-name">{% trans "Khmer + Eng" %}</span>
                 </button>
-                <button type="button" class="lang-pill" :class="{ active: ocrLang === 'eng' }" @click="ocrLang = 'eng'">
+                <button type="button" class="lang-pill" :class="{ active: ocrLang === 'eng' }" @click="selectOcrLang('eng')">
                     <span class="fi fi-us modern-flag"></span>
                     <span class="pill-name">{% trans "English" %}</span>
                 </button>
@@ -989,6 +1024,73 @@
 </div>
 
 <script>
+// ── IndexedDB State Persistence for OCR ──────────────────────────────────────────
+const OCR_DB_NAME = 'damspey_ocr_storage';
+const OCR_DB_VERSION = 1;
+const OCR_STORE_NAME = 'session';
+
+function getOcrDb() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(OCR_DB_NAME, OCR_DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(OCR_STORE_NAME)) {
+                db.createObjectStore(OCR_STORE_NAME, { keyPath: 'id' });
+            }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function persistOcrSession(data) {
+    try {
+        const db = await getOcrDb();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(OCR_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(OCR_STORE_NAME);
+            store.put({ id: 'active_session', ...data, updatedAt: Date.now() });
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+        });
+    } catch(err) {
+        console.warn('Could not persist OCR session:', err);
+        return false;
+    }
+}
+
+async function retrieveOcrSession() {
+    try {
+        const db = await getOcrDb();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(OCR_STORE_NAME, 'readonly');
+            const store = tx.objectStore(OCR_STORE_NAME);
+            const req = store.get('active_session');
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => reject(req.error);
+        });
+    } catch(err) {
+        console.warn('Could not retrieve OCR session:', err);
+        return null;
+    }
+}
+
+async function removeOcrSession() {
+    try {
+        const db = await getOcrDb();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(OCR_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(OCR_STORE_NAME);
+            store.delete('active_session');
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+        });
+    } catch(err) {
+        console.warn('Could not remove OCR session:', err);
+        return false;
+    }
+}
+
 function ocrApp() {
     return baseToolApp({
         pages: [],
@@ -998,6 +1100,22 @@ function ocrApp() {
         loadingProgress: '',
         draggingRight: false,
         _nextId: 1,
+
+        async init() {
+            window.__currentOcrApp = this;
+            try {
+                const session = await retrieveOcrSession();
+                if (session && session.pages && session.pages.length > 0) {
+                    this.isLoadingPages = true;
+                    this.loadingProgress = (typeof isKhmer !== 'undefined' && isKhmer) ? 'កំពុងស្ដារទំព័រ...' : 'Restoring pages...';
+                    await this.restoreSession(session);
+                    this.isLoadingPages = false;
+                }
+            } catch(err) {
+                this.isLoadingPages = false;
+                console.warn('Error during OCR init restore:', err);
+            }
+        },
 
         get filesCount() {
             return this.loadedFiles.size;
@@ -1014,12 +1132,17 @@ function ocrApp() {
         get submitButtonText() {
             const count = this.selectedCount;
             if (count === 0) {
-                return isKhmer ? 'សូមជ្រើសរើសយ៉ាងហោច ១ ទំព័រ' : 'Select at least 1 page';
+                return (typeof isKhmer !== 'undefined' && isKhmer) ? 'សូមជ្រើសរើសយ៉ាងហោច ១ ទំព័រ' : 'Select at least 1 page';
             }
-            if (isKhmer) {
+            if (typeof isKhmer !== 'undefined' && isKhmer) {
                 return `បម្លែង ${toKhNum(count)} ទំព័រទៅជា Word`;
             }
             return `OCR ${count} ${count === 1 ? 'Page' : 'Pages'} to Word`;
+        },
+
+        async selectOcrLang(lang) {
+            this.ocrLang = lang;
+            await this.saveSession();
         },
 
         onDrop(e) {
@@ -1039,7 +1162,7 @@ function ocrApp() {
         async handleFileList(list) {
             if (!list || !list.length) return;
             this.isLoadingPages = true;
-            this.loadingProgress = isKhmer ? 'កំពុងផ្ទុក និងដំណើរការទំព័រ...' : 'Loading and rendering pages...';
+            this.loadingProgress = (typeof isKhmer !== 'undefined' && isKhmer) ? 'កំពុងផ្ទុក និងដំណើរការទំព័រ...' : 'Loading and rendering pages...';
 
             for (let i = 0; i < list.length; i++) {
                 const file = list[i];
@@ -1053,19 +1176,25 @@ function ocrApp() {
                 }
             }
 
+            await this.saveSession();
             this.isLoadingPages = false;
         },
 
         async addImagePage(file) {
-            const thumbUrl = URL.createObjectURL(file);
+            const dataUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => resolve('');
+                reader.readAsDataURL(file);
+            });
             const imgCount = this.pages.filter(p => p.sourceType === 'image').length + 1;
             this.pages.push({
                 id: this._nextId++,
                 sourceFile: file,
                 sourceType: 'image',
-                pageNum: 1,
-                thumb: thumbUrl,
-                label: (isKhmer ? 'រូបភាព ' : 'Image ') + toKhNum(imgCount),
+                pageNum: imgCount,
+                thumb: dataUrl,
+                label: ((typeof isKhmer !== 'undefined' && isKhmer) ? 'រូបភាព ' : 'Image ') + toKhNum(imgCount),
                 sourceName: file.name,
                 selected: true
             });
@@ -1090,69 +1219,175 @@ function ocrApp() {
                         sourceType: 'pdf',
                         pageNum: i,
                         thumb: canvas.toDataURL('image/jpeg', 0.8),
-                        label: (isKhmer ? 'ទំព័រ ' : 'Page ') + toKhNum(i),
+                        label: ((typeof isKhmer !== 'undefined' && isKhmer) ? 'ទំព័រ ' : 'Page ') + toKhNum(i),
                         sourceName: file.name,
                         selected: true
                     });
                 }
             } catch(err) {
                 console.error('Error rendering PDF pages:', err);
-                alert((isKhmer ? 'មិនអាចបើកឯកសារ PDF បានទេ: ' : 'Failed to load PDF: ') + err.message);
+                alert(((typeof isKhmer !== 'undefined' && isKhmer) ? 'មិនអាចបើកឯកសារ PDF បានទេ: ' : 'Failed to load PDF: ') + err.message);
             }
         },
 
-        togglePageSelect(index) {
+        async saveSession() {
+            if (!this.pages || this.pages.length === 0) {
+                await removeOcrSession();
+                return;
+            }
+
+            const filesList = [];
+            const fileIndexMap = new Map();
+
+            const serializablePages = this.pages.map(p => {
+                let fIdx = -1;
+                if (p.sourceFile) {
+                    if (fileIndexMap.has(p.sourceFile)) {
+                        fIdx = fileIndexMap.get(p.sourceFile);
+                    } else {
+                        fIdx = filesList.length;
+                        filesList.push({
+                            name: p.sourceFile.name,
+                            type: p.sourceFile.type,
+                            blob: p.sourceFile
+                        });
+                        fileIndexMap.set(p.sourceFile, fIdx);
+                    }
+                }
+                return {
+                    id: p.id,
+                    fileIndex: fIdx,
+                    sourceType: p.sourceType,
+                    pageNum: p.pageNum,
+                    thumb: p.thumb,
+                    sourceName: p.sourceName,
+                    selected: p.selected !== false
+                };
+            });
+
+            await persistOcrSession({
+                pages: serializablePages,
+                files: filesList,
+                loadedFiles: Array.from(this.loadedFiles || []),
+                ocrLang: this.ocrLang,
+                _nextId: this._nextId
+            });
+        },
+
+        async restoreSession(session) {
+            try {
+                if (!session) {
+                    session = await retrieveOcrSession();
+                }
+                if (!session || !session.pages || session.pages.length === 0) return;
+
+                // Expire after 4 hours
+                if (Date.now() - session.updatedAt > 4 * 60 * 60 * 1000) {
+                    await removeOcrSession();
+                    return;
+                }
+
+                const restoredFiles = (session.files || []).map(f => {
+                    return new File([f.blob], f.name, { type: f.type });
+                });
+
+                let imgIdx = 0;
+                this.pages = session.pages.map(p => {
+                    const srcFile = p.fileIndex >= 0 ? restoredFiles[p.fileIndex] : null;
+                    let label = '';
+                    if (p.sourceType === 'image') {
+                        imgIdx++;
+                        label = ((typeof isKhmer !== 'undefined' && isKhmer) ? 'រូបភាព ' : 'Image ') + toKhNum(imgIdx);
+                    } else {
+                        label = ((typeof isKhmer !== 'undefined' && isKhmer) ? 'ទំព័រ ' : 'Page ') + toKhNum(p.pageNum);
+                    }
+
+                    return {
+                        id: p.id,
+                        sourceFile: srcFile,
+                        sourceType: p.sourceType,
+                        pageNum: p.pageNum,
+                        thumb: p.thumb,
+                        label: label,
+                        sourceName: p.sourceName,
+                        selected: p.selected !== false
+                    };
+                });
+
+                this.loadedFiles = new Set(session.loadedFiles || []);
+                if (session.ocrLang) {
+                    this.ocrLang = session.ocrLang;
+                }
+                if (session._nextId) {
+                    this._nextId = session._nextId;
+                }
+            } catch(err) {
+                console.warn('Error restoring OCR session:', err);
+            }
+        },
+
+        async togglePageSelect(index) {
             if (this.pages[index]) {
                 this.pages[index].selected = !this.pages[index].selected;
+                await this.saveSession();
             }
         },
 
-        deletePage(index) {
+        async deletePage(index) {
             if (this.pages[index]) {
                 this.pages.splice(index, 1);
                 if (this.pages.length === 0) {
                     this.loadedFiles.clear();
+                    await removeOcrSession();
+                } else {
+                    await this.saveSession();
                 }
             }
         },
 
-        selectAll() {
+        async selectAll() {
             this.pages.forEach(p => p.selected = true);
+            await this.saveSession();
         },
 
-        deselectAll() {
+        async deselectAll() {
             this.pages.forEach(p => p.selected = false);
+            await this.saveSession();
         },
 
-        deleteSelected() {
+        async deleteSelected() {
             const count = this.selectedCount;
             if (count === 0) return;
-            const msg = isKhmer
+            const msg = (typeof isKhmer !== 'undefined' && isKhmer)
                 ? `តើអ្នកពិតជាចង់លុប ${toKhNum(count)} ទំព័រដែលបានជ្រើសរើសមែនទេ?`
                 : `Delete ${count} selected page(s)?`;
             if (confirm(msg)) {
                 this.pages = this.pages.filter(p => !p.selected);
                 if (this.pages.length === 0) {
                     this.loadedFiles.clear();
+                    await removeOcrSession();
+                } else {
+                    await this.saveSession();
                 }
             }
         },
 
-        clearAll() {
+        async clearAll() {
             if (this.pages.length === 0) return;
-            const msg = isKhmer
+            const msg = (typeof isKhmer !== 'undefined' && isKhmer)
                 ? 'តើអ្នកចង់ចាប់ផ្តើមឡើងវិញ និងលុបទំព័រទាំងអស់មែនទេ?'
                 : 'Remove all pages and start over?';
             if (confirm(msg)) {
                 this.pages = [];
                 this.loadedFiles.clear();
+                await removeOcrSession();
             }
         },
 
         async submit() {
             const activePages = this.pages.filter(p => p.selected);
             if (!activePages.length) {
-                alert(isKhmer ? 'សូមជ្រើសរើសយ៉ាងហោចណាស់ ១ ទំព័រដើម្បីបម្លែង!' : 'Please select at least 1 page to convert!');
+                alert((typeof isKhmer !== 'undefined' && isKhmer) ? 'សូមជ្រើសរើសយ៉ាងហោចណាស់ ១ ទំព័រដើម្បីបម្លែង!' : 'Please select at least 1 page to convert!');
                 return;
             }
 
@@ -1210,6 +1445,27 @@ function ocrApp() {
             }
         },
 
+        async pollJob(jobId, filename) {
+            const dlName = filename || 'document.docx';
+            const iv = setInterval(async () => {
+                const job = await fetch('/api/job/' + jobId + '/').then(r => r.json());
+                if (job.status === 'done') {
+                    clearInterval(iv);
+                    clearInterval(this._progressInterval);
+                    this.progress = 100;
+                    await removeOcrSession();
+                    setTimeout(() => {
+                        window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '')
+                            + '&filename=' + encodeURIComponent(dlName);
+                    }, 300);
+                } else if (job.status === 'failed') {
+                    clearInterval(iv);
+                    this.hideModal();
+                    alert(window.I18N_JS.errorPrefix + ' ' + (job.error || window.I18N_JS.processingFailed));
+                }
+            }, 2000);
+        },
+
         async imageToJpgBytes(file) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -1231,5 +1487,16 @@ function ocrApp() {
         }
     });
 }
+
+// Ensure session is saved whenever the user submits a language toggle
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.lang-toggle form').forEach(form => {
+        form.addEventListener('submit', () => {
+            if (window.__currentOcrApp && typeof window.__currentOcrApp.saveSession === 'function') {
+                window.__currentOcrApp.saveSession();
+            }
+        });
+    });
+});
 </script>
 {% endblock %}
