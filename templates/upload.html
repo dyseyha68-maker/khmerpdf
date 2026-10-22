@@ -182,176 +182,602 @@
     }
 
     /* ══════════════════════════════════════════════════════════════
-       MODERN & CLEAN OCR BENTO CARD (2 COLUMNS x 2 ROWS)
+       PREMIUM & DYNAMIC OCR HERO BENTO CARD (2 COLUMNS x 2 ROWS)
        ══════════════════════════════════════════════════════════════ */
     .ocr-bento-card {
         grid-column: span 2;
         grid-row: span 2;
-        background: var(--surface) !important;
-        border: 1.5px solid var(--border) !important;
-        border-radius: 20px !important;
-        padding: 36px 34px !important;
+        position: relative !important;
+        overflow: hidden !important;
+        background: linear-gradient(145deg, #ffffff 0%, #f6faff 45%, #eef5ff 100%) !important;
+        border: 1.5px solid rgba(37, 99, 235, 0.22) !important;
+        border-radius: 22px !important;
+        padding: 34px 32px !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
         align-items: stretch !important;
         text-align: left !important;
         min-height: 420px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        box-shadow: 0 10px 30px -4px rgba(37, 99, 235, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        text-decoration: none;
+    }
+
+    [data-theme="dark"] .ocr-bento-card {
+        background: linear-gradient(145deg, #131d31 0%, #0d1525 55%, #16223e 100%) !important;
+        border: 1.5px solid rgba(96, 165, 250, 0.28) !important;
+        box-shadow: 0 14px 40px -6px rgba(0, 0, 0, 0.7), 0 0 24px rgba(37, 99, 235, 0.15) !important;
     }
     
     .ocr-bento-card:hover {
-        transform: translateY(-4px) !important;
-        border-color: var(--primary) !important;
-        box-shadow: 0 18px 36px -4px rgba(37, 99, 235, 0.15) !important;
+        transform: translateY(-5px) !important;
+        border-color: #2563eb !important;
+        box-shadow: 0 24px 50px -10px rgba(37, 99, 235, 0.24), 0 0 0 1px rgba(37, 99, 235, 0.2) !important;
     }
-    
+
+    [data-theme="dark"] .ocr-bento-card:hover {
+        border-color: #60a5fa !important;
+        box-shadow: 0 26px 52px -10px rgba(0, 0, 0, 0.85), 0 0 35px rgba(96, 165, 250, 0.28) !important;
+    }
+
+    /* Ambient Corner Glow & High-Tech Subtle Mesh */
+    .ocr-ambient-flare {
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 250px;
+        height: 250px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 70%);
+        pointer-events: none;
+        z-index: 1;
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+    }
+
+    [data-theme="dark"] .ocr-ambient-flare {
+        background: radial-gradient(circle, rgba(96, 165, 250, 0.2) 0%, rgba(96, 165, 250, 0) 70%);
+    }
+
+    .ocr-bento-card:hover .ocr-ambient-flare {
+        transform: scale(1.22);
+    }
+
+    .ocr-grid-mesh {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px);
+        background-size: 18px 18px;
+        opacity: 0.6;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    [data-theme="dark"] .ocr-grid-mesh {
+        background-image: radial-gradient(rgba(96, 165, 250, 0.1) 1px, transparent 1px);
+        opacity: 0.4;
+    }
+
+    /* Top Row: Icon & Status Badges */
     .ocr-card-top {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        position: relative;
+        z-index: 2;
     }
-    
+
+    .ocr-icon-group {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .ocr-icon-wrapper {
         width: 56px;
         height: 56px;
-        border-radius: 14px;
-        background: rgba(37, 99, 235, 0.08);
-        color: var(--primary);
+        border-radius: 15px;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 28px;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 8px 20px -3px rgba(37, 99, 235, 0.45);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        position: relative;
+        z-index: 2;
     }
-    .ocr-bento-card:hover .ocr-icon-wrapper {
-        background: var(--primary);
-        color: #ffffff;
-        transform: scale(1.06);
-    }
-    [data-theme="dark"] .ocr-icon-wrapper {
-        background: rgba(96, 165, 250, 0.12);
-        color: var(--primary);
-    }
-    [data-theme="dark"] .ocr-bento-card:hover .ocr-icon-wrapper {
-        background: var(--primary);
-        color: #0f172a;
-    }
-    
 
-    
+    .ocr-bento-card:hover .ocr-icon-wrapper {
+        transform: scale(1.08) rotate(-3deg);
+        box-shadow: 0 12px 26px -2px rgba(37, 99, 235, 0.58);
+    }
+
+    [data-theme="dark"] .ocr-icon-wrapper {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        box-shadow: 0 8px 22px -2px rgba(59, 130, 246, 0.5);
+    }
+
+    .ocr-icon-pulse {
+        position: absolute;
+        inset: -4px;
+        border-radius: 19px;
+        background: rgba(37, 99, 235, 0.25);
+        opacity: 0;
+        z-index: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .ocr-bento-card:hover .ocr-icon-pulse {
+        opacity: 1;
+        animation: ocrPulseRing 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    }
+
+    @keyframes ocrPulseRing {
+        0% { transform: scale(0.95); opacity: 0.6; }
+        50% { transform: scale(1.15); opacity: 0; }
+        100% { transform: scale(1.15); opacity: 0; }
+    }
+
+    /* Badges Cluster */
+    .ocr-badges-cluster {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .ocr-badge-popular {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11.5px;
+        font-weight: 700;
+        background: rgba(37, 99, 235, 0.08);
+        color: #2563eb;
+        border: 1px solid rgba(37, 99, 235, 0.25);
+        letter-spacing: 0.3px;
+        backdrop-filter: blur(4px);
+    }
+
+    .ocr-badge-popular i {
+        font-size: 13px;
+        animation: sparkleSpin 4s ease-in-out infinite;
+    }
+
+    [data-theme="dark"] .ocr-badge-popular {
+        background: rgba(96, 165, 250, 0.15);
+        color: #93c5fd;
+        border-color: rgba(96, 165, 250, 0.35);
+    }
+
+    .ocr-badge-unicode {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11.5px;
+        font-weight: 700;
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        backdrop-filter: blur(4px);
+    }
+
+    .ocr-badge-unicode i {
+        font-size: 13px;
+    }
+
+    [data-theme="dark"] .ocr-badge-unicode {
+        background: rgba(16, 185, 129, 0.16);
+        color: #34d399;
+        border-color: rgba(16, 185, 129, 0.35);
+    }
+
+    /* Content Area */
     .ocr-card-content {
-        margin: 22px 0 !important;
+        margin: 20px 0 !important;
         flex: 1;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        position: relative;
+        z-index: 2;
     }
     
+    .ocr-heading-row {
+        margin-bottom: 8px !important;
+    }
+
     .ocr-bento-card h3,
     .ocr-bento-card .ocr-clean-title {
-        font-size: 27px !important;
-        font-weight: 700 !important;
+        font-size: 26px !important;
+        font-weight: 800 !important;
         color: var(--text) !important;
-        margin: 0 0 18px 0 !important;
-        line-height: 1.45 !important;
-        letter-spacing: -0.3px !important;
+        margin: 0 !important;
+        line-height: 1.35 !important;
+        letter-spacing: -0.4px !important;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ocr-format-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11.5px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: #ffffff;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
     }
     
     .ocr-bento-card p,
     .ocr-bento-card .ocr-clean-desc {
-        font-size: 15.5px !important;
+        font-size: 14.5px !important;
         color: var(--text-secondary) !important;
-        line-height: 1.85 !important;
-        margin: 0 0 26px 0 !important;
-        max-width: 520px !important;
+        line-height: 1.75 !important;
+        margin: 0 0 16px 0 !important;
+        max-width: 530px !important;
     }
 
     body.lang-kh .ocr-bento-card h3,
     body.lang-kh .ocr-bento-card .ocr-clean-title {
-        font-size: 24px !important;
-        line-height: 1.65 !important;
-        margin: 0 0 18px 0 !important;
+        font-size: 23px !important;
+        line-height: 1.55 !important;
     }
 
     body.lang-kh .ocr-bento-card p,
     body.lang-kh .ocr-bento-card .ocr-clean-desc {
-        font-size: 15px !important;
-        line-height: 1.95 !important;
-        margin: 0 0 26px 0 !important;
+        font-size: 14.5px !important;
+        line-height: 1.85 !important;
     }
     
-    .ocr-flow-strip {
-        display: inline-flex;
+    /* ── Document Transformation Interactive Visual ── */
+    .ocr-transformation-visual {
+        display: flex;
         align-items: center;
-        gap: 12px;
-        background: var(--surface-hover);
-        border: 1px solid var(--border);
-        padding: 9px 18px;
-        border-radius: 10px;
-        width: fit-content;
-        margin-top: 4px;
-        margin-bottom: 28px;
+        justify-content: space-between;
+        gap: 14px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(37, 99, 235, 0.16);
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin: 0 0 16px 0;
+        backdrop-filter: blur(8px);
+        position: relative;
+        z-index: 2;
+        transition: border-color 0.25s, box-shadow 0.25s;
     }
-    .flow-step {
+
+    [data-theme="dark"] .ocr-transformation-visual {
+        background: rgba(15, 23, 42, 0.5);
+        border-color: rgba(96, 165, 250, 0.2);
+    }
+
+    .ocr-bento-card:hover .ocr-transformation-visual {
+        border-color: rgba(37, 99, 235, 0.32);
+        box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.12);
+    }
+
+    [data-theme="dark"] .ocr-bento-card:hover .ocr-transformation-visual {
+        border-color: rgba(96, 165, 250, 0.35);
+        box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+    }
+
+    .doc-mock {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="dark"] .doc-mock {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .doc-mock-badge {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        font-size: 13px;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #ef4444;
+    }
+
+    .doc-mock-badge-word {
+        color: #2563eb;
+    }
+
+    [data-theme="dark"] .doc-mock-badge-word {
+        color: #60a5fa;
+    }
+
+    .doc-mock-body {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        position: relative;
+        padding: 3px 0;
+        min-height: 42px;
+        justify-content: center;
+    }
+
+    .mock-line {
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(148, 163, 184, 0.35);
+    }
+
+    [data-theme="dark"] .mock-line {
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .mock-line.w-90 { width: 90%; }
+    .mock-line.w-85 { width: 85%; }
+    .mock-line.w-80 { width: 80%; }
+    .mock-line.w-70 { width: 70%; }
+
+    .mock-line.active-line {
+        background: rgba(37, 99, 235, 0.4);
+    }
+
+    [data-theme="dark"] .mock-line.active-line {
+        background: rgba(96, 165, 250, 0.45);
+    }
+
+    .mock-table-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+        margin-top: 2px;
+    }
+
+    .mock-cell {
+        height: 8px;
+        border-radius: 3px;
+        background: rgba(37, 99, 235, 0.12);
+        border: 1px dashed rgba(37, 99, 235, 0.28);
+    }
+
+    [data-theme="dark"] .mock-cell {
+        background: rgba(96, 165, 250, 0.12);
+        border-color: rgba(96, 165, 250, 0.3);
+    }
+
+    /* Scanning Laser Effect */
+    .scan-laser-beam {
+        position: absolute;
+        top: 0;
+        left: -4px;
+        right: -4px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #ef4444 20%, #f97316 80%, transparent);
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.85);
+        animation: scanSweep 2.2s ease-in-out infinite alternate;
+        pointer-events: none;
+    }
+
+    @keyframes scanSweep {
+        0% { top: 2px; opacity: 0.3; }
+        50% { opacity: 1; }
+        100% { top: calc(100% - 4px); opacity: 0.4; }
+    }
+
+    .doc-mock-label {
+        font-size: 11px;
         font-weight: 600;
         color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
-    .flow-arrow {
-        font-size: 14px;
-        color: var(--primary);
+
+    .doc-mock-label.label-editable {
+        color: #2563eb;
     }
-    .flow-target {
+
+    [data-theme="dark"] .doc-mock-label.label-editable {
+        color: #60a5fa;
+    }
+
+    .ocr-bento-card:hover .doc-mock-target {
+        transform: translateY(-2px);
+        border-color: var(--primary);
+        box-shadow: 0 6px 14px -2px rgba(37, 99, 235, 0.2);
+    }
+
+    [data-theme="dark"] .ocr-bento-card:hover .doc-mock-target {
+        box-shadow: 0 6px 18px -2px rgba(96, 165, 250, 0.25);
+    }
+
+    /* Center Flow Engine */
+    .doc-flow-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .flow-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.4px;
+        box-shadow: 0 3px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    .flow-pill i {
+        font-size: 12px;
+        color: #fde047;
+    }
+
+    .flow-arrow-track {
         color: var(--primary);
-        font-weight: 700;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: arrowShift 1.6s ease-in-out infinite;
+    }
+
+    @keyframes arrowShift {
+        0%, 100% { transform: translateX(0); opacity: 0.7; }
+        50% { transform: translateX(4px); opacity: 1; }
+    }
+
+    @keyframes sparkleSpin {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.2) rotate(90deg); }
+    }
+
+    /* Value Chips */
+    .ocr-chips-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .ocr-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        padding: 5px 11px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .ocr-chip i {
+        color: #10b981;
+        font-size: 13px;
+    }
+
+    [data-theme="dark"] .ocr-chip {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.08);
+        color: #cbd5e1;
+    }
+
+    [data-theme="dark"] .ocr-chip i {
+        color: #34d399;
+    }
+
+    .ocr-bento-card:hover .ocr-chip {
+        border-color: rgba(37, 99, 235, 0.3);
+        background: rgba(37, 99, 235, 0.06);
+    }
+
+    [data-theme="dark"] .ocr-bento-card:hover .ocr-chip {
+        border-color: rgba(96, 165, 250, 0.3);
+        background: rgba(96, 165, 250, 0.08);
     }
     
+    /* Card Bottom: CTA & Guarantee */
     .ocr-card-bottom {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding-top: 18px;
-        border-top: 1px solid var(--border);
+        border-top: 1px solid rgba(37, 99, 235, 0.12);
+        position: relative;
+        z-index: 2;
+        margin-top: auto;
+    }
+
+    [data-theme="dark"] .ocr-card-bottom {
+        border-top-color: rgba(255, 255, 255, 0.08);
     }
     
     .ocr-clean-cta {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        background: var(--primary);
+        gap: 9px;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #ffffff;
-        padding: 10px 22px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.2s ease;
+        padding: 11px 24px;
+        border-radius: 12px;
+        font-size: 14.5px;
+        font-weight: 700;
+        box-shadow: 0 6px 18px -2px rgba(37, 99, 235, 0.4);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
     }
+
     .ocr-clean-cta i {
-        font-size: 15px;
-        transition: transform 0.2s ease;
+        font-size: 16px;
+        transition: transform 0.25s ease;
     }
+
     .ocr-bento-card:hover .ocr-clean-cta {
-        background: var(--primary-dark);
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        box-shadow: 0 8px 24px -2px rgba(37, 99, 235, 0.55);
+        transform: translateY(-1px);
     }
+
     .ocr-bento-card:hover .ocr-clean-cta i {
         transform: translateX(4px);
+    }
+
+    [data-theme="dark"] .ocr-clean-cta {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        box-shadow: 0 6px 20px -2px rgba(59, 130, 246, 0.45);
+    }
+
+    [data-theme="dark"] .ocr-bento-card:hover .ocr-clean-cta {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        box-shadow: 0 8px 26px -2px rgba(59, 130, 246, 0.6);
     }
     
     .ocr-free-tag {
         font-size: 13px;
         font-weight: 600;
-        color: #10b981;
+        color: #059669;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
     }
+
     .ocr-free-tag i {
-        font-size: 15px;
+        font-size: 16px;
+    }
+
+    [data-theme="dark"] .ocr-free-tag {
+        color: #34d399;
     }
 
     /* Calendar Card Special */
@@ -416,7 +842,7 @@
         .ocr-bento-card {
             grid-column: span 2;
             grid-row: span 1;
-            min-height: 280px !important;
+            min-height: auto !important;
             padding: 28px 24px !important;
         }
     }
@@ -442,19 +868,27 @@
             grid-column: span 2;
             padding: 24px 20px !important;
             border-radius: 18px !important;
-            min-height: 260px !important;
+            min-height: auto !important;
         }
         .ocr-bento-card h3,
         .ocr-bento-card .ocr-clean-title {
-            font-size: 22px !important;
-            margin-bottom: 12px !important;
+            font-size: 21px !important;
+            margin-bottom: 10px !important;
             line-height: 1.4 !important;
         }
         .ocr-bento-card p,
         .ocr-bento-card .ocr-clean-desc {
-            font-size: 14px !important;
-            line-height: 1.75 !important;
-            margin-bottom: 20px !important;
+            font-size: 13.5px !important;
+            line-height: 1.65 !important;
+            margin-bottom: 14px !important;
+        }
+        .ocr-transformation-visual {
+            padding: 12px 14px;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .doc-mock {
+            padding: 8px 10px;
         }
         .tool-card {
             padding: 22px 14px;
@@ -483,11 +917,47 @@
         }
         .ocr-bento-card {
             padding: 20px 16px !important;
-            min-height: 240px !important;
+            border-radius: 16px !important;
+            min-height: auto !important;
+        }
+        .ocr-transformation-visual {
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px 10px;
+        }
+        .doc-mock {
+            width: 100%;
+        }
+        .doc-flow-indicator {
+            flex-direction: row;
+            gap: 8px;
+        }
+        .flow-arrow-track {
+            transform: rotate(90deg);
+            animation: arrowShiftDown 1.6s ease-in-out infinite;
+        }
+        @keyframes arrowShiftDown {
+            0%, 100% { transform: translateY(0) rotate(90deg); opacity: 0.7; }
+            50% { transform: translateY(3px) rotate(90deg); opacity: 1; }
+        }
+        .ocr-badges-cluster {
+            gap: 6px;
+        }
+        .ocr-badge-popular, .ocr-badge-unicode {
+            font-size: 10.5px;
+            padding: 4px 8px;
+        }
+        .ocr-chips-row {
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .ocr-chip {
+            font-size: 11px;
+            padding: 4px 8px;
         }
         .ocr-card-bottom {
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             align-items: stretch;
             text-align: center;
         }
@@ -821,38 +1291,118 @@
      Cards 2-9: Standard Tools filling remaining cells
      ══════════════════════════════════════════════════════════════ -->
 <div class="cards-container">
-    <!-- 1. OCR CARD (MODERN & CLEAN 2x2 BENTO) -->
+    <!-- 1. OCR CARD (FLAGSHIP HERO 2x2 BENTO) -->
     <a href="/pdf-ocr/" class="tool-card ocr-bento-card" id="heroOcrCard" aria-label="OCR PDF to Word">
+        <div class="ocr-ambient-flare" aria-hidden="true"></div>
+        <div class="ocr-grid-mesh" aria-hidden="true"></div>
+
         <div class="ocr-card-top">
-            <div class="ocr-icon-wrapper">
-                <i class="ti ti-scan"></i>
+            <div class="ocr-icon-group">
+                <div class="ocr-icon-wrapper">
+                    <i class="ti ti-scan"></i>
+                </div>
+                <div class="ocr-icon-pulse" aria-hidden="true"></div>
+            </div>
+            
+            <div class="ocr-badges-cluster">
+                <span class="ocr-badge-popular">
+                    <i class="ti ti-sparkles"></i>
+                    {% if LANGUAGE_CODE == 'km' %}ពេញនិយមបំផុត{% else %}Flagship Tool{% endif %}
+                </span>
+                <span class="ocr-badge-unicode">
+                    <i class="ti ti-circle-check"></i>
+                    {% if LANGUAGE_CODE == 'km' %}100% យូនីកូដ{% else %}100% Unicode{% endif %}
+                </span>
             </div>
         </div>
         
         <div class="ocr-card-content">
-            <h3 class="ocr-clean-title">
-                {% trans "OCR PDF to Word" %}
-            </h3>
+            <div class="ocr-heading-row">
+                <h3 class="ocr-clean-title">
+                    {% if LANGUAGE_CODE == 'km' %}
+                        OCR ខ្មែរ ទៅជា Word <span class="ocr-format-pill"><i class="ti ti-file-type-docx"></i> .DOCX</span>
+                    {% else %}
+                        Khmer OCR to Word <span class="ocr-format-pill"><i class="ti ti-file-type-docx"></i> .DOCX</span>
+                    {% endif %}
+                </h3>
+            </div>
             
             <p class="ocr-clean-desc">
-                {% trans "Convert scanned PDF documents and photos into editable Microsoft Word (.docx) with exact Khmer Unicode formatting." %}
+                {% if LANGUAGE_CODE == 'km' %}
+                    បម្លែងឯកសារ PDF ស្កេន និងរូបភាពទៅជា Word (.docx) ស្រង់អក្សរខ្មែរយូនីកូដត្រឹមត្រូវ 100% មិនបាក់ជើង រក្សាទម្រង់តារាង និងកថាខណ្ឌ។
+                {% else %}
+                    Convert scanned PDFs and images into editable Word (.docx) documents with 100% accurate Khmer Unicode characters and preserved tables.
+                {% endif %}
             </p>
             
-            <div class="ocr-flow-strip">
-                <span class="flow-step"><i class="ti ti-file-text"></i> PDF / Image</span>
-                <i class="ti ti-arrow-right flow-arrow"></i>
-                <span class="flow-step flow-target"><i class="ti ti-file-type-docx"></i> Word (.docx)</span>
+            <!-- Document Transformation Interactive Visual -->
+            <div class="ocr-transformation-visual" aria-hidden="true">
+                <!-- Source Doc: Scanned PDF / Image -->
+                <div class="doc-mock doc-mock-source">
+                    <div class="doc-mock-badge">
+                        <i class="ti ti-file-text"></i>
+                        <span>PDF / IMG</span>
+                    </div>
+                    <div class="doc-mock-body">
+                        <div class="mock-line w-90"></div>
+                        <div class="mock-line w-70"></div>
+                        <div class="mock-line w-80"></div>
+                        <div class="scan-laser-beam"></div>
+                    </div>
+                    <span class="doc-mock-label">
+                        {% if LANGUAGE_CODE == 'km' %}ឯកសារស្កេន{% else %}Scanned Input{% endif %}
+                    </span>
+                </div>
+
+                <!-- Center Flow Engine -->
+                <div class="doc-flow-indicator">
+                    <div class="flow-pill">
+                        <i class="ti ti-bolt"></i>
+                        <span>OCR</span>
+                    </div>
+                    <div class="flow-arrow-track">
+                        <i class="ti ti-arrow-narrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Target Doc: Word (.docx) with formatted text and tables -->
+                <div class="doc-mock doc-mock-target">
+                    <div class="doc-mock-badge doc-mock-badge-word">
+                        <i class="ti ti-file-type-docx"></i>
+                        <span>Word (.docx)</span>
+                    </div>
+                    <div class="doc-mock-body">
+                        <div class="mock-line active-line w-85"></div>
+                        <div class="mock-table-grid">
+                            <span class="mock-cell"></span>
+                            <span class="mock-cell"></span>
+                            <span class="mock-cell"></span>
+                            <span class="mock-cell"></span>
+                        </div>
+                    </div>
+                    <span class="doc-mock-label label-editable">
+                        <i class="ti ti-pencil"></i>
+                        {% if LANGUAGE_CODE == 'km' %}អក្សរ & តារាងកែបាន{% else %}Editable Doc{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Value Chips -->
+            <div class="ocr-chips-row">
+                <span class="ocr-chip"><i class="ti ti-check"></i> {% if LANGUAGE_CODE == 'km' %}មិនបាក់ជើង មិនលោតស្រៈ{% else %}No broken subscripts{% endif %}</span>
+                <span class="ocr-chip"><i class="ti ti-table"></i> {% if LANGUAGE_CODE == 'km' %}រក្សាទម្រង់តារាង{% else %}Preserves tables & layout{% endif %}</span>
+                <span class="ocr-chip"><i class="ti ti-bolt"></i> {% if LANGUAGE_CODE == 'km' %}លឿន & ត្រឹមត្រូវ{% else %}Fast & accurate{% endif %}</span>
             </div>
         </div>
         
         <div class="ocr-card-bottom">
             <span class="ocr-clean-cta">
-                <span>{% trans "Convert to Word" %}</span>
+                <span>{% if LANGUAGE_CODE == 'km' %}បម្លែងទៅជា Word ឥឡូវនេះ{% else %}Convert to Word Now{% endif %}</span>
                 <i class="ti ti-arrow-right"></i>
             </span>
             <span class="ocr-free-tag">
-                <i class="ti ti-check"></i>
-                <span>{% trans "100% Free" %}</span>
+                <i class="ti ti-shield-check"></i>
+                <span>{% if LANGUAGE_CODE == 'km' %}ឥតគិតថ្លៃ 100% • មិនបាច់ចុះឈ្មោះ{% else %}100% Free • No Signup{% endif %}</span>
             </span>
         </div>
     </a>
