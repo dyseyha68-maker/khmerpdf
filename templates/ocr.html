@@ -1397,19 +1397,46 @@ function ocrApp() {
                 let fileToSend = null;
                 const firstSourceName = activePages[0].sourceName.replace(/\.[^/.]+$/, '');
 
-                // Single image shortcut
+                // 1. Single image shortcut
                 if (activePages.length === 1 && activePages[0].sourceType === 'image') {
                     fileToSend = activePages[0].sourceFile;
+                } else if (
+                    activePages.every(p => p.sourceType === 'pdf' && p.sourceFile === activePages[0].sourceFile) &&
+                    activePages.length === this.pages.filter(p => p.sourceFile === activePages[0].sourceFile).length &&
+                    activePages.every((p, idx) => p.pageNum === idx + 1)
+                ) {
+                    // 2. Single unmodified PDF shortcut: all original pages selected in order
+                    fileToSend = activePages[0].sourceFile;
                 } else {
-                    // Multi-page assembly with PDFLib
+                    // 3. Multi-page assembly with PDFLib
                     const outPdf = await PDFLib.PDFDocument.create();
+                    const pdfDocCache = new Map();
 
                     for (const page of activePages) {
                         if (page.sourceType === 'pdf') {
-                            const srcBytes = await page.sourceFile.arrayBuffer();
-                            const srcDoc = await PDFLib.PDFDocument.load(srcBytes);
-                            const [copied] = await outPdf.copyPages(srcDoc, [page.pageNum - 1]);
-                            outPdf.addPage(copied);
+                            const cacheKey = page.sourceName || (page.sourceFile && page.sourceFile.name) || 'default';
+                            let srcDoc = pdfDocCache.get(cacheKey);
+                            if (!srcDoc) {
+                                const srcBytes = await page.sourceFile.arrayBuffer();
+                                // Support encrypted and permissions-restricted PDFs
+                                srcDoc = await PDFLib.PDFDocument.load(srcBytes, { ignoreEncryption: true });
+                                pdfDocCache.set(cacheKey, srcDoc);
+                            }
+                            try {
+                                const [copied] = await outPdf.copyPages(srcDoc, [page.pageNum - 1]);
+                                outPdf.addPage(copied);
+                            } catch(copyErr) {
+                                // If direct object copying fails (e.g. strict encrypted stream), render via pdfjs
+                                const pageJpgBytes = await this.renderPdfPageToJpg(page.sourceFile, page.pageNum);
+                                const embeddedImg = await outPdf.embedJpg(pageJpgBytes);
+                                const imgPage = outPdf.addPage([embeddedImg.width, embeddedImg.height]);
+                                imgPage.drawImage(embeddedImg, {
+                                    x: 0,
+                                    y: 0,
+                                    width: embeddedImg.width,
+                                    height: embeddedImg.height,
+                                });
+                            }
                         } else if (page.sourceType === 'image') {
                             const jpgBytes = await this.imageToJpgBytes(page.sourceFile);
                             const embeddedImg = await outPdf.embedJpg(jpgBytes);
@@ -1483,6 +1510,29 @@ function ocrApp() {
                 };
                 img.onerror = reject;
                 img.src = URL.createObjectURL(file);
+            });
+        },
+
+        async renderPdfPageToJpg(file, pageNum) {
+            const ab = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+            const page = await pdf.getPage(pageNum);
+            const vp = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement('canvas');
+            canvas.width = vp.width;
+            canvas.height = vp.height;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+            return new Promise((resolve, reject) => {
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        blob.arrayBuffer().then(resolve).catch(reject);
+                    } else {
+                        reject(new Error('Canvas export failed'));
+                    }
+                }, 'image/jpeg', 0.92);
             });
         }
     });
