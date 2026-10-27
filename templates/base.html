@@ -36,6 +36,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     {% load static %}
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,6 +101,17 @@
         body.lang-kh .nav-dropdown-trigger {
             font-family: 'Kantumruy Pro', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             letter-spacing: 0.1px;
+        }
+
+        /* ── Telegram Mini App mobile safe-area & viewport tweaks ── */
+        body.telegram-app {
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        body.telegram-app .footer {
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
         }
 
 
@@ -865,6 +878,78 @@
         }
         
         initTheme();
+
+        // ── Telegram Mini App (TMA) Integration ─────────────
+        function initTelegramApp() {
+            const tg = window.Telegram?.WebApp;
+            if (!tg) return;
+
+            // Detect if running inside Telegram WebApp
+            const isInsideTg = Boolean(tg.initData || (window.location.hash && window.location.hash.includes('tgWebAppData')));
+            if (isInsideTg) {
+                document.body.classList.add('telegram-app');
+                try {
+                    tg.ready();
+                    tg.expand();
+
+                    // Sync theme with Telegram's colorScheme
+                    if (tg.colorScheme === 'dark') {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        updateThemeIcon();
+                    } else if (tg.colorScheme === 'light') {
+                        document.documentElement.setAttribute('data-theme', 'light');
+                        updateThemeIcon();
+                    }
+
+                    // React to live theme changes in Telegram
+                    tg.onEvent('themeChanged', function() {
+                        const scheme = tg.colorScheme === 'dark' ? 'dark' : 'light';
+                        document.documentElement.setAttribute('data-theme', scheme);
+                        localStorage.setItem('pdf_theme', scheme);
+                        updateThemeIcon();
+                        if (tg.setHeaderColor) tg.setHeaderColor(scheme === 'dark' ? '#1a1a1a' : '#ffffff');
+                        if (tg.setBackgroundColor) tg.setBackgroundColor(scheme === 'dark' ? '#000000' : '#f8fafc');
+                    });
+
+                    // Set native header/background colors
+                    if (tg.setHeaderColor) tg.setHeaderColor(tg.colorScheme === 'dark' ? '#1a1a1a' : '#ffffff');
+                    if (tg.setBackgroundColor) tg.setBackgroundColor(tg.colorScheme === 'dark' ? '#000000' : '#f8fafc');
+
+                    // Native Telegram Back Button management
+                    if (tg.BackButton) {
+                        const isHome = window.location.pathname === '/' || window.location.pathname === '';
+                        if (!isHome) {
+                            tg.BackButton.show();
+                            tg.BackButton.onClick(function() {
+                                if (window.history.length > 1) {
+                                    window.history.back();
+                                } else {
+                                    window.location.href = '/';
+                                }
+                            });
+                        } else {
+                            tg.BackButton.hide();
+                        }
+                    }
+                } catch (e) {
+                    console.debug('Telegram WebApp init notice:', e);
+                }
+            }
+        }
+        initTelegramApp();
+
+        // Global Telegram Haptic feedback helper
+        window.tgHaptic = function(type) {
+            try {
+                const hf = window.Telegram?.WebApp?.HapticFeedback;
+                if (!hf) return;
+                if (type === 'success' || type === 'error' || type === 'warning') {
+                    hf.notificationOccurred(type);
+                } else {
+                    hf.impactOccurred(type || 'light');
+                }
+            } catch(e) {}
+        };
 
         // Khmer numeral conversion — available globally on every page
         const isKhmer = document.documentElement.lang === 'km';

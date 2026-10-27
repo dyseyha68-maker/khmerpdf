@@ -465,6 +465,10 @@ def job_status(request, job_id):
         if getattr(job, 'original_filename', None):
             data['original_filename'] = job.original_filename
 
+    if isinstance(job.files, dict):
+        data['current_page'] = job.files.get('current_page', 0)
+        data['total_pages'] = job.files.get('total_pages', 0)
+
     if job.status == 'failed':
         data['error'] = job.error_message
     
@@ -572,11 +576,14 @@ def ocr_api(request):
         return Response({'error': 'File too large. Max 350MB'}, status=status.HTTP_400_BAD_REQUEST)
     
     orig_name = getattr(file, 'name', '') or 'document.pdf'
+    page_range = (request.data.get('page_range') or '').strip()
     job = Job.objects.create(
         file=file,
         original_filename=orig_name,
         tool='ocr',
-        compression_level=ocr_lang
+        compression_level=ocr_lang,
+        page_range=page_range or None,
+        files={'current_page': 0, 'total_pages': 0}
     )
     
     logger.info(f'Created job {job.id}')

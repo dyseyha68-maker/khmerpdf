@@ -446,6 +446,217 @@
         color: #ef4444;
         background: rgba(239, 68, 68, 0.05);
     }
+    .btn-tool-pill.highlight-pill {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(37, 99, 235, 0.06);
+        font-weight: 600;
+    }
+    .btn-tool-pill.highlight-pill:hover:not(:disabled) {
+        background: var(--primary);
+        color: #ffffff;
+    }
+
+    /* Large Document Helper Banner */
+    .large-doc-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 13px 16px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+        border: 1px solid rgba(37, 99, 235, 0.25);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        animation: fadeIn 0.3s ease;
+    }
+    .banner-icon {
+        font-size: 24px;
+        color: var(--primary);
+        line-height: 1;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .banner-body {
+        flex: 1;
+        min-width: 0;
+    }
+    .banner-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+    }
+    .banner-desc {
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 10px;
+    }
+    .banner-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .btn-batch-preset {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-batch-preset:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(37, 99, 235, 0.05);
+        transform: translateY(-1px);
+    }
+    .btn-batch-preset.text-btn {
+        background: transparent;
+        border-color: transparent;
+        color: var(--text-secondary);
+        text-decoration: underline;
+        font-weight: 500;
+    }
+    .btn-batch-preset.text-btn:hover {
+        color: var(--text);
+        background: transparent;
+    }
+
+    /* Range Modal */
+    .range-modal {
+        max-width: 480px;
+        width: 90%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .range-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+    }
+    .range-modal-header h3 {
+        font-size: 16px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text);
+        margin: 0;
+    }
+    .range-modal-header h3 i {
+        color: var(--primary);
+    }
+    .btn-modal-close {
+        background: none;
+        border: none;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 0 4px;
+    }
+    .btn-modal-close:hover {
+        color: var(--text);
+    }
+    .range-hint {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+    .range-input-group {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 18px;
+    }
+    .range-text-input {
+        flex: 1;
+        padding: 9px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        background: var(--surface);
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .range-text-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .btn-apply-range {
+        padding: 9px 18px;
+        background: var(--primary);
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .btn-apply-range:hover {
+        background: var(--primary-dark);
+    }
+    .batch-presets-section {
+        border-top: 1px dashed var(--border);
+        padding-top: 14px;
+    }
+    .batch-section-title {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 10px;
+    }
+    .batch-buttons-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 8px;
+        max-height: 180px;
+        overflow-y: auto;
+        padding: 2px;
+    }
+    .btn-batch-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 10px;
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-align: center;
+    }
+    .btn-batch-chip:hover {
+        border-color: var(--primary);
+        background: rgba(37, 99, 235, 0.05);
+        transform: translateY(-1px);
+    }
+    .batch-chip-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+    }
+    .batch-chip-count {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-top: 2px;
+    }
 
     /* Right Workspace Panel & Grid */
     .right-panel {
@@ -922,6 +1133,10 @@
                         <i class="ti ti-plus"></i>
                         <span>{% trans "+ Add (PDF / Image)" %}</span>
                     </button>
+                    <button type="button" class="btn-tool-pill highlight-pill" @click="openRangeModal()" title="{% trans 'Select Page Range or Batches' %}">
+                        <i class="ti ti-adjustments-horizontal"></i>
+                        <span>{% trans "Select Range" %}</span>
+                    </button>
                     <button type="button" class="btn-tool-pill" @click="selectAll()" :disabled="allSelected" title="{% trans 'Select All' %}">
                         <i class="ti ti-check-all"></i>
                         <span>{% trans "Select All" %}</span>
@@ -934,6 +1149,33 @@
                         <i class="ti ti-trash"></i>
                         <span>{% trans "Delete Selected" %}</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Large Document Recommendation Banner -->
+            <div class="large-doc-banner" x-show="pages.length > 30" x-cloak>
+                <div class="banner-icon"><i class="ti ti-info-circle"></i></div>
+                <div class="banner-body">
+                    <div class="banner-title">
+                        <span x-text="isKhmer ? ('ឯកសារទំហំធំ (' + toKhNum(pages.length) + ' ទំព័រ) ៖ ណែនាំជ្រើសរើសចន្លោះទំព័រ') : ('Large Document (' + pages.length + ' pages): Recommended Page Range')"></span>
+                    </div>
+                    <div class="banner-desc">
+                        <span x-text="isKhmer ? 'OCR លើឯកសារច្រើនទំព័រអាចចំណាយពេលយូរ។ អ្នកអាចជ្រើសរើសបម្លែងតាមកញ្ចប់ទំព័រ ដើម្បីទទួលបានឯកសារ Word លឿនបំផុត៖' : 'OCR on large documents takes time. You can select a range or convert in batches to get Word documents faster:'"></span>
+                    </div>
+                    <div class="banner-actions">
+                        <button type="button" class="btn-batch-preset" @click="selectBatch(1, 25)">
+                            <i class="ti ti-file-text"></i> <span x-text="isKhmer ? 'ទំព័រ ១-២៥' : 'Pages 1-25'"></span>
+                        </button>
+                        <button type="button" class="btn-batch-preset" @click="selectBatch(1, 50)" x-show="pages.length >= 50">
+                            <i class="ti ti-file-text"></i> <span x-text="isKhmer ? 'ទំព័រ ១-៥០' : 'Pages 1-50'"></span>
+                        </button>
+                        <button type="button" class="btn-batch-preset" @click="openRangeModal()">
+                            <i class="ti ti-adjustments-horizontal"></i> <span x-text="isKhmer ? 'កំណត់ចន្លោះ...' : 'Custom Range...'"></span>
+                        </button>
+                        <button type="button" class="btn-batch-preset text-btn" @click="selectAll()">
+                            <span x-text="isKhmer ? 'ជ្រើសរើសទាំងអស់ (' + toKhNum(pages.length) + ')' : ('Keep All (' + pages.length + ')')"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1013,11 +1255,47 @@
         <div class="modal">
             <h2>{% trans "Processing OCR..." %}</h2>
             <div class="progress-container">
-                <div class="progress-bar-bg"></div>
-                <p style="font-size:13px;color:var(--text-secondary);margin-top:14px;text-align:center">
+                <div class="progress-bar-bg" :style="progressPercent > 0 ? 'background: #e2e8f0; position: relative; overflow: hidden; height: 10px; border-radius: 6px;' : ''">
+                    <div x-show="progressPercent > 0" :style="'width: ' + progressPercent + '%; height: 100%; background: var(--primary); transition: width 0.3s ease; border-radius: 6px;'"></div>
+                </div>
+                <p x-show="progressText" style="font-size:14px; font-weight:600; color:var(--primary); margin-top:14px; text-align:center;" x-text="progressText"></p>
+                <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;text-align:center">
                     <span x-text="isKhmer ? 'ពេលវេលា: ' : 'Elapsed: '"></span><span
                         x-text="Math.floor(elapsed/60).toString().padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0')"></span>
                 </p>
+                <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;text-align:center;" x-show="pages.length > 25">
+                    <span x-text="isKhmer ? 'ប្រព័ន្ធកំពុងបម្លែងម្ដងមួយទំព័រដោយសុវត្ថិភាព...' : 'Processing safely page by page in memory...'"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Range Selection Modal -->
+    <div class="modal-overlay" x-show="rangeModalVisible" x-cloak @click.self="rangeModalVisible = false">
+        <div class="modal range-modal" @click.stop>
+            <div class="range-modal-header">
+                <h3><i class="ti ti-adjustments-horizontal"></i> <span x-text="isKhmer ? 'ជ្រើសរើសចន្លោះទំព័រ' : 'Select Page Range'"></span></h3>
+                <button type="button" class="btn-modal-close" @click="rangeModalVisible = false">&times;</button>
+            </div>
+            <div class="range-modal-body">
+                <p class="range-hint" x-text="isKhmer ? 'បញ្ចូលលេខទំព័រដែលចង់បម្លែង (ឧ. 1-20, 25, 30-40) ៖' : 'Enter page numbers or ranges to convert (e.g. 1-20, 25, 30-40):'"></p>
+                <div class="range-input-group">
+                    <input type="text" x-model="customRangeInput" placeholder="1-25" class="range-text-input" @keyup.enter="applyCustomRange()">
+                    <button type="button" class="btn-apply-range" @click="applyCustomRange()">
+                        <span x-text="isKhmer ? 'អនុវត្ត' : 'Apply'"></span>
+                    </button>
+                </div>
+                <div class="batch-presets-section" x-show="batchPresets.length > 0">
+                    <p class="batch-section-title" x-text="isKhmer ? 'ឬជ្រើសរើសតាមកញ្ចប់បម្លែង (Batches) ៖' : 'Or select by batch:'"></p>
+                    <div class="batch-buttons-grid">
+                        <template x-for="(batch, bIdx) in batchPresets" :key="bIdx">
+                            <button type="button" class="btn-batch-chip" @click="selectBatch(batch.start, batch.end); rangeModalVisible = false;">
+                                <span class="batch-chip-title" x-text="batch.label"></span>
+                                <span class="batch-chip-count" x-text="toKhNum(batch.count) + ' ' + (isKhmer ? 'ទំព័រ' : 'pages')"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1099,6 +1377,12 @@ function ocrApp() {
         isLoadingPages: false,
         loadingProgress: '',
         draggingRight: false,
+        rangeModalVisible: false,
+        customRangeInput: '',
+        serverCurrentPage: 0,
+        serverTotalPages: 0,
+        progressPercent: 0,
+        progressText: '',
         _nextId: 1,
 
         async init() {
@@ -1138,6 +1422,74 @@ function ocrApp() {
                 return `បម្លែង ${toKhNum(count)} ទំព័រទៅជា Word`;
             }
             return `OCR ${count} ${count === 1 ? 'Page' : 'Pages'} to Word`;
+        },
+
+        get batchPresets() {
+            const total = this.pages.length;
+            if (total <= 1) return [];
+            const size = 25;
+            const list = [];
+            let bNum = 1;
+            for (let i = 1; i <= total; i += size) {
+                const start = i;
+                const end = Math.min(i + size - 1, total);
+                list.push({
+                    start: start,
+                    end: end,
+                    count: end - start + 1,
+                    label: (typeof isKhmer !== 'undefined' && isKhmer) 
+                        ? `កញ្ចប់ ${toKhNum(bNum++)} (ទំព័រ ${toKhNum(start)}-${toKhNum(end)})`
+                        : `Batch ${bNum++} (Pages ${start}-${end})`
+                });
+            }
+            return list;
+        },
+
+        openRangeModal() {
+            this.customRangeInput = '';
+            this.rangeModalVisible = true;
+        },
+
+        selectBatch(start, end) {
+            this.pages.forEach((p, idx) => {
+                const pNum = idx + 1;
+                p.selected = (pNum >= start && pNum <= end);
+            });
+            this.saveSession();
+        },
+
+        applyCustomRange() {
+            const raw = (this.customRangeInput || '').trim();
+            if (!raw) return;
+            const selectedIndices = new Set();
+            const parts = raw.replace(/;/g, ',').split(',');
+            for (const part of parts) {
+                const p = part.trim();
+                if (p.includes('-')) {
+                    const [sStr, eStr] = p.split('-');
+                    const s = parseInt((sStr || '').trim(), 10);
+                    const e = parseInt((eStr || '').trim(), 10);
+                    if (!isNaN(s) && !isNaN(e)) {
+                        for (let k = Math.min(s, e); k <= Math.max(s, e); k++) {
+                            if (k >= 1 && k <= this.pages.length) selectedIndices.add(k - 1);
+                        }
+                    }
+                } else {
+                    const num = parseInt(p, 10);
+                    if (!isNaN(num) && num >= 1 && num <= this.pages.length) {
+                        selectedIndices.add(num - 1);
+                    }
+                }
+            }
+            if (selectedIndices.size === 0) {
+                alert((typeof isKhmer !== 'undefined' && isKhmer) ? 'ចន្លោះទំព័រមិនត្រឹមត្រូវ សូមបញ្ចូលលេខទំព័រម្តងទៀត' : 'Invalid page range. Please check your numbers.');
+                return;
+            }
+            this.pages.forEach((page, idx) => {
+                page.selected = selectedIndices.has(idx);
+            });
+            this.saveSession();
+            this.rangeModalVisible = false;
         },
 
         async selectOcrLang(lang) {
@@ -1221,8 +1573,16 @@ function ocrApp() {
                         thumb: canvas.toDataURL('image/jpeg', 0.8),
                         label: ((typeof isKhmer !== 'undefined' && isKhmer) ? 'ទំព័រ ' : 'Page ') + toKhNum(i),
                         sourceName: file.name,
-                        selected: true
+                        selected: total > 30 ? (i <= 25) : true
                     });
+
+                    // Avoid UI freeze on 50-100+ page documents
+                    if (i % 2 === 0 || i === total) {
+                        this.loadingProgress = (typeof isKhmer !== 'undefined' && isKhmer)
+                            ? `កំពុងផ្ទុកទំព័រ ${toKhNum(i)} / ${toKhNum(total)}...`
+                            : `Loading page ${i} / ${total}...`;
+                        await new Promise(r => setTimeout(r, 0));
+                    }
                 }
             } catch(err) {
                 console.error('Error rendering PDF pages:', err);
@@ -1474,21 +1834,39 @@ function ocrApp() {
 
         async pollJob(jobId, filename) {
             const dlName = filename || 'document.docx';
+            this.serverCurrentPage = 0;
+            this.serverTotalPages = 0;
+            this.progressPercent = 0;
+            this.progressText = (typeof isKhmer !== 'undefined' && isKhmer) ? 'កំពុងចាប់ផ្តើមបម្លែង...' : 'Starting OCR conversion...';
+
             const iv = setInterval(async () => {
-                const job = await fetch('/api/job/' + jobId + '/').then(r => r.json());
-                if (job.status === 'done') {
-                    clearInterval(iv);
-                    clearInterval(this._progressInterval);
-                    this.progress = 100;
-                    await removeOcrSession();
-                    setTimeout(() => {
-                        window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '')
-                            + '&filename=' + encodeURIComponent(dlName);
-                    }, 300);
-                } else if (job.status === 'failed') {
-                    clearInterval(iv);
-                    this.hideModal();
-                    alert(window.I18N_JS.errorPrefix + ' ' + (job.error || window.I18N_JS.processingFailed));
+                try {
+                    const job = await fetch('/api/job/' + jobId + '/').then(r => r.json());
+                    if (job.current_page && job.total_pages) {
+                        this.serverCurrentPage = job.current_page;
+                        this.serverTotalPages = job.total_pages;
+                        this.progressPercent = Math.min(99, Math.round((job.current_page / job.total_pages) * 100));
+                        this.progressText = (typeof isKhmer !== 'undefined' && isKhmer)
+                            ? `កំពុងបម្លែងទំព័រទី ${toKhNum(job.current_page)} នៃ ${toKhNum(job.total_pages)} (${this.progressPercent}%)`
+                            : `Processing page ${job.current_page} of ${job.total_pages} (${this.progressPercent}%)`;
+                    }
+                    if (job.status === 'done') {
+                        clearInterval(iv);
+                        clearInterval(this._progressInterval);
+                        this.progressPercent = 100;
+                        this.progressText = (typeof isKhmer !== 'undefined' && isKhmer) ? 'បម្លែងរួចរាល់ 100%!' : 'Conversion completed 100%!';
+                        await removeOcrSession();
+                        setTimeout(() => {
+                            window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '')
+                                + '&filename=' + encodeURIComponent(dlName);
+                        }, 400);
+                    } else if (job.status === 'failed') {
+                        clearInterval(iv);
+                        this.hideModal();
+                        alert(window.I18N_JS.errorPrefix + ' ' + (job.error || window.I18N_JS.processingFailed));
+                    }
+                } catch(err) {
+                    console.warn('Poll error:', err);
                 }
             }, 2000);
         },
