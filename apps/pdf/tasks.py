@@ -963,7 +963,7 @@ def _add_structured_json_to_docx(doc, items):
                 continue
             run_bold = is_bold or (idx % 2 == 1)
             has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in part)
-            font_name = 'Kantumruy Pro' if has_khmer else 'Calibri'
+            font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
 
             run = paragraph.add_run(part)
             run.bold = run_bold
@@ -1221,7 +1221,7 @@ def _add_markdown_to_docx(doc, markdown_text):
     """
     Parse Claude's formatted OCR output (Markdown headers, centered titles,
     bold text, bullet/numbered lists, and tables) into native styled Word
-    elements with proper fonts (Kantumruy Pro for Khmer, Calibri for Latin).
+    elements with proper fonts (Khmer OS Battambang for Khmer, Calibri for Latin).
     Returns total extracted character count.
     """
     import re
@@ -1241,7 +1241,7 @@ def _add_markdown_to_docx(doc, markdown_text):
             run_bold = is_bold or (idx % 2 == 1)
             # Detect Khmer characters
             has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in part)
-            font_name = 'Kantumruy Pro' if has_khmer else 'Calibri'
+            font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
 
             run = paragraph.add_run(part)
             run.bold = run_bold
@@ -1249,7 +1249,7 @@ def _add_markdown_to_docx(doc, markdown_text):
             run.font.size = Pt(font_size)
 
             # Explicitly set Word's Complex Script (w:cs) and East Asia fonts
-            # so Windows Word renders Khmer characters using Kantumruy Pro
+            # so Windows Word renders Khmer characters using Khmer OS Battambang
             rPr = run._element.get_or_add_rPr()
             rFonts = rPr.get_or_add_rFonts()
             rFonts.set(qn('w:cs'), font_name)
@@ -1699,9 +1699,15 @@ def ocr_pdf(job_id):
                     cleaned.append(line)
             return '\n'.join(cleaned)
         
-        # Set table auto-style
+        # Set table auto-style and default Complex Script font for Khmer
         doc.styles['Normal'].font.name = 'Calibri'
         doc.styles['Normal'].font.size = Pt(11)
+        try:
+            norm_rPr = doc.styles['Normal']._element.get_or_add_rPr()
+            norm_rFonts = norm_rPr.get_or_add_rFonts()
+            norm_rFonts.set(qn('w:cs'), 'Khmer OS Battambang')
+        except Exception:
+            pass
 
         extracted_chars = 0
 
@@ -1777,9 +1783,17 @@ def ocr_pdf(job_id):
                             p = doc.add_paragraph(line)
                             extracted_chars += len(line)
                             has_khmer = any('ក' <= c <= '៿' for c in line)
+                            font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
                             for run in p.runs:
-                                run.font.name = 'Kantumruy Pro' if has_khmer else 'Calibri'
+                                run.font.name = font_name
                                 run.font.size = Pt(11)
+                                if has_khmer:
+                                    rPr = run._element.get_or_add_rPr()
+                                    rFonts = rPr.get_or_add_rFonts()
+                                    rFonts.set(qn('w:cs'), font_name)
+                                    rFonts.set(qn('w:ascii'), font_name)
+                                    rFonts.set(qn('w:hAnsi'), font_name)
+                                    rFonts.set(qn('w:eastAsia'), font_name)
                     page_done = True
                 except Exception as e:
                     logger.error(f'Google Vision OCR failed on page {page_num}: {e}', exc_info=True)
@@ -1831,14 +1845,19 @@ def ocr_pdf(job_id):
 
                         # Detect Khmer
                         has_khmer = any('\u1780' <= c <= '\u17FF' for c in line_text)
+                        font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
 
                         # Set font
                         for run in p.runs:
-                            if has_khmer:
-                                run.font.name = 'Kantumruy Pro'
-                            else:
-                                run.font.name = 'Calibri'
+                            run.font.name = font_name
                             run.font.size = Pt(11)
+                            if has_khmer:
+                                rPr = run._element.get_or_add_rPr()
+                                rFonts = rPr.get_or_add_rFonts()
+                                rFonts.set(qn('w:cs'), font_name)
+                                rFonts.set(qn('w:ascii'), font_name)
+                                rFonts.set(qn('w:hAnsi'), font_name)
+                                rFonts.set(qn('w:eastAsia'), font_name)
             elif not page_done:
                 # Fallback to basic OCR (Tesseract only — Vision already had
                 # its turn above if it was configured, page_done covers that)
@@ -1850,9 +1869,18 @@ def ocr_pdf(job_id):
                             if line.strip():
                                 p = doc.add_paragraph(line)
                                 extracted_chars += len(line.strip())
+                                has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
+                                font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
                                 for run in p.runs:
-                                    run.font.name = 'Calibri'
+                                    run.font.name = font_name
                                     run.font.size = Pt(11)
+                                    if has_khmer:
+                                        rPr = run._element.get_or_add_rPr()
+                                        rFonts = rPr.get_or_add_rFonts()
+                                        rFonts.set(qn('w:cs'), font_name)
+                                        rFonts.set(qn('w:ascii'), font_name)
+                                        rFonts.set(qn('w:hAnsi'), font_name)
+                                        rFonts.set(qn('w:eastAsia'), font_name)
                 except Exception as e:
                     logger.error(f'pytesseract.image_to_string failed on page {page_num}: {e}', exc_info=True)
 
