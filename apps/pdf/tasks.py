@@ -849,12 +849,16 @@ def _build_vision_client(ocr_settings):
 def _get_vision_prompt(ocr_lang='eng'):
     lang_desc = "Khmer and English" if ocr_lang == 'eng+khm' else ("Khmer" if ocr_lang == 'khm' else "English")
     return (
-        f"You are a world-class document transcription and layout reproduction engine for high-fidelity Microsoft Word (.docx) generation. "
+        f"You are a world-class Khmer document transcription and layout reproduction engine for high-fidelity Microsoft Word (.docx) generation. "
         f"Transcribe and faithfully reconstruct the visual layout, text, and structure of this document image with 100% precision. "
         f"Document language: {lang_desc}.\n\n"
-        "STRICT TRANSCRIPTION ACCURACY RULES:\n"
-        "- Transcribe EVERY SINGLE Khmer letter, consonant, vowel, subscript (ជើង), sign (វណ្ណយុត្តិ), dot, and number with 100% exact fidelity.\n"
-        "- NEVER paraphrase, guess, substitute, or invent words. For example, if the text reads 'ស្ម័គ្រចិត្តការពារក្តីជូនជនក្រីក្រ', do NOT replace it with other phrases.\n"
+        "CRITICAL KHMER SCRIPT FIDELITY RULES:\n"
+        "1. ABSOLUTELY NO FOREIGN SCRIPTS: The document is strictly Khmer. NEVER output Thai characters (e.g. NEVER write 'ตุลาคม' for 'តុលា'). Every character must be valid Khmer Unicode.\n"
+        "2. EXACT WORD FOR WORD: Transcribe EXACTLY what is written. NEVER paraphrase, guess, or substitute legal vocabulary. For example, if it says 'ជនត្រូវចោទ', do NOT replace with 'ជនក្រីក្រ'. If it says 'ឥតគិតកម្រៃ', do NOT write 'ឥតគិតថ្លៃ'.\n"
+        "3. PRESERVE SUBSCRIPT CONSONANTS (ជើង): Always transcribe subscript consonants with their coeng mark ( ្ ) (e.g. ន្ត, ង្ក, ម្ភ, ញ្ច, ដ្ឋ, ្រ, ្ល, ្វ, ្ត). Never drop subscripts.\n"
+        "4. DISTINGUISH SIMILAR CONSONANTS: Distinguish carefully between 'ដ' and 'ត', 'ព' and 'ភ', 'ម' and 'ធ', 'ឈ' and 'ញ', 'ឌ' and 'អ៊ុ', 'ប' and 'ឋ'.\n"
+        "5. PRESERVE DIACRITICS & NUMBERS: Preserve Bantoc ( ់ ), Tandakhat ( ៍ ), Reahmuk ( ៌ ), Treisap ( ៊ ), Musikatoan ( ៉ ). Transcribe Khmer numbers (១, ២, ៣, ៤, ៥, ៦, ៧, ៨, ៩, ០) accurately.\n"
+        "6. INCLUDE ALL STAMP & SIGNATURE TEXT: Transcribe header stamps, office codes (e.g. 'លេខ ១០៣១ / ប្រ.កម/ភព/២៦'), and signer names (e.g. 'មេធាវី. ហុយ សុផល').\n"
         "- Preserve all dotted fill-in lines (e.g. '..........').\n\n"
         "STRUCTURAL SCHEMAS (Return a JSON array from top to bottom):\n"
         "1. Heading: {\"type\": \"heading\", \"level\": 1|2|3, \"align\": \"center\"|\"left\", \"text\": \"...\"}\n"
@@ -941,11 +945,9 @@ def _gemini_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
 
     genai.configure(api_key=api_key)
     model_name = (model or '').strip()
-    if not model_name or 'flash' in model_name.lower():
-        # Prefer gemini-flash-lite-latest for ultra-fast, zero-overhead OCR without long reasoning delays
-        chosen_model = 'gemini-flash-lite-latest'
-    elif 'pro' in model_name.lower():
-        chosen_model = 'gemini-pro-latest'
+    if not model_name or model_name in ('gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'):
+        # gemini-3.5-flash-lite provides superior Khmer Unicode fidelity without Thai character leakage in ~8s
+        chosen_model = 'gemini-3.5-flash-lite'
     else:
         chosen_model = model_name
 
@@ -958,7 +960,7 @@ def _gemini_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
     response = gen_model.generate_content(
         [rgb_img, prompt],
         generation_config={
-            'temperature': 0.1,
+            'temperature': 0.0,
             'max_output_tokens': 8192,
             'response_mime_type': 'application/json',
         }
@@ -2318,12 +2320,13 @@ def ocr_pdf(job_id):
 
         vision_lang_hints = _VISION_LANG_HINTS.get(ocr_lang, ['en'])
 
+        ocr_dpi = 250 if (use_claude or use_gemini) else 200
         # Stream page-by-page (Low memory, handles 100+ pages without OOM)
         page_stream = _iter_document_pages(
             input_path,
             page_range_str=job.page_range,
             max_limit=150,
-            dpi=200
+            dpi=ocr_dpi
         )
 
         for page_num, total_pages, page in page_stream:

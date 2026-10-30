@@ -159,9 +159,9 @@ class OCRSettings(models.Model):
     )
     gemini_model = models.CharField(
         max_length=60,
-        default='gemini-1.5-flash',
+        default='gemini-3.5-flash-lite',
         verbose_name='Gemini Model',
-        help_text='e.g. gemini-1.5-flash (fast, ultra-low-cost), gemini-2.0-flash, or gemini-1.5-pro.',
+        help_text='e.g. gemini-3.5-flash-lite (fast, high-precision Khmer OCR, $0 free tier), gemini-3-flash-preview, or gemini-pro-latest.',
     )
     use_google_vision = models.BooleanField(
         default=False,
