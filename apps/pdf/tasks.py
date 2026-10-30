@@ -858,7 +858,8 @@ def _get_vision_prompt(ocr_lang='eng'):
         "- Preserve all dotted fill-in lines (e.g. '..........').\n\n"
         "STRUCTURAL SCHEMAS (Return a JSON array from top to bottom):\n"
         "1. Heading: {\"type\": \"heading\", \"level\": 1|2|3, \"align\": \"center\"|\"left\", \"text\": \"...\"}\n"
-        "   - Use 'align': 'center' for top mottos ('ព្រះរាជាណាចក្រកម្ពុជា', 'ជាតិ សាសនា ព្រះមហាក្សត្រ') and main document titles ('សាលក្រម...', 'សេចក្តីសម្រេច...', 'ប្រកាស...', 'ពាក្យស្នើសុំ...').\n"
+        "   - Use 'align': 'center' for top mottos ('ព្រះរាជាណាចក្រកម្ពុជា', 'ជាតិ សាសនា ព្រះមហាក្សត្រ') and main document titles ('លិខិតអញ្ជើញ...', 'សាលក្រម...', 'សេចក្តីសម្រេច...', 'ប្រកាស...', 'ពាក្យស្នើសុំ...').\n"
+        "   - CRITICAL: The main document title (e.g. 'លិខិតអញ្ជើញមេធាវី', 'សេចក្តីសម្រេច', 'សាលក្រម') MUST be a separate 'heading' element AFTER the letterhead table. NEVER put the document title inside a letterhead table cell!\n"
         "2. Paragraph: {\"type\": \"paragraph\", \"align\": \"justify\"|\"left\"|\"right\"|\"center\", \"text\": \"...\"}\n"
         "   - Use 'align': 'justify' for multi-line body paragraphs, legal reasoning, requests, and narrative prose.\n"
         "   - IMPORTANT: ALL narrative body paragraphs (even short 1-line or 2-line paragraphs like 'អាស្រ័យដូចបានជម្រាបជូន...' or 'សូម លោកប្រធាន...') MUST be regular 'paragraph' elements with 'align': 'justify'. NEVER put body paragraphs into a table.\n"
@@ -866,10 +867,12 @@ def _get_vision_prompt(ocr_lang='eng'):
         "   - Use 'align': 'left' for labels (e.g. '**ដើមចោទ ៖** ...', '**កម្មវត្ថុ ៖** ...', '**យោង ៖** ...'), short entries.\n"
         "   - Use '**bold text**' for labels, party names, headings, and case numbers as in the original.\n"
         "3. List Item: {\"type\": \"list_item\", \"list_type\": \"bullet\"|\"number\", \"text\": \"...\"}\n"
+        "   - For all bullet lines starting with '-', output with a space after the dash (e.g. '- អញ្ជើញមេធាវី...').\n"
+        "   - For 'យោង ៖' and 'ចម្លងជូន ៖', output each sub-reference as a separate line starting with '- '.\n"
         "4. Table: {\"type\": \"table\", \"layout\": \"borderless\"|\"grid\", \"rows\": [[{\"text\": \"...\", \"align\": \"center\"|\"left\"|\"right\", \"bold\": true|false}, ...]]}\n"
         "   - Use 'layout': 'borderless' ONLY for true multi-column horizontal sections:\n"
-        "     * Side-by-side letterheads (e.g. Ministry/Court name on left, 'ព្រះរាជាណាចក្រកម្ពុជា' on right).\n"
-        "     * Bottom approval & signature columns (e.g. a 3-column row with LAD Director on left, Secretary General in middle, President on right; or applicant on left and recipient on right).\n"
+        "     * Side-by-side letterheads (e.g. Ministry/Court name on left, 'ព្រះរាជាណាចក្រកម្ពុជា' on right/center, room/stamp on right).\n"
+        "     * Bottom approval & signature columns (e.g. a 3-column row with applicant/case on left, spacer in middle, judge/director on right).\n"
         "   - Use 'layout': 'grid' for standard bordered data tables.\n"
         "   - Use '\\n' for multiple lines inside a cell.\n"
         "5. Omit standalone running page numbers (e.g. standalone '1', '2', '១', '២' at page margins).\n\n"
@@ -1045,6 +1048,29 @@ def _add_structured_json_to_docx(doc, items):
                         })
                 continue
 
+            # Check if a top letterhead cell trapped the document title (e.g. \n\nលិខិតអញ្ជើញមេធាវី)
+            TITLE_SPLIT_RE = re.compile(r'\n+(លិខិតអញ្ជើញ[^\n]*|សេចក្តីសម្រេច[^\n]*|សាលក្រម[^\n]*|សាលដីកា[^\n]*|ដីកា[^\n]*|ប្រកាស[^\n]*|អនុក្រឹត្យ[^\n]*|ព្រះរាជក្រម[^\n]*|កិច្ចសន្យា[^\n]*|ពាក្យស្នើសុំ[^\n]*|DECISION[^\n]*|PRAKAS[^\n]*)', re.IGNORECASE)
+            extracted_title = None
+            for r in rows:
+                for c in r:
+                    c_txt = c.get('text', '') if isinstance(c, dict) else str(c)
+                    if any(k in c_txt for k in ('ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា')) and TITLE_SPLIT_RE.search(c_txt):
+                        m = TITLE_SPLIT_RE.search(c_txt)
+                        extracted_title = m.group(1).strip()
+                        new_txt = TITLE_SPLIT_RE.sub('', c_txt).strip()
+                        if isinstance(c, dict):
+                            c['text'] = new_txt
+
+            sanitized_items.append(it)
+            if extracted_title:
+                sanitized_items.append({
+                    'type': 'heading',
+                    'level': 1,
+                    'align': 'center',
+                    'text': extracted_title
+                })
+            continue
+
         sanitized_items.append(it)
 
     # ── Sanitization 2: Coalesce consecutive tail signature/approval paragraphs into a multi-column borderless table ──
@@ -1159,16 +1185,22 @@ def _add_structured_json_to_docx(doc, items):
                 tbl.style = 'Table Grid'
 
             # Calculate balanced column widths for standard printable width (6.5 inches)
-            if layout == 'borderless' and num_cols == 2:
-                # Check if 2-col letterhead (court on left, kingdom on right)
-                first_row = rows_data[0] if rows_data else []
-                first_row_str = ' '.join(c.get('text', '') if isinstance(c, dict) else str(c) for c in first_row)
-                if any(k in first_row_str for k in ('សាលាដំបូង', 'ក្រសួង', 'ព្រះរាជាណាចក្រ', 'តាងនាម')):
+            first_row_str = ' '.join(c.get('text', '') if isinstance(c, dict) else str(c) for c in (rows_data[0] if rows_data else []))
+            is_top_letterhead = any(k in first_row_str for k in ('សាលាដំបូង', 'ក្រសួង', 'ព្រះរាជាណាចក្រ', 'គណៈមេធាវី', 'តាងនាម'))
+            is_bottom_signature = any(k in first_row_str for k in ('ចៅក្រម', 'ប្រធាន', 'មេធាវី', 'ក្រឡាបញ្ជី', '28/026', 'ហត្ថលេខា'))
+
+            if layout == 'borderless' and num_cols == 3:
+                if is_top_letterhead:
+                    col_widths = [Inches(2.6), Inches(2.5), Inches(1.4)]
+                elif is_bottom_signature:
+                    col_widths = [Inches(2.2), Inches(1.5), Inches(2.8)]
+                else:
+                    col_widths = [Inches(2.16), Inches(2.16), Inches(2.16)]
+            elif layout == 'borderless' and num_cols == 2:
+                if is_top_letterhead:
                     col_widths = [Inches(2.85), Inches(3.65)]
                 else:
                     col_widths = [Inches(3.25), Inches(3.25)]
-            elif layout == 'borderless' and num_cols == 3:
-                col_widths = [Inches(2.16), Inches(2.16), Inches(2.16)]
             else:
                 col_widths = [Inches(6.5 / num_cols)] * num_cols
 
@@ -1206,31 +1238,61 @@ def _add_structured_json_to_docx(doc, items):
             sp.paragraph_format.space_after = Pt(2)
 
         else:  # paragraph
-            if not align_str:
-                align_str = 'justify' if len(text) > 65 else 'left'
-            align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.JUSTIFY if len(text) > 65 else WD_ALIGN_PARAGRAPH.LEFT)
+            # Unpack multiline bullet lists (e.g. យោង ៖ \n- ... or ចម្លងជូន ៖ \n- ...)
+            if '\n-' in text or '\n•' in text or '\n–' in text:
+                sub_lines = [l.strip() for l in text.split('\n') if l.strip()]
+                for sl in sub_lines:
+                    p = doc.add_paragraph()
+                    p.paragraph_format.line_spacing = 1.2
+                    p.paragraph_format.space_before = Pt(1)
+                    p.paragraph_format.space_after = Pt(2)
+                    if sl.startswith(('-', '–', '—', '•', '*', '+')) and not sl.startswith(('--', '---')):
+                        if len(sl) > 1 and sl[1] != ' ':
+                            sl = sl[0] + ' ' + sl[1:]
+                        p.paragraph_format.left_indent = Inches(0.35)
+                        p.paragraph_format.first_line_indent = Inches(-0.25)
+                        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY if len(sl) > 70 else WD_ALIGN_PARAGRAPH.LEFT
+                    elif sl.startswith(('កម្មវត្ថុ', 'យោង', 'ចម្លងជូន')):
+                        p.paragraph_format.left_indent = Inches(0.35)
+                        p.paragraph_format.first_line_indent = Inches(-0.35)
+                        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                    else:
+                        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                    total_chars += _add_styled_runs(p, sl, is_bold=False, font_size=11)
+                continue
+
+            # Check if this paragraph is a bullet point or numbered item (with OR WITHOUT space after dash!)
+            is_bullet = False
+            if text.startswith(('-', '–', '—', '•', '*', '+')) and not text.startswith(('--', '---')):
+                is_bullet = True
+                if len(text) > 1 and text[1] != ' ':
+                    text = text[0] + ' ' + text[1:]
+            elif re.match(r'^(?:[0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+[\.\)]|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))\s*', text):
+                is_bullet = True
 
             p = doc.add_paragraph()
-            p.alignment = align
             p.paragraph_format.line_spacing = 1.25
             p.paragraph_format.space_before = Pt(1)
-            p.paragraph_format.space_after = Pt(3)
+            p.paragraph_format.space_after = Pt(2)
 
-            # Hanging indent for legal labels (e.g. "**កម្មវត្ថុ ៖**" or "**យោង ៖**")
-            clean_prefix = re.sub(r'[\*\s]', '', text[:15])
-            if clean_prefix.startswith(('កម្មវត្ថុ៖', 'កម្មវត្ថុ:', 'យោង៖', 'យោង:')):
+            if is_bullet:
                 p.paragraph_format.left_indent = Inches(0.35)
-                p.paragraph_format.first_line_indent = Inches(-0.35)
-            # Hanging indent for bullet or numbered list items that arrived as paragraphs
-            elif re.match(r'^(?:[\u2022\u25CB\u25CF\u25AA\u25AB\u2013\u2014\-\*\+\~]|[0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+[\.\)]|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))\s+', text):
-                is_sub = bool(re.match(r'^(?:[0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))', text))
-                p.paragraph_format.left_indent = Inches(0.55 if is_sub else 0.35)
                 p.paragraph_format.first_line_indent = Inches(-0.25)
-            # First line indent for narrative body paragraphs
-            elif align == WD_ALIGN_PARAGRAPH.JUSTIFY and len(text) > 70:
-                p.paragraph_format.first_line_indent = Inches(0.4)
-            elif text.startswith(('ខ្ញុំបាទ', 'ខ្ញុំនាងខ្ញុំ', 'ខ្ញុំព្រះករុណា', 'តាមកម្មវត្ថុ', 'អាស្រ័យ')):
-                p.paragraph_format.first_line_indent = Inches(0.4)
+                p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY if len(text) > 70 else WD_ALIGN_PARAGRAPH.LEFT
+            else:
+                align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.JUSTIFY if len(text) > 65 else WD_ALIGN_PARAGRAPH.LEFT)
+                p.alignment = align
+
+                # Hanging indent for legal labels (e.g. "**កម្មវត្ថុ ៖**" or "**យោង ៖**")
+                clean_prefix = re.sub(r'[\*\s]', '', text[:15])
+                if clean_prefix.startswith(('កម្មវត្ថុ៖', 'កម្មវត្ថុ:', 'យោង៖', 'យោង:', 'ចម្លងជូន៖', 'ចម្លងជូន:')):
+                    p.paragraph_format.left_indent = Inches(0.35)
+                    p.paragraph_format.first_line_indent = Inches(-0.35)
+                # First line indent for narrative body paragraphs
+                elif align == WD_ALIGN_PARAGRAPH.JUSTIFY and len(text) > 70:
+                    p.paragraph_format.first_line_indent = Inches(0.4)
+                elif text.startswith(('ខ្ញុំបាទ', 'ខ្ញុំនាងខ្ញុំ', 'ខ្ញុំព្រះករុណា', 'តាមកម្មវត្ថុ', 'អាស្រ័យ')):
+                    p.paragraph_format.first_line_indent = Inches(0.4)
 
             total_chars += _add_styled_runs(p, text, is_bold=False, font_size=11)
 
