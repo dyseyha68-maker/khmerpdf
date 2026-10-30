@@ -846,21 +846,9 @@ def _build_vision_client(ocr_settings):
     return vision.ImageAnnotatorClient(credentials=credentials)
 
 
-def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
-    """Run Claude Vision OCR on one page image, returning layout-reconstructed markdown text."""
-    import base64
-    import anthropic
-
-    client = anthropic.Anthropic(api_key=api_key)
-
-    buf = io.BytesIO()
-    # JPEG format at quality 92 provides crisp clarity for OCR with low payload size
-    pil_image.convert('RGB').save(buf, format='JPEG', quality=92)
-    image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
-
+def _get_vision_prompt(ocr_lang='eng'):
     lang_desc = "Khmer and English" if ocr_lang == 'eng+khm' else ("Khmer" if ocr_lang == 'khm' else "English")
-
-    prompt = (
+    return (
         f"You are a world-class document transcription and layout reproduction engine for high-fidelity Microsoft Word (.docx) generation. "
         f"Transcribe and faithfully reconstruct the visual layout, text, and structure of this document image with 100% precision. "
         f"Document language: {lang_desc}.\n\n"
@@ -888,8 +876,32 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
         "CRITICAL: Return ONLY a raw JSON array starting with '[' and ending with ']'. Do not include markdown code block fences (no ```json)."
     )
 
+
+def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
+    """Run Claude Vision OCR on one page image, returning layout-reconstructed markdown or JSON text."""
+    import base64
+    import anthropic
+
+    client = anthropic.Anthropic(api_key=api_key)
+
+    buf = io.BytesIO()
+    # JPEG format at quality 92 provides crisp clarity for OCR with low payload size
+    pil_image.convert('RGB').save(buf, format='JPEG', quality=92)
+    image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+    prompt = _get_vision_prompt(ocr_lang=ocr_lang)
+
+    # Normalize model string to ensure valid Anthropic model identifier
+    chosen_model = (model or '').strip()
+    if not chosen_model or 'sonnet' in chosen_model.lower():
+        if chosen_model in ('claude-sonnet-5-5', 'claude-3-5-sonnet', ''):
+            chosen_model = 'claude-3-5-sonnet-20241022'
+    elif 'haiku' in chosen_model.lower():
+        if chosen_model in ('claude-haiku-5-5', 'claude-3-5-haiku', ''):
+            chosen_model = 'claude-3-5-haiku-20241022'
+
     create_kwargs = {
-        'model': model or "claude-sonnet-5-5",
+        'model': chosen_model,
         'max_tokens': 8192,
         'messages': [
             {
@@ -911,7 +923,7 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
             }
         ],
     }
-    model_name = (model or '').lower()
+    model_name = chosen_model.lower()
     if 'haiku' in model_name:
         create_kwargs['thinking'] = {"type": "disabled"}
     elif 'sonnet' in model_name:
@@ -933,6 +945,38 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
             text_parts.append(block.text)
 
     return "\n".join(text_parts).strip()
+
+
+def _gemini_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
+    """Run Google Gemini Vision OCR on one page image, returning layout-reconstructed JSON or markdown text."""
+    import google.generativeai as genai
+
+    genai.configure(api_key=api_key)
+    model_name = (model or '').strip()
+    if not model_name or 'flash' in model_name.lower():
+        if '2.0' in model_name:
+            chosen_model = 'gemini-2.0-flash'
+        else:
+            chosen_model = 'gemini-1.5-flash'
+    elif 'pro' in model_name.lower():
+        chosen_model = 'gemini-1.5-pro'
+    else:
+        chosen_model = model_name
+
+    prompt = _get_vision_prompt(ocr_lang=ocr_lang)
+
+    # Convert to RGB mode
+    rgb_img = pil_image.convert('RGB') if pil_image.mode != 'RGB' else pil_image
+
+    gen_model = genai.GenerativeModel(chosen_model)
+    response = gen_model.generate_content(
+        [rgb_img, prompt],
+        generation_config={
+            'temperature': 0.1,
+            'max_output_tokens': 8192,
+        }
+    )
+    return (response.text or "").strip()
 
 
 def _add_structured_json_to_docx(doc, items):
@@ -1525,6 +1569,121 @@ def _vision_ocr_page(client, pil_image, lang_hints=None):
     return response.full_text_annotation.text
 
 
+def _khmerocr_page(doc, pil_image, ocr_lang='khm'):
+    """
+    Run KhmerOCR ONNX deep learning model on a single page PIL image.
+    Trained on 3 million Khmer text lines over 800+ fonts.
+    Recognizes text lines, identifies Moul vs Regular fonts, preserves layout,
+    and appends native styled Word runs with 'Khmer OS Muol Light' for Moul
+    and 'Khmer OS Battambang' for regular text.
+    Returns: total_chars_extracted (int)
+    """
+    import re
+    import khmerocr
+    from docx.shared import Pt, Inches
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml.ns import qn
+
+    # Convert image to RGB mode for ONNX inference
+    if pil_image.mode != 'RGB':
+        pil_image = pil_image.convert('RGB')
+
+    lines = khmerocr.detect(pil_image)
+    if not lines:
+        return 0
+
+    total_chars = 0
+    DET_THRESHOLD = 0.35
+    w, h = pil_image.size
+
+    for line in lines:
+        line_parts = []
+        is_line_moul = False
+        line_has_text = False
+
+        for res in line:
+            box, cls_id, conf = res[:4], int(res[4]), float(res[5])
+            if conf < DET_THRESHOLD:
+                continue
+
+            # cls_id == 1 indicates a text region
+            if cls_id == 1:
+                x1, y1, x2, y2 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+                # Bounds check
+                x1, y1 = max(0, x1), max(0, y1)
+                x2, y2 = min(w, x2), min(h, y2)
+                if x2 <= x1 + 2 or y2 <= y1 + 2:
+                    continue
+
+                cropped = pil_image.crop((x1, y1, x2, y2))
+                rec = khmerocr.recognize(cropped)
+                text = (rec.get("text") or "").strip()
+                if not text:
+                    continue
+
+                font_style = rec.get("font", "Regular")
+                font_conf = float(rec.get("font_confidence", 0.0))
+                if font_style in ("Moul", "MoulLight") and font_conf >= 0.65:
+                    is_line_moul = True
+
+                line_parts.append(text)
+                line_has_text = True
+
+        if not line_has_text or not line_parts:
+            continue
+
+        full_line = " ".join(line_parts).strip()
+        if not full_line:
+            continue
+
+        has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in full_line)
+        p = doc.add_paragraph()
+
+        if is_line_moul:
+            font_name = 'Khmer OS Muol Light' if has_khmer else 'Calibri'
+            font_size = 13.0
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.space_before = Pt(4)
+            p.paragraph_format.space_after = Pt(2)
+            p.paragraph_format.line_spacing = 1.2
+            is_bold = True
+        else:
+            font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
+            font_size = 11.0
+            is_bold = False
+
+            # Smart paragraph alignment heuristics
+            if any(k in full_line for k in ('ព្រះរាជាណាចក្រកម្ពុជា', 'ជាតិ សាសនា ព្រះមហាក្សត្រ', 'Kingdom of Cambodia')):
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            elif re.search(r'ថ្ងៃទី\s*[0-9\u17E0-\u17E9]+\s*ខែ\s*[0-9\u17E0-\u17E9\w]+\s*ឆ្នាំ\s*[0-9\u17E0-\u17E9]+', full_line) and len(full_line) < 70:
+                p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            elif len(full_line) > 75:
+                p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            else:
+                p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(2)
+            p.paragraph_format.line_spacing = 1.15
+
+        run = p.add_run(full_line)
+        run.bold = is_bold
+        run.font.name = font_name
+        run.font.size = Pt(font_size)
+
+        if has_khmer:
+            rPr = run._element.get_or_add_rPr()
+            rFonts = rPr.get_or_add_rFonts()
+            rFonts.set(qn('w:cs'), font_name)
+            rFonts.set(qn('w:ascii'), font_name)
+            rFonts.set(qn('w:hAnsi'), font_name)
+            rFonts.set(qn('w:eastAsia'), font_name)
+
+        total_chars += len(full_line)
+
+    return total_chars
+
+
 def _iter_document_pages(input_path, page_range_str=None, max_limit=150, dpi=200):
     """
     Memory-efficient document page generator.
@@ -1713,16 +1872,21 @@ def ocr_pdf(job_id):
 
         # ── Optional AI OCR engines (admin-configured) ──
         ocr_settings = _get_ocr_settings()
+        local_engine = (ocr_settings.local_engine or 'khmerocr') if ocr_settings else 'khmerocr'
         claude_key = (ocr_settings.claude_api_key or '').strip() if ocr_settings else ''
         use_claude = bool(ocr_settings and ocr_settings.use_claude and claude_key)
-        claude_model = (ocr_settings.claude_model or 'claude-sonnet-5-5').strip() if ocr_settings else 'claude-sonnet-5-5'
+        claude_model = (ocr_settings.claude_model or 'claude-3-5-sonnet-20241022').strip() if ocr_settings else 'claude-3-5-sonnet-20241022'
+
+        gemini_key = (ocr_settings.gemini_api_key or '').strip() if ocr_settings else ''
+        use_gemini = bool(ocr_settings and ocr_settings.use_gemini and gemini_key)
+        gemini_model = (ocr_settings.gemini_model or 'gemini-1.5-flash').strip() if ocr_settings else 'gemini-1.5-flash'
 
         vision_client = None
         vision_fallback_ok = True
         if ocr_settings:
             vision_fallback_ok = ocr_settings.fallback_to_tesseract
 
-        if not use_claude and ocr_settings and ocr_settings.use_google_vision and ocr_settings.google_credentials_json.strip():
+        if not use_claude and not use_gemini and ocr_settings and ocr_settings.use_google_vision and ocr_settings.google_credentials_json.strip():
             try:
                 vision_client = _build_vision_client(ocr_settings)
                 logger.info('OCR: using Google Cloud Vision (DOCUMENT_TEXT_DETECTION)')
@@ -1734,6 +1898,8 @@ def ocr_pdf(job_id):
 
         if use_claude:
             logger.info(f'OCR: using Claude AI Vision ({claude_model})')
+        elif use_gemini:
+            logger.info(f'OCR: using Google Gemini Flash Vision ({gemini_model})')
 
         vision_lang_hints = _VISION_LANG_HINTS.get(ocr_lang, ['en'])
 
@@ -1769,9 +1935,24 @@ def ocr_pdf(job_id):
                     logger.error(f'Claude OCR failed on page {page_num}: {e}', exc_info=True)
                     if not vision_fallback_ok:
                         raise RuntimeError(f'Claude AI OCR failed on page {page_num}: {e}')
-                    # else: fall through to Google Vision or Tesseract
+                    # else: fall through to Gemini, Google Vision, or KhmerOCR
 
-            # ── 2. Try Google Vision, if configured and Claude didn't run ──
+            # ── 2. Try Gemini Flash Vision, if configured and Claude didn't run ──
+            if not page_done and use_gemini:
+                try:
+                    gtext = _gemini_ocr_page(gemini_key, gemini_model, page, ocr_lang=ocr_lang)
+                    if gtext and gtext.strip():
+                        c_count = _add_structured_content_to_docx(doc, gtext)
+                        extracted_chars += c_count
+                    page_done = True
+                    logger.info(f'Gemini Flash Vision OCR succeeded on page {page_num}')
+                except Exception as e:
+                    logger.error(f'Gemini OCR failed on page {page_num}: {e}', exc_info=True)
+                    if not vision_fallback_ok:
+                        raise RuntimeError(f'Gemini OCR failed on page {page_num}: {e}')
+                    # else: fall through to Google Vision or KhmerOCR
+
+            # ── 3. Try Google Vision, if configured and Claude/Gemini didn't run ──
             if not page_done and vision_client:
                 try:
                     vtext = clean_text(_vision_ocr_page(vision_client, page, lang_hints=vision_lang_hints))
@@ -1800,6 +1981,18 @@ def ocr_pdf(job_id):
                     if not vision_fallback_ok:
                         raise RuntimeError(f'Google Vision OCR failed on page {page_num}: {e}')
                     # else: fall through to Tesseract for this page
+
+            # ── 4. Try KhmerOCR ONNX (Zero-Cost Local Deep Learning) ──
+            if not page_done and local_engine == 'khmerocr' and ocr_lang in ('khm', 'eng+khm'):
+                try:
+                    k_chars = _khmerocr_page(doc, page, ocr_lang=ocr_lang)
+                    if k_chars > 0:
+                        extracted_chars += k_chars
+                        page_done = True
+                        logger.info(f'KhmerOCR ONNX extracted {k_chars} chars on page {page_num}')
+                except Exception as e:
+                    logger.warning(f'KhmerOCR failed on page {page_num}: {e}, falling back to Tesseract', exc_info=True)
+                    # Falls through to Tesseract below
 
             # Get OCR with position data
             data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}

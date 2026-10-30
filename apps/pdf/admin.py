@@ -337,7 +337,15 @@ class OCRSettingsForm(forms.ModelForm):
             }),
             'claude_model': forms.TextInput(attrs={
                 'style': 'font-family:monospace;font-size:12px;width:100%;max-width:350px;',
-                'placeholder': 'claude-haiku-5-5',
+                'placeholder': 'claude-3-5-sonnet-20241022',
+            }),
+            'gemini_api_key': forms.PasswordInput(render_value=True, attrs={
+                'style': 'font-family:monospace;font-size:12px;width:100%;max-width:500px;',
+                'placeholder': 'AIzaSy...',
+            }),
+            'gemini_model': forms.TextInput(attrs={
+                'style': 'font-family:monospace;font-size:12px;width:100%;max-width:350px;',
+                'placeholder': 'gemini-1.5-flash',
             }),
             'google_credentials_json': forms.Textarea(attrs={
                 'rows': 12,
@@ -352,9 +360,17 @@ class OCRSettingsAdmin(admin.ModelAdmin):
     form = OCRSettingsForm
     readonly_fields = ['updated_at']
     fieldsets = (
-        ('Claude AI (Anthropic Vision) — Recommended for Khmer', {
+        ('Local Offline Engine (Zero-Cost & Offline)', {
+            'fields': ('local_engine',),
+            'description': 'Select which local engine to use when Cloud/AI APIs are off or unavailable. <strong>KhmerOCR ONNX</strong> is highly recommended for Khmer (trained on 3M lines over 800+ fonts with Moul font detection).'
+        }),
+        ('Claude AI (Anthropic Vision) — High-Fidelity Cloud AI', {
             'fields': ('use_claude', 'claude_api_key', 'claude_model'),
-            'description': 'Uses Anthropic Claude models (Claude 3.5 Haiku / Sonnet) for high-accuracy OCR on Khmer and English documents.'
+            'description': 'Uses Anthropic Claude models (Claude 3.5 Sonnet / Haiku) for maximum accuracy on complex Khmer legal layouts and tables.'
+        }),
+        ('Google Gemini Flash Vision — Ultra Low-Cost AI (Free Tier Available)', {
+            'fields': ('use_gemini', 'gemini_api_key', 'gemini_model'),
+            'description': 'Fastest, highly affordable AI Vision with outstanding Khmer character recognition. Free tier allows 15 RPM from <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>.'
         }),
         ('Google Cloud Vision', {
             'fields': ('use_google_vision', 'google_credentials_json'),
@@ -363,7 +379,7 @@ class OCRSettingsAdmin(admin.ModelAdmin):
         }),
         ('Fallback & System', {
             'fields': ('fallback_to_tesseract', 'updated_at'),
-            'description': 'If enabled, automatically falls back to local Tesseract OCR if AI API calls fail or run out of quota.'
+            'description': 'If enabled, automatically falls back to local Tesseract OCR if external AI API calls fail or run out of quota.'
         }),
     )
 

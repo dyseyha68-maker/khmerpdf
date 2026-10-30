@@ -132,7 +132,7 @@ class OCRSettings(models.Model):
     use_claude = models.BooleanField(
         default=False,
         verbose_name='Use Claude AI (Anthropic) for OCR',
-        help_text='Off by default — Turn this on and provide an Anthropic API key below to use Claude vision models (e.g. Claude 3.5 Haiku / Sonnet) for high-accuracy OCR.',
+        help_text='Off by default — Turn this on and provide an Anthropic API key below to use Claude vision models (e.g. Claude 3.5 Sonnet / Haiku) for high-accuracy OCR.',
     )
     claude_api_key = models.CharField(
         max_length=255,
@@ -142,9 +142,26 @@ class OCRSettings(models.Model):
     )
     claude_model = models.CharField(
         max_length=60,
-        default='claude-sonnet-5-5',
+        default='claude-3-5-sonnet-20241022',
         verbose_name='Claude Model',
-        help_text='e.g. claude-sonnet-5-5 (highest precision for complex scans) or claude-haiku-5-5 (fast, economical).',
+        help_text='e.g. claude-3-5-sonnet-20241022 (highest precision for complex scans) or claude-3-5-haiku-20241022 (fast, economical).',
+    )
+    use_gemini = models.BooleanField(
+        default=False,
+        verbose_name='Use Google Gemini Flash for OCR',
+        help_text='Ultra-low-cost, high-speed Vision AI with excellent Khmer accuracy. Free tier available at aistudio.google.com.',
+    )
+    gemini_api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name='Google Gemini API Key',
+        help_text='Paste your Gemini API key from Google AI Studio (aistudio.google.com). Free tier includes up to 15 RPM for free.',
+    )
+    gemini_model = models.CharField(
+        max_length=60,
+        default='gemini-1.5-flash',
+        verbose_name='Gemini Model',
+        help_text='e.g. gemini-1.5-flash (fast, ultra-low-cost), gemini-2.0-flash, or gemini-1.5-pro.',
     )
     use_google_vision = models.BooleanField(
         default=False,
@@ -158,6 +175,18 @@ class OCRSettings(models.Model):
         help_text='Paste the full contents of the service account key file (the JSON you '
                    'downloaded from Google Cloud Console → IAM & Admin → Service Accounts). '
                    'Kept only in this row — treat it like a password.',
+    )
+    LOCAL_ENGINE_CHOICES = [
+        ('khmerocr', 'KhmerOCR ONNX (Deep Learning — 3M lines, 800+ fonts) [Recommended]'),
+        ('tesseract', 'Tesseract 5 (Standard / Legacy)'),
+    ]
+    local_engine = models.CharField(
+        max_length=20,
+        choices=LOCAL_ENGINE_CHOICES,
+        default='khmerocr',
+        verbose_name='Local OCR Engine (Zero-Cost)',
+        help_text='Engine used for zero-cost local OCR when Cloud/AI models are disabled or as fallback. '
+                   'KhmerOCR is an ONNX deep learning model trained on 3 million text lines over 800+ Khmer fonts.',
     )
     fallback_to_tesseract = models.BooleanField(
         default=True,
