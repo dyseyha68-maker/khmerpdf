@@ -938,8 +938,9 @@ def _gemini_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
 
     genai.configure(api_key=api_key)
     model_name = (model or '').strip()
-    if not model_name or model_name in ('gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash') or 'flash' in model_name.lower():
-        chosen_model = 'gemini-flash-latest'
+    if not model_name or 'flash' in model_name.lower():
+        # Prefer gemini-flash-lite-latest for ultra-fast, zero-overhead OCR without long reasoning delays
+        chosen_model = 'gemini-flash-lite-latest'
     elif 'pro' in model_name.lower():
         chosen_model = 'gemini-pro-latest'
     else:
@@ -956,6 +957,7 @@ def _gemini_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
         generation_config={
             'temperature': 0.1,
             'max_output_tokens': 8192,
+            'response_mime_type': 'application/json',
         }
     )
     return (response.text or "").strip()
@@ -1237,10 +1239,10 @@ def _add_structured_json_to_docx(doc, items):
 
 def _add_structured_content_to_docx(doc, raw_text):
     """
-    Parses Claude's output. If raw_text contains a valid JSON array of structural
-    elements, formats each element with exact alignment, styling, and geometry.
-    If raw_text is markdown or JSON parsing fails, falls back gracefully to the
-    markdown parser.
+    Parses Claude's or Gemini's output. If raw_text contains a valid or truncated
+    JSON array of structural elements, formats each element with exact alignment,
+    styling, and geometry.
+    If raw_text is genuine markdown, uses the markdown parser.
     """
     import json
     import logging
@@ -1255,18 +1257,50 @@ def _add_structured_content_to_docx(doc, raw_text):
             clean = clean[:-3].strip()
 
     start_idx = clean.find('[')
-    end_idx = clean.rfind(']')
-    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-        json_candidate = clean[start_idx:end_idx + 1]
+    if start_idx != -1:
+        candidate = clean[start_idx:].strip()
+
+        # Attempt 1: Parse candidate directly with strict=False (allows unescaped newlines in strings)
         try:
-            items = json.loads(json_candidate)
+            items = json.loads(candidate, strict=False)
             if isinstance(items, list) and len(items) > 0:
-                logger.info(f'OCR: Successfully parsed {len(items)} structured JSON elements from Claude')
+                logger.info(f'OCR: Successfully parsed {len(items)} structured JSON elements')
                 return _add_structured_json_to_docx(doc, items)
         except Exception as e:
-            logger.warning(f'OCR: JSON parsing failed ({e}), falling back to markdown parser')
+            logger.debug(f'OCR: Direct JSON parse failed: {e}')
 
-    # Fallback to markdown parser
+        # Attempt 2: Truncation recovery if output was cut off mid-JSON
+        last_brace = candidate.rfind('}')
+        if last_brace != -1:
+            repaired = candidate[:last_brace + 1].rstrip().rstrip(',') + ']'
+            try:
+                items = json.loads(repaired, strict=False)
+                if isinstance(items, list) and len(items) > 0:
+                    logger.info(f'OCR: Recovered {len(items)} structured JSON elements from truncated output')
+                    return _add_structured_json_to_docx(doc, items)
+            except Exception as e:
+                logger.warning(f'OCR: Repaired JSON parse failed: {e}')
+
+        # Attempt 3: If candidate looks like JSON code (starts with '[{' or '{\n"type"'),
+        # NEVER pass raw JSON code to _add_markdown_to_docx (which dumps JSON braces into Word)!
+        # Instead, extract text blocks cleanly.
+        if candidate.startswith(('[', '{')) and any(k in candidate for k in ('"type":', '"text":', '"rows":')):
+            import re
+            extracted_texts = re.findall(r'"text"\s*:\s*"((?:[^"\\]|\\.)*)"', candidate)
+            if extracted_texts:
+                logger.info(f'OCR: Salvaged {len(extracted_texts)} text blocks from malformed JSON')
+                salvaged_chars = 0
+                for txt in extracted_texts:
+                    clean_t = txt.replace('\\n', '\n').replace('\\"', '"').strip()
+                    if clean_t:
+                        p = doc.add_paragraph()
+                        salvaged_chars += len(clean_t)
+                        run = p.add_run(clean_t)
+                        run.font.name = 'Khmer OS Battambang'
+                if salvaged_chars > 0:
+                    return salvaged_chars
+
+    # Fallback to markdown parser only if raw_text is genuine markdown
     return _add_markdown_to_docx(doc, raw_text)
 
 
@@ -2196,7 +2230,9 @@ def ocr_pdf(job_id):
 
         gemini_key = (ocr_settings.gemini_api_key or '').strip() if ocr_settings else ''
         use_gemini = bool(ocr_settings and ocr_settings.use_gemini and gemini_key)
-        gemini_model = (ocr_settings.gemini_model or 'gemini-1.5-flash').strip() if ocr_settings else 'gemini-1.5-flash'
+        gemini_model = (ocr_settings.gemini_model or 'gemini-flash-lite-latest').strip() if ocr_settings else 'gemini-flash-lite-latest'
+        if gemini_model in ('gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash', 'gemini-flash-latest'):
+            gemini_model = 'gemini-flash-lite-latest'
 
         vision_client = None
         vision_fallback_ok = True
