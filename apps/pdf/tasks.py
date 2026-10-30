@@ -945,9 +945,9 @@ def _gemini_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
 
     genai.configure(api_key=api_key)
     model_name = (model or '').strip()
-    if not model_name or model_name in ('gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'):
-        # gemini-3.5-flash-lite provides superior Khmer Unicode fidelity without Thai character leakage in ~8s
-        chosen_model = 'gemini-3.5-flash-lite'
+    if not model_name or model_name in ('gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-3.5-flash-lite'):
+        # gemini-flash-lite-latest: fastest (~1s/page), free tier, best output completeness for Khmer
+        chosen_model = 'gemini-flash-lite-latest'
     else:
         chosen_model = model_name
 
