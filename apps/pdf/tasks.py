@@ -1684,6 +1684,224 @@ def _khmerocr_page(doc, pil_image, ocr_lang='khm'):
     return total_chars
 
 
+def _tesseract_ocr_page_structured(doc, gray_image, tess_lang='eng'):
+    """
+    Spatial layout and table reconstruction engine for Tesseract OCR.
+    Extracts word bounding boxes, groups words into lines and horizontal column cells,
+    detects multi-column grid tables, side-by-side letterheads, centered headings,
+    and right-aligned dates, then formats native Microsoft Word elements with
+    Khmer OS Battambang and OpenXML Complex Script tags.
+    Returns: total_chars_extracted (int)
+    """
+    import re
+    import pytesseract
+    import logging
+    logger = logging.getLogger(__name__)
+
+    w_img, h_img = gray_image.size
+    data = None
+    try:
+        data = pytesseract.image_to_data(gray_image, lang=tess_lang, output_type=pytesseract.Output.DICT)
+    except Exception as e:
+        logger.warning(f'_tesseract_ocr_page_structured: image_to_data failed: {e}', exc_info=True)
+        data = None
+
+    elements = []
+    if data and len(data.get('text', [])) > 0:
+        n = len(data['text'])
+        words = []
+        for i in range(n):
+            txt = str(data['text'][i]).strip()
+            if not txt:
+                continue
+            try:
+                conf = int(data['conf'][i])
+            except (ValueError, TypeError):
+                conf = 50
+            if conf < 25:
+                continue
+
+            left = int(data['left'][i])
+            top = int(data['top'][i])
+            w = int(data['width'][i])
+            h = int(data['height'][i])
+            words.append({
+                'text': txt,
+                'left': left,
+                'top': top,
+                'right': left + w,
+                'bottom': top + h,
+                'width': w,
+                'height': h,
+                'cy': top + h / 2.0
+            })
+
+        if words:
+            # Sort words vertically by center y
+            words.sort(key=lambda w: w['cy'])
+
+            # Cluster words into visual text lines
+            lines = []
+            curr_line = [words[0]]
+            for w in words[1:]:
+                prev_w = curr_line[-1]
+                line_h = max(cw['height'] for cw in curr_line)
+                v_diff = abs(w['cy'] - prev_w['cy'])
+                if v_diff < max(8, line_h * 0.45):
+                    curr_line.append(w)
+                else:
+                    lines.append(curr_line)
+                    curr_line = [w]
+            if curr_line:
+                lines.append(curr_line)
+
+            # Median word height across the page
+            all_heights = [w['height'] for w in words]
+            med_height = sorted(all_heights)[len(all_heights) // 2] if all_heights else 16
+
+            # In each line, detect horizontal column gaps
+            processed_lines = []
+            for line in lines:
+                line.sort(key=lambda w: w['left'])
+                cells = []
+                curr_cell_words = [line[0]]
+                for w in line[1:]:
+                    prev_w = curr_cell_words[-1]
+                    gap = w['left'] - prev_w['right']
+                    cell_split_threshold = max(55, int(med_height * 2.8))
+                    if gap > cell_split_threshold:
+                        cell_text = " ".join(cw['text'] for cw in curr_cell_words).strip()
+                        if cell_text:
+                            cells.append({
+                                'text': cell_text,
+                                'x1': curr_cell_words[0]['left'],
+                                'x2': curr_cell_words[-1]['right'],
+                                'y': min(cw['top'] for cw in curr_cell_words),
+                                'h': max(cw['height'] for cw in curr_cell_words),
+                            })
+                        curr_cell_words = [w]
+                    else:
+                        curr_cell_words.append(w)
+
+                if curr_cell_words:
+                    cell_text = " ".join(cw['text'] for cw in curr_cell_words).strip()
+                    if cell_text:
+                        cells.append({
+                            'text': cell_text,
+                            'x1': curr_cell_words[0]['left'],
+                            'x2': curr_cell_words[-1]['right'],
+                            'y': min(cw['top'] for cw in curr_cell_words),
+                            'h': max(cw['height'] for cw in curr_cell_words),
+                        })
+
+                if cells:
+                    processed_lines.append(cells)
+
+            # Group multi-line tables vs letterheads vs single paragraphs
+            idx = 0
+            num_lines = len(processed_lines)
+            while idx < num_lines:
+                line_cells = processed_lines[idx]
+
+                # Multi-column line (2+ columns)
+                if len(line_cells) >= 2:
+                    table_rows = [line_cells]
+                    j = idx + 1
+                    while j < num_lines and len(processed_lines[j]) == len(line_cells):
+                        match = True
+                        for c_idx in range(len(line_cells)):
+                            diff = abs(processed_lines[j][c_idx]['x1'] - line_cells[c_idx]['x1'])
+                            if diff > max(60, int(w_img * 0.08)):
+                                match = False
+                                break
+                        if match:
+                            table_rows.append(processed_lines[j])
+                            j += 1
+                        else:
+                            break
+
+                    # 2+ matching rows -> Table Grid
+                    if len(table_rows) >= 2:
+                        elements.append({
+                            'type': 'table',
+                            'layout': 'grid',
+                            'rows': [[c['text'] for c in r] for r in table_rows]
+                        })
+                        idx = j
+                        continue
+
+                    # Single multi-column row (Letterhead or Signature row) -> Borderless Table
+                    elements.append({
+                        'type': 'table',
+                        'layout': 'borderless',
+                        'rows': [[c['text'] for c in line_cells]]
+                    })
+                    idx += 1
+                    continue
+
+                # Single cell line -> Paragraph
+                cell = line_cells[0]
+                text = cell['text']
+                x1, x2, h = cell['x1'], cell['x2'], cell['h']
+                cx = (x1 + x2) / 2.0
+                line_w = x2 - x1
+
+                page_center = w_img / 2.0
+                is_centered = abs(cx - page_center) < (w_img * 0.12) and (line_w < w_img * 0.70)
+                is_right = (x2 > w_img * 0.82) and (x1 > w_img * 0.42) and (line_w < w_img * 0.55)
+                is_wide = line_w > w_img * 0.68
+
+                HEADING_KEYWORDS = ('ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'សាលក្រម', 'សេចក្តីសម្រេច', 'ដីកា', 'ប្រកាស', 'កិច្ចសន្យា', 'ពាក្យស្នើសុំ', 'តាងនាម')
+                if any(k in text for k in HEADING_KEYWORDS) or (is_centered and h > med_height * 1.25):
+                    elements.append({
+                        'type': 'heading',
+                        'level': 1 if 'ព្រះរាជាណាចក្រ' in text else 2,
+                        'align': 'center',
+                        'text': text
+                    })
+                elif is_centered:
+                    elements.append({
+                        'type': 'paragraph',
+                        'align': 'center',
+                        'text': text
+                    })
+                elif is_right or (re.search(r'ថ្ងៃទី\s*[0-9\u17E0-\u17E9]+\s*ខែ', text) and line_w < w_img * 0.6):
+                    elements.append({
+                        'type': 'paragraph',
+                        'align': 'right',
+                        'text': text
+                    })
+                elif is_wide:
+                    elements.append({
+                        'type': 'paragraph',
+                        'align': 'justify',
+                        'text': text
+                    })
+                else:
+                    elements.append({
+                        'type': 'paragraph',
+                        'align': 'left',
+                        'text': text
+                    })
+                idx += 1
+
+    if elements:
+        c_count = _add_structured_json_to_docx(doc, elements)
+        if c_count > 0:
+            return c_count
+
+    # Fallback to image_to_string if spatial clustering found no words
+    try:
+        raw_text = pytesseract.image_to_string(gray_image, lang=tess_lang, config='--psm 6')
+        clean_raw = raw_text.strip()
+        if clean_raw:
+            return _add_markdown_to_docx(doc, clean_raw)
+    except Exception as e:
+        logger.error(f'_tesseract_ocr_page_structured: image_to_string fallback failed: {e}', exc_info=True)
+
+    return 0
+
+
 def _iter_document_pages(input_path, page_range_str=None, max_limit=150, dpi=200):
     """
     Memory-efficient document page generator.
@@ -1994,88 +2212,16 @@ def ocr_pdf(job_id):
                     logger.warning(f'KhmerOCR failed on page {page_num}: {e}, falling back to Tesseract', exc_info=True)
                     # Falls through to Tesseract below
 
-            # Get OCR with position data
-            data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}
+            # ── 5. Run Tesseract with Spatial Layout & Table Reconstruction ──
             if not page_done:
                 try:
-                    data = pytesseract.image_to_data(gray, lang=tess_lang, output_type=pytesseract.Output.DICT)
+                    t_chars = _tesseract_ocr_page_structured(doc, gray, tess_lang=tess_lang)
+                    if t_chars > 0:
+                        extracted_chars += t_chars
+                        page_done = True
+                        logger.info(f'Tesseract structured layout extracted {t_chars} chars on page {page_num}')
                 except Exception as e:
-                    logger.error(f'pytesseract.image_to_data failed on page {page_num}: {e}', exc_info=True)
-                    data = {'left': [], 'top': [], 'width': [], 'height': [], 'text': []}
-
-            # Extract text and organize by lines (y-position)
-            lines_dict = {}
-            n = 0 if page_done else len(data.get('text', []))
-
-            if n > 0:
-                # Group words into lines based on y-position
-                for j in range(n):
-                    text = data['text'][j].strip()
-                    if not text:
-                        continue
-                    y = int(data['top'][j])
-                    conf = int(data['conf'][j])
-                    if conf < 30:
-                        continue
-                    
-                    # Group to nearest line (within 10 pixels)
-                    found_line = False
-                    for line_y in lines_dict:
-                        if abs(y - line_y) < 10:
-                            lines_dict[line_y].append(data['text'][j])
-                            found_line = True
-                            break
-                    if not found_line:
-                        lines_dict[y] = [data['text'][j]]
-                
-                # Sort lines by y-position and add to document
-                for line_y in sorted(lines_dict.keys()):
-                    line_text = ' '.join(lines_dict[line_y])
-                    line_text = line_text.strip()
-                    if line_text:
-                        p = doc.add_paragraph(line_text)
-                        extracted_chars += len(line_text)
-
-                        # Detect Khmer
-                        has_khmer = any('\u1780' <= c <= '\u17FF' for c in line_text)
-                        font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
-
-                        # Set font
-                        for run in p.runs:
-                            run.font.name = font_name
-                            run.font.size = Pt(11)
-                            if has_khmer:
-                                rPr = run._element.get_or_add_rPr()
-                                rFonts = rPr.get_or_add_rFonts()
-                                rFonts.set(qn('w:cs'), font_name)
-                                rFonts.set(qn('w:ascii'), font_name)
-                                rFonts.set(qn('w:hAnsi'), font_name)
-                                rFonts.set(qn('w:eastAsia'), font_name)
-            elif not page_done:
-                # Fallback to basic OCR (Tesseract only — Vision already had
-                # its turn above if it was configured, page_done covers that)
-                try:
-                    text = pytesseract.image_to_string(gray, lang=tess_lang, config='--psm 6')
-                    text = clean_text(text)
-                    if text:
-                        for line in text.split('\n'):
-                            if line.strip():
-                                p = doc.add_paragraph(line)
-                                extracted_chars += len(line.strip())
-                                has_khmer = any('\u1780' <= c <= '\u17FF' for c in line)
-                                font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
-                                for run in p.runs:
-                                    run.font.name = font_name
-                                    run.font.size = Pt(11)
-                                    if has_khmer:
-                                        rPr = run._element.get_or_add_rPr()
-                                        rFonts = rPr.get_or_add_rFonts()
-                                        rFonts.set(qn('w:cs'), font_name)
-                                        rFonts.set(qn('w:ascii'), font_name)
-                                        rFonts.set(qn('w:hAnsi'), font_name)
-                                        rFonts.set(qn('w:eastAsia'), font_name)
-                except Exception as e:
-                    logger.error(f'pytesseract.image_to_string failed on page {page_num}: {e}', exc_info=True)
+                    logger.error(f'Tesseract structured OCR failed on page {page_num}: {e}', exc_info=True)
 
             if page_num < total_pages:
                 doc.add_page_break()
