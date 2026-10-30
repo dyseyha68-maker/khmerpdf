@@ -894,11 +894,9 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
     # Normalize model string to ensure valid Anthropic model identifier
     chosen_model = (model or '').strip()
     if not chosen_model or 'sonnet' in chosen_model.lower():
-        if chosen_model in ('claude-sonnet-5-5', 'claude-3-5-sonnet', ''):
-            chosen_model = 'claude-3-5-sonnet-20241022'
+        chosen_model = 'claude-3-5-sonnet-20241022'
     elif 'haiku' in chosen_model.lower():
-        if chosen_model in ('claude-haiku-5-5', 'claude-3-5-haiku', ''):
-            chosen_model = 'claude-3-5-haiku-20241022'
+        chosen_model = 'claude-3-5-haiku-20241022'
 
     create_kwargs = {
         'model': chosen_model,
@@ -923,21 +921,8 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
             }
         ],
     }
-    model_name = chosen_model.lower()
-    if 'haiku' in model_name:
-        create_kwargs['thinking'] = {"type": "disabled"}
-    elif 'sonnet' in model_name:
-        create_kwargs['thinking'] = {"type": "between_tools"}
 
-    try:
-        response = client.messages.create(**create_kwargs)
-    except Exception as e:
-        # If model rejects thinking param, retry without it
-        if 'thinking' in create_kwargs:
-            del create_kwargs['thinking']
-            response = client.messages.create(**create_kwargs)
-        else:
-            raise
+    response = client.messages.create(**create_kwargs)
 
     text_parts = []
     for block in response.content:
@@ -953,13 +938,10 @@ def _gemini_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
 
     genai.configure(api_key=api_key)
     model_name = (model or '').strip()
-    if not model_name or 'flash' in model_name.lower():
-        if '2.0' in model_name:
-            chosen_model = 'gemini-2.0-flash'
-        else:
-            chosen_model = 'gemini-1.5-flash'
+    if not model_name or model_name in ('gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash') or 'flash' in model_name.lower():
+        chosen_model = 'gemini-flash-latest'
     elif 'pro' in model_name.lower():
-        chosen_model = 'gemini-1.5-pro'
+        chosen_model = 'gemini-pro-latest'
     else:
         chosen_model = model_name
 
