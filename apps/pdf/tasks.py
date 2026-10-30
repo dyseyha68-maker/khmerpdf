@@ -999,7 +999,7 @@ def _add_structured_json_to_docx(doc, items):
         'right': WD_ALIGN_PARAGRAPH.RIGHT,
     }
 
-    def _add_styled_runs(paragraph, text, is_bold=False, font_size=11):
+    def _add_styled_runs(paragraph, text, is_bold=False, font_size=11, font_name_override=None):
         parts = text.split('**')
         chars = 0
         for idx, part in enumerate(parts):
@@ -1007,7 +1007,10 @@ def _add_structured_json_to_docx(doc, items):
                 continue
             run_bold = is_bold or (idx % 2 == 1)
             has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in part)
-            font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
+            if has_khmer:
+                font_name = font_name_override if font_name_override else 'Khmer OS Battambang'
+            else:
+                font_name = 'Calibri'
 
             run = paragraph.add_run(part)
             run.bold = run_bold
@@ -1121,16 +1124,35 @@ def _add_structured_json_to_docx(doc, items):
             p.paragraph_format.line_spacing = 1.25
             p.paragraph_format.space_before = Pt(6 if level == 1 else 4)
             p.paragraph_format.space_after = Pt(2)
-            total_chars += _add_styled_runs(p, text, is_bold=True, font_size=font_size)
+
+            # Use Khmer OS Muol Light for major headings, decrees, articles, and chapters
+            MUOL_KEYWORDS = (
+                'ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'សាលក្រម', 'សេចក្តីសម្រេច', 'ដីកា', 'ប្រកាស',
+                'អនុក្រឹត្យ', 'ព្រះរាជក្រម', 'សារាចរ', 'កិច្ចសន្យា', 'ពាក្យស្នើសុំ', 'សម្រេច',
+                'បង្គាប់', 'មាត្រា', 'ជំពូក', 'គន្ថី', 'ផ្នែក', 'ចំណុច'
+            )
+            use_muol = level <= 2 or any(k in text for k in MUOL_KEYWORDS)
+            heading_font = 'Khmer OS Muol Light' if use_muol else 'Khmer OS Battambang'
+            total_chars += _add_styled_runs(p, text, is_bold=True, font_size=font_size, font_name_override=heading_font)
 
         elif itype == 'list_item':
-            list_type = item.get('list_type', 'bullet').lower()
+            is_sub = item.get('sub', False) or bool(re.match(r'^(?:[0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))', text))
+            align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.JUSTIFY if len(text) > 80 else WD_ALIGN_PARAGRAPH.LEFT)
+
             p = doc.add_paragraph()
-            p.style = 'List Bullet' if list_type == 'bullet' else 'List Number'
-            p.alignment = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.LEFT)
+            p.alignment = align
             p.paragraph_format.line_spacing = 1.2
-            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_before = Pt(1)
             p.paragraph_format.space_after = Pt(2)
+
+            # Hanging indent creates clean bullet/number alignment without Word's duplicate marker bug
+            if is_sub:
+                p.paragraph_format.left_indent = Inches(0.55)
+                p.paragraph_format.first_line_indent = Inches(-0.25)
+            else:
+                p.paragraph_format.left_indent = Inches(0.35)
+                p.paragraph_format.first_line_indent = Inches(-0.25)
+
             total_chars += _add_styled_runs(p, text, is_bold=False, font_size=11)
 
         elif itype == 'table':
@@ -1215,6 +1237,11 @@ def _add_structured_json_to_docx(doc, items):
             if clean_prefix.startswith(('កម្មវត្ថុ៖', 'កម្មវត្ថុ:', 'យោង៖', 'យោង:')):
                 p.paragraph_format.left_indent = Inches(0.35)
                 p.paragraph_format.first_line_indent = Inches(-0.35)
+            # Hanging indent for bullet or numbered list items that arrived as paragraphs
+            elif re.match(r'^(?:[\u2022\u25CB\u25CF\u25AA\u25AB\u2013\u2014\-\*\+\~]|[0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+[\.\)]|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))\s+', text):
+                is_sub = bool(re.match(r'^(?:[0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))', text))
+                p.paragraph_format.left_indent = Inches(0.55 if is_sub else 0.35)
+                p.paragraph_format.first_line_indent = Inches(-0.25)
             # First line indent for narrative body paragraphs
             elif align == WD_ALIGN_PARAGRAPH.JUSTIFY and len(text) > 70:
                 p.paragraph_format.first_line_indent = Inches(0.4)
@@ -1275,7 +1302,7 @@ def _add_markdown_to_docx(doc, markdown_text):
     from docx.oxml import parse_xml
     from docx.oxml.ns import nsdecls, qn
 
-    def _add_styled_runs(paragraph, text, is_bold=False, font_size=11):
+    def _add_styled_runs(paragraph, text, is_bold=False, font_size=11, font_name_override=None):
         """Parse inline **bold** markers and append runs with explicit Khmer/Latin font switching."""
         parts = text.split('**')
         chars = 0
@@ -1285,7 +1312,10 @@ def _add_markdown_to_docx(doc, markdown_text):
             run_bold = is_bold or (idx % 2 == 1)
             # Detect Khmer characters
             has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in part)
-            font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
+            if has_khmer:
+                font_name = font_name_override if font_name_override else 'Khmer OS Battambang'
+            else:
+                font_name = 'Calibri'
 
             run = paragraph.add_run(part)
             run.bold = run_bold
@@ -1489,18 +1519,24 @@ def _add_markdown_to_docx(doc, markdown_text):
         # Lists & Sub-clause indentations
         is_bullet = False
         is_number = False
+        is_sub = False
         left_indent = None
 
-        if line.startswith('- ') or line.startswith('* '):
+        bullet_match = re.match(r'^([\u2022\u25CB\u25CF\u25AA\u25AB\u2013\u2014\-\*\+\~])\s+(.+)$', line)
+        number_match = re.match(r'^([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+[\.\)]|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))\s+(.+)$', line)
+        sub_match = re.match(r'^([0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+[\.\)]?)\s+(.+)$', line)
+
+        if sub_match:
+            is_sub = True
+            is_number = True
+        elif number_match:
+            is_number = True
+        elif bullet_match:
             is_bullet = True
-            line = line[2:].strip()
-        elif len(line) > 2 and line[0].isdigit() and line[1] in ('.', ')') and line[2] == ' ':
-            is_number = True
-        elif re.match(r'^([0-9\u17E0-\u17E9]+[\.\)])\s+', line):
-            is_number = True
-        elif re.match(r'^([0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+)\s+', line):
-            # Indent sub-clauses like "១.១. " or "1.1. "
-            left_indent = Inches(0.25)
+            sym = bullet_match.group(1)
+            rest = bullet_match.group(2)
+            if sym not in ('-', '–', '—'):
+                line = '• ' + rest
 
         # ── Intelligent Alignment Resolution ──
         # Check if text is center -> make it center; if paragraph/narrative -> make it justify
@@ -1529,8 +1565,12 @@ def _add_markdown_to_docx(doc, markdown_text):
         p.paragraph_format.line_spacing = 1.25
         p.paragraph_format.space_before = space_before
         p.paragraph_format.space_after = space_after
-        if left_indent:
-            p.paragraph_format.left_indent = left_indent
+        if is_sub:
+            p.paragraph_format.left_indent = Inches(0.55)
+            p.paragraph_format.first_line_indent = Inches(-0.25)
+        elif is_bullet or is_number:
+            p.paragraph_format.left_indent = Inches(0.35)
+            p.paragraph_format.first_line_indent = Inches(-0.25)
         else:
             clean_prefix = re.sub(r'[\*\s]', '', line[:15])
             if clean_prefix.startswith(('កម្មវត្ថុ៖', 'កម្មវត្ថុ:', 'យោង៖', 'យោង:')):
@@ -1541,12 +1581,14 @@ def _add_markdown_to_docx(doc, markdown_text):
             elif line.startswith(('ខ្ញុំបាទ', 'ខ្ញុំនាងខ្ញុំ', 'ខ្ញុំព្រះករុណា', 'តាមកម្មវត្ថុ', 'អាស្រ័យ')):
                 p.paragraph_format.first_line_indent = Inches(0.4)
 
-        if is_bullet:
-            p.style = 'List Bullet'
-        elif is_number:
-            p.style = 'List Number'
+        MUOL_KEYWORDS = (
+            'ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'សាលក្រម', 'សេចក្តីសម្រេច', 'ដីកា', 'ប្រកាស',
+            'អនុក្រឹត្យ', 'ព្រះរាជក្រម', 'កិច្ចសន្យា', 'សម្រេច', 'បង្គាប់', 'មាត្រា', 'ជំពូក'
+        )
+        use_muol = is_heading and (font_size >= 13.0 or any(k in line for k in MUOL_KEYWORDS))
+        heading_font = 'Khmer OS Muol Light' if use_muol else 'Khmer OS Battambang'
 
-        c_count = _add_styled_runs(p, line, is_bold=is_heading_bold, font_size=font_size)
+        c_count = _add_styled_runs(p, line, is_bold=is_heading_bold, font_size=font_size, font_name_override=heading_font)
         total_chars += c_count
         i += 1
 
@@ -1768,9 +1810,20 @@ def _tesseract_ocr_page_structured(doc, gray_image, tess_lang='eng'):
                 for w in line[1:]:
                     prev_w = curr_cell_words[-1]
                     gap = w['left'] - prev_w['right']
-                    cell_split_threshold = max(55, int(med_height * 2.8))
-                    if gap > cell_split_threshold:
-                        cell_text = " ".join(cw['text'] for cw in curr_cell_words).strip()
+
+                    # Check if curr_cell_words is merely a bullet or list marker prefix
+                    curr_prefix = " ".join(cw['text'] for cw in curr_cell_words).strip()
+                    is_prefix_marker = bool(re.match(
+                        r'^(?:[\u2022\u25CB\u25CF\u25AA\u25AB\u2013\u2014\-\*\+\~]|'
+                        r'[0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]{1,2}[\.\)]|'
+                        r'\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]{1,2}\))$',
+                        curr_prefix
+                    ))
+
+                    # High gap threshold to separate true table columns (> 75px, ~3.5x line height)
+                    cell_split_threshold = max(75, int(med_height * 3.5), int(w_img * 0.08))
+                    if gap > cell_split_threshold and not is_prefix_marker:
+                        cell_text = curr_prefix
                         if cell_text:
                             cells.append({
                                 'text': cell_text,
@@ -1839,9 +1892,13 @@ def _tesseract_ocr_page_structured(doc, gray_image, tess_lang='eng'):
                     idx += 1
                     continue
 
-                # Single cell line -> Paragraph
+                # Single cell line
                 cell = line_cells[0]
-                text = cell['text']
+                text = cell['text'].strip()
+                if not text:
+                    idx += 1
+                    continue
+
                 x1, x2, h = cell['x1'], cell['x2'], cell['h']
                 cx = (x1 + x2) / 2.0
                 line_w = x2 - x1
@@ -1851,21 +1908,81 @@ def _tesseract_ocr_page_structured(doc, gray_image, tess_lang='eng'):
                 is_right = (x2 > w_img * 0.82) and (x1 > w_img * 0.42) and (line_w < w_img * 0.55)
                 is_wide = line_w > w_img * 0.68
 
-                HEADING_KEYWORDS = ('ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'សាលក្រម', 'សេចក្តីសម្រេច', 'ដីកា', 'ប្រកាស', 'កិច្ចសន្យា', 'ពាក្យស្នើសុំ', 'តាងនាម')
-                if any(k in text for k in HEADING_KEYWORDS) or (is_centered and h > med_height * 1.25):
+                # ── 1. Check for List Items (Bullets, Numbers, Legal decree dashes) ──
+                # Matches: •, -, *, 1., 1), (1), ១., ១), (១), ក., ក), 1.1., ១.១., - បានឃើញ
+                LIST_MARKER_RE = re.compile(
+                    r'^(?:'
+                    r'[\u2022\u25CB\u25CF\u25AA\u25AB\u2013\u2014\-\*\+\~]\s*'     # Bullets
+                    r'|[0-9\u17E0-\u17E9]+(?:\.[0-9\u17E0-\u17E9]+)+[\.\)]?\s+'   # Sub-clauses (1.1, ១.១)
+                    r'|(?:[0-9\u17E0-\u17E9]+|[a-zA-Z\u1780-\u17B3])[\.\)]\s+'    # 1. or 1) or ក. or a.
+                    r'|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\)\s+'             # (1) or (ក)
+                    r')'
+                )
+
+                TOP_TITLE_KEYWORDS = (
+                    'ព្រះរាជាណាចក្រកម្ពុជា', 'ជាតិ សាសនា ព្រះមហាក្សត្រ',
+                    'KINGDOM OF CAMBODIA', 'NATION RELIGION KING', 'រាជរដ្ឋាភិបាល'
+                )
+                DECREE_TITLE_KEYWORDS = (
+                    'សេចក្តីសម្រេច', 'សាលក្រម', 'សាលដីកា', 'ដីកាសម្រេច', 'ដីកា', 'ប្រកាស',
+                    'អនុក្រឹត្យ', 'ព្រះរាជក្រម', 'សារាចរ', 'សេចក្តីជូនដំណឹង', 'សេចក្តីណែនាំ',
+                    'សេចក្តីថ្លែងការណ៍', 'លិខិត', 'ពាក្យស្នើសុំ', 'ពាក្យបណ្តឹង', 'កំណត់ហេតុ',
+                    'កិច្ចសន្យា', 'កិច្ចព្រមព្រៀង', 'លក្ខន្តិកៈ', 'សេចក្តីព្រាង', 'តាងនាមប្រជារាស្ត្រខ្មែរ',
+                    'សម្រេច', 'បង្គាប់', 'DECISION', 'JUDGMENT', 'PRAKAS', 'SUB-DECREE',
+                    'CONTRACT', 'AGREEMENT', 'CERTIFICATE', 'NOTICE', 'ORDER'
+                )
+                SECTION_TITLE_RE = re.compile(
+                    r'^(?:មាត្រា\s*[0-9\u17E0-\u17E9]+|ជំពូក(?:\s*ទី)?\s*[0-9\u17E0-\u17E9IVXLCDM]+|'
+                    r'គន្ថី\s*[0-9\u17E0-\u17E9IVXLCDM]+|ផ្នែក(?:\s*ទី)?\s*[0-9\u17E0-\u17E9]+|'
+                    r'កថាភាគ\s*[0-9\u17E0-\u17E9]+|ចំណុច(?:\s*ទី)?\s*[0-9\u17E0-\u17E9]+|'
+                    r'Article\s*[0-9]+|Chapter\s*[0-9IVXLCDM]+|Section\s*[0-9]+)',
+                    re.IGNORECASE
+                )
+
+                if LIST_MARKER_RE.match(text):
+                    is_sub = bool(re.match(r'^(?:[0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))', text))
+                    is_num = bool(re.match(r'^(?:[0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+[\.\)]|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))', text))
+                    elements.append({
+                        'type': 'list_item',
+                        'list_type': 'number' if is_num else 'bullet',
+                        'sub': is_sub,
+                        'text': text
+                    })
+                elif any(k in text for k in TOP_TITLE_KEYWORDS):
                     elements.append({
                         'type': 'heading',
-                        'level': 1 if 'ព្រះរាជាណាចក្រ' in text else 2,
+                        'level': 1,
                         'align': 'center',
                         'text': text
                     })
-                elif is_centered:
+                elif any(k in text for k in DECREE_TITLE_KEYWORDS) and len(text) < 80:
+                    elements.append({
+                        'type': 'heading',
+                        'level': 2,
+                        'align': 'center' if (is_centered or len(text) < 45) else 'left',
+                        'text': text
+                    })
+                elif SECTION_TITLE_RE.match(text):
+                    elements.append({
+                        'type': 'heading',
+                        'level': 2,
+                        'align': 'center' if is_centered else 'left',
+                        'text': text
+                    })
+                elif (h >= med_height * 1.25) and (line_w < w_img * 0.75) and len(text) < 85:
+                    elements.append({
+                        'type': 'heading',
+                        'level': 2,
+                        'align': 'center' if is_centered else 'left',
+                        'text': text
+                    })
+                elif is_centered and len(text) < 65:
                     elements.append({
                         'type': 'paragraph',
                         'align': 'center',
                         'text': text
                     })
-                elif is_right or (re.search(r'ថ្ងៃទី\s*[0-9\u17E0-\u17E9]+\s*ខែ', text) and line_w < w_img * 0.6):
+                elif is_right or (re.search(r'(?:រាជធានីភ្នំពេញ|ភ្នំពេញ|ធ្វើនៅ|ថ្ងៃទី)\s*,?\s*ថ្ងៃទី\s*[0-9\u17E0-\u17E9]+\s*ខែ', text) and line_w < w_img * 0.65):
                     elements.append({
                         'type': 'paragraph',
                         'align': 'right',
