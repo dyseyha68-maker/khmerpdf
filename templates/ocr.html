@@ -999,6 +999,26 @@
         }
         .card-thumb-wrap { height: 180px; }
     }
+
+    /* Two independent panes: the page grid scrolls on its own (right) while the
+       controls + Process button stay put (left). Without this the left panel
+       stretches to the grid's height and the button (margin-top:auto) lands at
+       the very bottom of all the pages. */
+    @media (min-width: 901px) {
+        .main-content { align-items: flex-start; }
+        .left-panel,
+        .right-panel {
+            position: sticky;
+            top: 84px; /* below the sticky site header */
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        .left-panel .action-btn {
+            margin-top: 18px;
+            position: sticky;
+            bottom: 0;
+        }
+    }
 </style>
 {% endblock %}
 
