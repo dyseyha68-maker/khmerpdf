@@ -55,6 +55,21 @@ def _add_structured_json_to_docx(doc, items):
             chars += len(part)
         return chars
 
+    def _apply_measured(paragraph, item, font_size):
+        """Apply formatting measured from the original page (set by the Netra layout step):
+        exact line pitch, space before, first-line indent. No-op for elements without them."""
+        from docx.enum.text import WD_LINE_SPACING
+        pf = paragraph.paragraph_format
+        if item.get('line_pitch'):
+            pf.line_spacing = Pt(max(item['line_pitch'], 1.55 * font_size))
+            pf.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+            pf.space_after = Pt(0)
+            # keep hanging indents (negative); otherwise use the measured first-line indent
+            if pf.first_line_indent is None or pf.first_line_indent >= 0:
+                pf.first_line_indent = Pt(item.get('first_line_indent', 0))
+        if item.get('space_before') is not None:
+            pf.space_before = Pt(item['space_before'])
+
     # ── Sanitization 1: Unpack fake borderless tables that trap narrative paragraphs or have empty padding cells ──
     APPROVAL_KEYWORDS = ('បានឃើញ', 'ប្រធាន', 'អគ្គលេខាធិការ', 'ហត្ថលេខា', 'ក្រឡាបញ្ជី', 'ចៅក្រម', 'អ្នកស្នើសុំ', 'សាមីខ្លួន', 'សាលាដំបូង', 'ក្រសួង', 'ព្រះរាជាណាចក្រ', 'តាងនាម')
 
@@ -167,7 +182,7 @@ def _add_structured_json_to_docx(doc, items):
         if itype == 'heading':
             level = item.get('level', 1)
             size_map = {1: 15.0, 2: 13.0, 3: 12.0}
-            font_size = size_map.get(level, 13.0)
+            font_size = item.get('font_size') or size_map.get(level, 13.0)
             align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.CENTER)
             
             p = doc.add_paragraph()
@@ -175,6 +190,7 @@ def _add_structured_json_to_docx(doc, items):
             p.paragraph_format.line_spacing = 1.25
             p.paragraph_format.space_before = Pt(6 if level == 1 else 4)
             p.paragraph_format.space_after = Pt(2)
+            _apply_measured(p, item, font_size)
 
             total_chars += _add_styled_runs(p, text, is_bold=True, font_size=font_size)
 
@@ -196,7 +212,9 @@ def _add_structured_json_to_docx(doc, items):
                 p.paragraph_format.left_indent = Inches(0.35)
                 p.paragraph_format.first_line_indent = Inches(-0.25)
 
-            total_chars += _add_styled_runs(p, text, is_bold=False, font_size=11)
+            list_size = item.get('font_size') or 11
+            _apply_measured(p, item, list_size)
+            total_chars += _add_styled_runs(p, text, is_bold=bool(item.get('bold')), font_size=list_size)
 
         elif itype == 'table':
             rows_data = item.get('rows', [])
@@ -327,7 +345,9 @@ def _add_structured_json_to_docx(doc, items):
                 elif text.startswith(('ខ្ញុំបាទ', 'ខ្ញុំនាងខ្ញុំ', 'ខ្ញុំព្រះករុណា', 'តាមកម្មវត្ថុ', 'អាស្រ័យ')):
                     p.paragraph_format.first_line_indent = Inches(0.4)
 
-            total_chars += _add_styled_runs(p, text, is_bold=False, font_size=11)
+            body_size = item.get('font_size') or 11
+            _apply_measured(p, item, body_size)
+            total_chars += _add_styled_runs(p, text, is_bold=bool(item.get('bold')), font_size=body_size)
 
     return total_chars
 

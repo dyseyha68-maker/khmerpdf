@@ -10,7 +10,129 @@ from apps.pdf.ocr.docx_writer import _add_structured_json_to_docx
 from apps.pdf.ocr.engines.base import OCREngine
 
 
-def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
+def _line_stroke(gray, bbox):
+    """Ink stroke thickness (px) inside a line box: 2*area/perimeter of the binarised ink.
+    Bold text has thicker strokes. None if it can't be measured."""
+    try:
+        import cv2
+        x1, y1, x2, y2 = [int(v) for v in bbox]
+        crop = gray[max(0, y1):y2, max(0, x1):x2]
+        if crop.size == 0:
+            return None
+        _, bw = cv2.threshold(crop, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        area = int((bw > 0).sum())
+        contours, _ = cv2.findContours(bw, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+        perimeter = sum(cv2.arcLength(c, True) for c in contours)
+        return 2.0 * area / perimeter if perimeter else None
+    except Exception:
+        return None
+
+
+# Detector boxes include roughly constant padding, so box height is not proportional to font size.
+# Calibrated on Khmer OS Battambang renders: box_pt ~= BOX_SLOPE * font_pt + BOX_PAD_PT.
+BOX_SLOPE, BOX_PAD_PT = 1.48, 6.9
+BOLD_RATIO = 1.45        # stroke thickness vs the page's body text
+MIN_LINE_RATIO = 1.55    # exact line pitch never below this multiple of the font size (Khmer subscripts)
+
+
+def _median(values, default=None):
+    values = sorted(v for v in values if v is not None)
+    if not values:
+        return default
+    mid = len(values) // 2
+    return values[mid] if len(values) % 2 else (values[mid - 1] + values[mid]) / 2.0
+
+
+def _page_metrics(valid_segs, gray, w_img, dpi):
+    """Measure body-text size, line pitch, left margin and stroke weight for a page.
+    Returns None when there are too few lines to trust."""
+    text_segs = [s for s in valid_segs if s['type'] != 'logo' and s['text']]
+    if len(text_segs) < 4:
+        return None
+    ptpp = 72.0 / dpi if dpi else 595.3 / w_img          # points per pixel
+    for s in text_segs:
+        s['stroke_rel'] = None
+        if gray is not None:
+            st = _line_stroke(gray, (s['x1'], s['y1'], s['x2'], s['y2']))
+            s['stroke_rel'] = (st / s['h']) if st and s['h'] else None
+
+    body_h = _median([s['h'] for s in text_segs])
+    ordered = sorted(text_segs, key=lambda s: s['cy'])
+    diffs = [b['cy'] - a['cy'] for a, b in zip(ordered, ordered[1:]) if 0.5 * body_h < b['cy'] - a['cy'] < 2.2 * body_h]
+    pitch = _median(diffs)
+    if not pitch:
+        return None
+    body_pt = _median([((body_h * ptpp) - BOX_PAD_PT) / BOX_SLOPE], 11.0)
+    return {
+        'ptpp': ptpp,
+        'body_h': body_h,
+        'pitch': pitch,
+        'left': _median([s['x1'] for s in text_segs]),
+        'body_pt': min(13.0, max(9.0, round(body_pt * 2) / 2.0)),
+        'body_stroke': _median([s['stroke_rel'] for s in text_segs]),
+    }
+
+
+def _line_font_pt(h_px, m):
+    """Font size of a line relative to the body text (padding-corrected), snapped to 0.5pt."""
+    body_box = m['body_h'] * m['ptpp'] - BOX_PAD_PT
+    if body_box <= 0:
+        return m['body_pt']
+    size = m['body_pt'] * (h_px * m['ptpp'] - BOX_PAD_PT) / body_box
+    return min(24.0, max(7.0, round(size * 2) / 2.0))
+
+
+def _paragraph_format(lines, m, w_img, prev_last_cy):
+    """Formatting measured from the original lines of one paragraph (see docx_writer)."""
+    fmt = {}
+    pt = lambda px: px * m['ptpp']
+    line_h = _median([l['h'] for l in lines])
+    size = _line_font_pt(line_h, m)
+    if abs(size - m['body_pt']) < 1.6:      # box heights jitter with subscripts: snap near-body sizes to body
+        size = m['body_pt']
+    size = round(max(size, 0.72 * m['body_pt']) * 2) / 2.0   # footnotes shrink, but not below readable
+    fmt['font_size'] = size
+
+    rels = [l.get('stroke_rel') for l in lines]
+    if m['body_stroke'] and _median(rels) and _median(rels) / m['body_stroke'] >= BOLD_RATIO:
+        fmt['bold'] = True
+
+    cys = sorted(l['cy'] for l in lines)
+    steps = [b - a for a, b in zip(cys, cys[1:]) if b - a > 0.5 * m['body_h']]
+    # single-line paragraphs have no measured pitch: scale the page's by their own line height
+    pitch_px = _median(steps, m['pitch'] * min(1.6, max(0.6, line_h / m['body_h'])))
+    fmt['line_pitch'] = round(max(pt(pitch_px), MIN_LINE_RATIO * size) * 2) / 2.0
+
+    if prev_last_cy is not None:
+        gap = pt(cys[0] - prev_last_cy - pitch_px)
+        fmt['space_before'] = round(min(36.0, gap) * 2) / 2.0 if gap >= 2.0 else 0.0
+
+    if len(lines) >= 2:
+        first = min(lines, key=lambda l: l['cy'])
+        rest = _median([l['x1'] for l in lines if l is not first], first['x1'])
+        indent = pt(first['x1'] - rest)
+        if 8.0 <= indent <= 72.0:
+            fmt['first_line_indent'] = round(indent)
+    return fmt
+
+
+def _apply_measured_format(el, b, m, w_img, prev_last_cy):
+    """Copy measured size/bold/spacing/indent onto an element; promote a short bold
+    single line (title / section heading) to a heading."""
+    fmt = _paragraph_format(b['lines'], m, w_img, prev_last_cy)
+    if el['type'] == 'paragraph' and fmt.get('bold') and len(b['lines']) == 1 \
+            and not b['is_label'] and not b['is_marginalia'] and len(el['text']) < 120:
+        line = b['lines'][0]
+        centered = abs(line['cx'] - w_img / 2.0) < 0.05 * w_img
+        el['type'] = 'heading'
+        el['level'] = 1 if fmt.get('font_size', m['body_pt']) >= 1.4 * m['body_pt'] else 2
+        el['align'] = 'center' if centered else 'left'
+    if el['type'] == 'list_item':
+        fmt.pop('first_line_indent', None)  # list items keep their hanging indent
+    el.update(fmt)
+
+
+def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=None):
     """
     High-fidelity spatial layout analysis for Netra-OCR detections.
     Groups YOLO bounding boxes into structured document elements:
@@ -54,6 +176,7 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
         return []
 
     valid_segs.sort(key=lambda s: s['cy'])
+    metrics = _page_metrics(valid_segs, gray, w_img, dpi)
     elements = []
 
     # ── 1. Top Letterhead Zone (cy < 0.22 * h_img) ──
@@ -137,6 +260,7 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
         # Lookahead: coalesce continuation lines of same paragraph
         j = idx + 1
         full_text = txt
+        para_lines = [curr]
         while j < len(body_segs) and not is_salutation and not is_marginalia:
             nxt = body_segs[j]
             nxt_txt = nxt['text']
@@ -152,7 +276,15 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
             if nxt_bullet or nxt_label or nxt_salutation or nxt_marginalia:
                 break
 
+            # Original layout: a larger vertical gap or an indented first line starts a new paragraph
+            if metrics:
+                if nxt['cy'] - para_lines[-1]['cy'] > 1.35 * metrics['pitch']:
+                    break
+                if nxt['x1'] - metrics['left'] > 0.03 * w_img:
+                    break
+
             full_text = full_text + ' ' + nxt_txt
+            para_lines.append(nxt)
             j += 1
 
         coalesced_body.append({
@@ -162,13 +294,16 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
             'is_salutation': is_salutation,
             'is_marginalia': is_marginalia,
             'cx': curr['cx'],
-            'w': curr['w']
+            'w': curr['w'],
+            'lines': para_lines,
         })
         idx = j
 
     # Output body elements
+    prev_last_cy = None
     for b in coalesced_body:
         txt = b['text']
+        n_before = len(elements)
         if b['is_salutation']:
             clean_s = txt.strip().strip('*').strip()
             elements.append({
@@ -205,6 +340,10 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
                 'align': 'left',
                 'text': txt
             })
+
+        if metrics and len(elements) > n_before:
+            _apply_measured_format(elements[-1], b, metrics, w_img, prev_last_cy)
+        prev_last_cy = max(l['cy'] for l in b['lines'])
 
     # ── 4. Process Tail Zone (CC on left, Signature on right) ──
     if tail_segs:
@@ -275,14 +414,20 @@ def _netra_segments(pil_image):
     return meta.get('segments', []) if isinstance(meta, dict) else []
 
 
+def _measure_kwargs(pil_image):
+    """Pixels + DPI for measuring formatting (DPI is set by _iter_document_pages)."""
+    import numpy as np
+    dpi = (pil_image.info.get('dpi') or (None,))[0]
+    return {'gray': np.array(pil_image.convert('L')), 'dpi': dpi if dpi and dpi > 0 else None}
+
+
 def netra_page_elements(pil_image):
     """Netra segments grouped into structured document elements (same schema
     the Claude/Gemini prompt returns). Used by the layout scorer."""
     segments = _netra_segments(pil_image)
     if not segments:
         return []
-    w_img, h_img = pil_image.size
-    return _reconstruct_netra_spatial_elements(segments, w_img, h_img)
+    return _reconstruct_netra_spatial_elements(segments, *pil_image.size, **_measure_kwargs(pil_image))
 
 
 def _netraocr_page(doc, pil_image, ocr_lang='khm'):
@@ -305,7 +450,7 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
 
     # ── High-Fidelity Spatial Layout Reconstruction ──
     w_img, h_img = pil_image.size
-    elements = _reconstruct_netra_spatial_elements(segments, w_img, h_img)
+    elements = _reconstruct_netra_spatial_elements(segments, w_img, h_img, **_measure_kwargs(pil_image))
     if elements:
         c_count = _add_structured_json_to_docx(doc, elements)
         if c_count > 0:

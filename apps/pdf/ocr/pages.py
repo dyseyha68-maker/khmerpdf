@@ -110,6 +110,7 @@ def _iter_document_pages(input_path, page_range_str=None, max_limit=150, dpi=200
             if pil_img is None:
                 raise RuntimeError(f'Failed to render page {p_idx+1} for OCR.')
 
+            pil_img.info['dpi'] = (dpi, dpi)  # lets OCR convert pixel measurements to points
             yield (seq_idx + 1, total_to_process, pil_img)
             del pil_img
             gc.collect()
