@@ -10,5 +10,6 @@ db.sqlite3
 *.pem
 deploy_pkg.zip
 deploy_pkg1.zip
+*.zip
 _iotest.txt
 scratch/

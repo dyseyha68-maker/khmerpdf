@@ -1691,104 +1691,104 @@ def _vision_ocr_page(client, pil_image, lang_hints=None):
     return response.full_text_annotation.text
 
 
-def _khmerocr_page(doc, pil_image, ocr_lang='khm'):
+def _netraocr_page(doc, pil_image, ocr_lang='khm'):
     """
-    Run KhmerOCR ONNX deep learning model on a single page PIL image.
-    Trained on 3 million Khmer text lines over 800+ fonts.
-    Recognizes text lines, identifies Moul vs Regular fonts, preserves layout,
-    and appends native styled Word runs with 'Khmer OS Muol Light' for Moul
-    and 'Khmer OS Battambang' for regular text.
+    Run Netra-OCR (CNN-Transformer) on a single page PIL image.
+    Netra-OCR is a Squeeze-and-Excitation Transformer trained on Khmer script with
+    YOLO-based text-line detection + Khmer Character Cluster tokenizer recognition.
+    Automatically downloads model weights (~20MB) on first use.
     Returns: total_chars_extracted (int)
     """
+    import os
     import re
-    import khmerocr
-    from docx.shared import Pt, Inches
+    import tempfile
+    from docx.shared import Pt
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.oxml.ns import qn
 
-    # Convert image to RGB mode for ONNX inference
+    # Convert to RGB for YOLO detection
     if pil_image.mode != 'RGB':
         pil_image = pil_image.convert('RGB')
 
-    lines = khmerocr.detect(pil_image)
-    if not lines:
+    # Lazy-init singleton pipeline to avoid reloading models on every page
+    if not hasattr(_netraocr_page, '_pipeline'):
+        from netra_ocr.ocr_engine import KhmerOCRPipeline
+        _netraocr_page._pipeline = KhmerOCRPipeline(detector='yolo', conf=0.4)
+
+    pipeline = _netraocr_page._pipeline
+
+    # Save to temporary image file for pipeline processing
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+        tmp_path = tmp.name
+        pil_image.save(tmp_path, format='JPEG', quality=95)
+
+    try:
+        _, meta = pipeline.process_image(
+            image_path=tmp_path,
+            beam_width=1,
+            batch_size=16,
+            save_debug=False,
+            return_segments=True
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f'Netra-OCR process_image failed: {e}', exc_info=True)
+        return 0
+    finally:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+
+    segments = meta.get('segments', []) if isinstance(meta, dict) else []
+    if not segments:
         return 0
 
     total_chars = 0
-    DET_THRESHOLD = 0.35
-    w, h = pil_image.size
 
-    for line in lines:
-        line_parts = []
-        is_line_moul = False
-        line_has_text = False
-
-        for res in line:
-            box, cls_id, conf = res[:4], int(res[4]), float(res[5])
-            if conf < DET_THRESHOLD:
-                continue
-
-            # cls_id == 1 indicates a text region
-            if cls_id == 1:
-                x1, y1, x2, y2 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
-                # Bounds check
-                x1, y1 = max(0, x1), max(0, y1)
-                x2, y2 = min(w, x2), min(h, y2)
-                if x2 <= x1 + 2 or y2 <= y1 + 2:
-                    continue
-
-                cropped = pil_image.crop((x1, y1, x2, y2))
-                rec = khmerocr.recognize(cropped)
-                text = (rec.get("text") or "").strip()
-                if not text:
-                    continue
-
-                font_style = rec.get("font", "Regular")
-                font_conf = float(rec.get("font_confidence", 0.0))
-                if font_style in ("Moul", "MoulLight") and font_conf >= 0.65:
-                    is_line_moul = True
-
-                line_parts.append(text)
-                line_has_text = True
-
-        if not line_has_text or not line_parts:
+    for seg in segments:
+        if seg.get('type') != 'text':
             continue
 
-        full_line = " ".join(line_parts).strip()
-        if not full_line:
+        text = (seg.get('text') or '').strip()
+        if not text:
             continue
 
-        has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in full_line)
+        has_khmer = any('\u1780' <= c <= '\u17FF' or '\u19E0' <= c <= '\u19FF' for c in text)
+        font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
+        font_size = 11.0
+        is_bold = False
+
+        # Detect Moul/heading lines heuristically (all-caps Khmer or short centered text)
+        is_moul = False
+        if has_khmer and len(text) < 50:
+            moul_keywords = ('ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'Kingdom of Cambodia', 'AVOCAT', 'ATTORNEY')
+            if any(kw in text for kw in moul_keywords):
+                is_moul = True
+
         p = doc.add_paragraph()
-
-        if is_line_moul:
+        if is_moul:
             font_name = 'Khmer OS Muol Light' if has_khmer else 'Calibri'
             font_size = 13.0
+            is_bold = True
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.paragraph_format.space_before = Pt(4)
             p.paragraph_format.space_after = Pt(2)
             p.paragraph_format.line_spacing = 1.2
-            is_bold = True
         else:
-            font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
-            font_size = 11.0
-            is_bold = False
-
-            # Smart paragraph alignment heuristics
-            if any(k in full_line for k in ('ព្រះរាជាណាចក្រកម្ពុជា', 'ជាតិ សាសនា ព្រះមហាក្សត្រ', 'Kingdom of Cambodia')):
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            elif re.search(r'ថ្ងៃទី\s*[0-9\u17E0-\u17E9]+\s*ខែ\s*[0-9\u17E0-\u17E9\w]+\s*ឆ្នាំ\s*[0-9\u17E0-\u17E9]+', full_line) and len(full_line) < 70:
+            # Smart alignment heuristics
+            if re.search(r'ថ្ងៃទី\s*[0-9\u17E0-\u17E9]+\s*ខែ', text) and len(text) < 70:
                 p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-            elif len(full_line) > 75:
+            elif len(text) > 75:
                 p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
             else:
                 p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(2)
             p.paragraph_format.line_spacing = 1.15
 
-        run = p.add_run(full_line)
+        run = p.add_run(text)
         run.bold = is_bold
         run.font.name = font_name
         run.font.size = Pt(font_size)
@@ -1801,7 +1801,7 @@ def _khmerocr_page(doc, pil_image, ocr_lang='khm'):
             rFonts.set(qn('w:hAnsi'), font_name)
             rFonts.set(qn('w:eastAsia'), font_name)
 
-        total_chars += len(full_line)
+        total_chars += len(text)
 
     return total_chars
 
@@ -2400,16 +2400,16 @@ def ocr_pdf(job_id):
                         raise RuntimeError(f'Google Vision OCR failed on page {page_num}: {e}')
                     # else: fall through to Tesseract for this page
 
-            # ── 4. Try KhmerOCR ONNX (Zero-Cost Local Deep Learning) ──
+            # ── 4. Try Netra-OCR (Zero-Cost Local CNN-Transformer) ──
             if not page_done and local_engine == 'khmerocr' and ocr_lang in ('khm', 'eng+khm'):
                 try:
-                    k_chars = _khmerocr_page(doc, page, ocr_lang=ocr_lang)
+                    k_chars = _netraocr_page(doc, page, ocr_lang=ocr_lang)
                     if k_chars > 0:
                         extracted_chars += k_chars
                         page_done = True
-                        logger.info(f'KhmerOCR ONNX extracted {k_chars} chars on page {page_num}')
+                        logger.info(f'Netra-OCR extracted {k_chars} chars on page {page_num}')
                 except Exception as e:
-                    logger.warning(f'KhmerOCR failed on page {page_num}: {e}, falling back to Tesseract', exc_info=True)
+                    logger.warning(f'Netra-OCR failed on page {page_num}: {e}, falling back to Tesseract', exc_info=True)
                     # Falls through to Tesseract below
 
             # ── 5. Run Tesseract with Spatial Layout & Table Reconstruction ──

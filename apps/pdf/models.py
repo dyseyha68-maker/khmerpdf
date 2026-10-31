@@ -177,7 +177,7 @@ class OCRSettings(models.Model):
                    'Kept only in this row — treat it like a password.',
     )
     LOCAL_ENGINE_CHOICES = [
-        ('khmerocr', 'KhmerOCR ONNX (Deep Learning — 3M lines, 800+ fonts) [Recommended]'),
+        ('khmerocr', 'Netra-OCR (CNN-Transformer — YOLO Detection + Khmer Character Cluster) [Recommended]'),
         ('tesseract', 'Tesseract 5 (Standard / Legacy)'),
     ]
     local_engine = models.CharField(
@@ -186,7 +186,7 @@ class OCRSettings(models.Model):
         default='khmerocr',
         verbose_name='Local OCR Engine (Zero-Cost)',
         help_text='Engine used for zero-cost local OCR when Cloud/AI models are disabled or as fallback. '
-                   'KhmerOCR is an ONNX deep learning model trained on 3 million text lines over 800+ Khmer fonts.',
+                   'Netra-OCR is a CNN-Transformer model with YOLO text-line detection trained specifically on Khmer script.',
     )
     fallback_to_tesseract = models.BooleanField(
         default=True,

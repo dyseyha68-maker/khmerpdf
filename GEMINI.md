@@ -45,13 +45,13 @@ The OCR pipeline in [`apps/pdf/tasks.py`](apps/pdf/tasks.py) operates on a tiere
 - **Batching & Range**: Users can select 25-page batch chips or custom ranges (`1-20, 25-30`).
 - **Live Progress Updates**: Tasks update `job.files = {'current_page': page_num, 'total_pages': total_pages}` on each iteration, which `job_status` serves to frontend progress bars.
 
-## 5. Zero-Cost Local Engine (KhmerOCR ONNX)
-- **Model**: [`seanghay/KhmerOCR`](https://github.com/seanghay/KhmerOCR)
-  - Trained on 3 million text lines over 800+ Khmer fonts.
-  - ONNX Runtime (`det.onnx` ~10.8MB, `rec.onnx` ~13.8MB) running on CPU with minimal RAM (<30MB) and fast inference (~0.3-0.8s/page).
-  - Outperforms Tesseract on complex subscript consonant clusters (`ជើង`) and stylized fonts.
-  - Implemented in `_khmerocr_page()` in [`apps/pdf/tasks.py`](apps/pdf/tasks.py) with streaming compatibility.
-  - Automatically identifies font styles: Moul vs Regular (`Khmer OS Muol Light` for headings, `Khmer OS Battambang` for body).
+## 5. Zero-Cost Local Engine (Netra-OCR)
+- **Model**: [`netra-ai-lab/Netra-OCR`](https://github.com/netra-ai-lab/Netra-OCR)
+  - Squeeze-and-Excitation Transformer with YOLOv2.6s text-line detection and Khmer Character Cluster (KCC) tokenizer.
+  - Runs on CPU with PyTorch and cached weights (~77MB).
+  - Outperforms Tesseract on complex subscript consonant clusters (`ជើង`) and legal terminology with near-human transcription fidelity.
+  - Implemented in `_netraocr_page()` in [`apps/pdf/tasks.py`](apps/pdf/tasks.py) with streaming compatibility.
+  - Automatically formats native Word (.docx) elements using `Khmer OS Battambang` for body and `Khmer OS Muol Light` for headings.
   - Configurable via `OCRSettings.local_engine` (`khmerocr` vs `tesseract`) in [`apps/pdf/models.py`](apps/pdf/models.py).
 
 
