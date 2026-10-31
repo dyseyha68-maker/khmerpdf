@@ -35,17 +35,23 @@ apps/pdf/
     pipeline.py       engine selection + per-page fallback cascade (retry/backoff)
     pages.py          memory-safe page streaming (one page in RAM at a time)
     docx_writer.py    Word (.docx) builders using Khmer OS fonts
-    engines/          claude, gemini, gcv (Google Vision), netra, tesseract, shared prompt
-templates/  static/  locale/  tessdata/
+    engines/          claude, gemini, gcv (Google Vision), netra, shared prompt
+templates/  static/  locale/
 ```
 
 ## OCR in short
 
-Per page, the first engine that returns text wins: **Claude → Gemini → Google Vision**
-(Vision only if neither AI engine is on) **→ Netra-OCR** (local, Khmer) **→ Tesseract**.
+Per page, the first engine that returns text wins.
+
+- **Khmer and Khmer + English files:** **Netra-OCR** (local, free) first, then **Claude → Gemini →
+  Google Vision** as fallbacks if they are enabled.
+- **English-only files:** **Claude → Gemini → Google Vision** (Vision only if neither AI engine is on).
+  There is no local English engine, so **at least one cloud engine must be enabled**, otherwise the
+  job fails with a clear message.
+
 Engines and API keys are configured in the Django admin under *OCR Settings*. Cloud engines retry
-twice with backoff; if "fall back" is switched off in settings, a cloud failure aborts the job
-instead. Details and rules: [GEMINI.md](GEMINI.md).
+twice with backoff; if "continue to the next engine" is switched off in settings, a cloud failure
+aborts the job instead. Details and rules: [GEMINI.md](GEMINI.md).
 
 ## Local setup
 
@@ -63,8 +69,6 @@ External binaries (not tracked in git):
 - **Poppler** (PDF to image, OCR fallback rendering). Windows: run `install_poppler.bat`, which
   downloads it to `D:\poppler`, then `move_poppler.bat` to place it at `<repo>\poppler`
   (or set `POPPLER_PATH` to its `Library\bin`). Linux/Docker: `poppler-utils`.
-- **Tesseract 5** with `eng` and `khm` data. `tessdata/` holds `eng` and `khm`; on Windows install
-  from <https://github.com/UB-Mannheim/tesseract/wiki> (or set `TESSERACT_CMD`).
 - **Ghostscript** (optional, better compression; PyMuPDF is used if absent).
 
 ## Deploy

@@ -125,7 +125,7 @@ class Job(models.Model):
 
 class OCRSettings(models.Model):
     """Singleton row (always pk=1) — lets the admin choose the OCR engines
-    (Claude, Gemini, Google Vision, or the local Netra / Tesseract engines)
+    (Claude, Gemini, Google Vision, or the local Netra engine)
     without touching code or redeploying. See apps/pdf/ocr/pipeline.py:build_engines
     for how this is read."""
 
@@ -166,8 +166,7 @@ class OCRSettings(models.Model):
     use_google_vision = models.BooleanField(
         default=False,
         verbose_name='Use Google Cloud Vision for OCR',
-        help_text='Off by default — OCR uses the built-in Tesseract engine (free). '
-                   'Turn this on once a service account key is pasted below.',
+        help_text='Off by default. Turn this on once a service account key is pasted below.',
     )
     google_credentials_json = models.TextField(
         blank=True,
@@ -177,22 +176,21 @@ class OCRSettings(models.Model):
                    'Kept only in this row — treat it like a password.',
     )
     LOCAL_ENGINE_CHOICES = [
-        ('khmerocr', 'Netra-OCR (CNN-Transformer — YOLO Detection + Khmer Character Cluster) [Recommended]'),
-        ('tesseract', 'Tesseract 5 (Standard / Legacy)'),
+        ('khmerocr', 'Netra-OCR (CNN-Transformer — YOLO Detection + Khmer Character Cluster)'),
     ]
     local_engine = models.CharField(
         max_length=20,
         choices=LOCAL_ENGINE_CHOICES,
         default='khmerocr',
         verbose_name='Local OCR Engine (Zero-Cost)',
-        help_text='Engine used for zero-cost local OCR when Cloud/AI models are disabled or as fallback. '
+        help_text='Local engine used first for Khmer and Khmer + English files. '
                    'Netra-OCR is a CNN-Transformer model with YOLO text-line detection trained specifically on Khmer script.',
     )
     fallback_to_tesseract = models.BooleanField(
         default=True,
-        verbose_name='Fall back to Tesseract if Cloud / AI engine fails',
-        help_text='Recommended. Keeps OCR working if the API key is invalid, the monthly '
-                   'quota is used up, or the external AI service is unreachable.',
+        verbose_name='Continue to the next engine if one fails',
+        help_text='Recommended. If a Cloud / AI engine fails (invalid key, quota used up, service '
+                   'unreachable) the page is passed to the next engine; if off, the job stops.',
     )
     updated_at = models.DateTimeField(auto_now=True)
 

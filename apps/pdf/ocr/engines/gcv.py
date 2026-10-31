@@ -15,7 +15,7 @@ _VISION_LANG_HINTS = {
 def _build_vision_client(ocr_settings):
     """Build an authenticated Vision client from the admin-pasted service
     account JSON. Raises if the JSON is missing/malformed so the caller can
-    log a clear error and fall back to Tesseract."""
+    log a clear error and fall through to the next engine."""
     from google.cloud import vision
     from google.oauth2 import service_account
 
@@ -26,7 +26,7 @@ def _build_vision_client(ocr_settings):
 
 def _vision_ocr_page(client, pil_image, lang_hints=None):
     """Run Google Vision DOCUMENT_TEXT_DETECTION on one page image, return
-    the extracted text (same shape as pytesseract.image_to_string output)."""
+    the extracted text (plain text, one line per row)."""
     from google.cloud import vision
 
     buf = io.BytesIO()

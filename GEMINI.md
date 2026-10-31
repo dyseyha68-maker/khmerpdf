@@ -6,14 +6,16 @@
 `pages.py` (page streaming), `docx_writer.py` (Word output) and `engines/` (one module per engine, each
 exposing an `OCREngine` subclass with `run(doc, page, gray) -> chars_written`).
 
-Per page, the first engine that returns text wins; an engine that errors or returns nothing hands the page on:
+Per page, the first engine that returns text wins; an engine that errors or returns nothing hands the page on.
+Order depends on the language: **Khmer / Khmer + English** run Netra first, then the cloud engines as fallbacks;
+**English-only** runs the cloud engines only (there is no local English engine, so one must be enabled or the
+job fails with a clear message).
 1. **Claude AI Vision** (`engines/claude.py`): Anthropic vision, returns structured JSON (`heading`, `paragraph`, `list_item`, `table`).
 2. **Google Gemini Vision** (`engines/gemini.py`): same prompt (`engines/prompt.py`), very cheap, free tier available.
 3. **Google Cloud Vision** (`engines/gcv.py`): `DOCUMENT_TEXT_DETECTION`. Only used when neither Claude nor Gemini is enabled.
-4. **Netra-OCR** (`engines/netra.py`): local CNN-Transformer with YOLO line detection, for `khm` / `eng+khm` when `local_engine` is `khmerocr` (legacy value; it now means Netra).
-5. **Tesseract** (`engines/tesseract.py`): always last; spatial layout and table reconstruction.
+4. **Netra-OCR** (`engines/netra.py`): local CNN-Transformer with YOLO line detection, used first for `khm` / `eng+khm` (`local_engine = khmerocr` is the legacy stored value; it means Netra). It measures bold, line spacing, paragraph spacing and indents from the scan.
 
-Cloud engines (1-3) retry twice with 2s/4s backoff. If `OCRSettings.fallback_to_tesseract` is off, a cloud
+Cloud engines (1-3) retry twice with 2s/4s backoff. If `OCRSettings.fallback_to_tesseract` (now labelled "Continue to the next engine if one fails") is off, a cloud
 engine failure aborts the job instead of falling through. Pages where no engine produced text are reported
 as `failed_pages` in the job status. Add a new engine by writing an `OCREngine` subclass and registering it in
 `pipeline.build_engines`.
@@ -49,9 +51,9 @@ as `failed_pages` in the job status. Add a new engine by writing an `OCREngine` 
 - **Model**: [`netra-ai-lab/Netra-OCR`](https://github.com/netra-ai-lab/Netra-OCR)
   - Squeeze-and-Excitation Transformer with YOLOv2.6s text-line detection and Khmer Character Cluster (KCC) tokenizer.
   - Runs on CPU (upstream uses ONNX Runtime; weights download from Hugging Face on first use and are cached). Weights/licences: see upstream `THIRD_PARTY_LICENSES.md` (default YOLO detector is AGPL-3.0).
-  - Outperforms Tesseract on complex subscript consonant clusters (`ជើង`) and legal terminology with near-human transcription fidelity.
+  - Reads complex subscript consonant clusters (`ជើង`) and legal terminology well (the previous Tesseract engine was removed).
   - Implemented in `_netraocr_page()` in [`apps/pdf/ocr/engines/netra.py`](apps/pdf/ocr/engines/netra.py) with streaming compatibility.
   - Automatically formats native Word (.docx) elements using `Khmer OS Battambang` for body text and headings (headings are bold and larger).
-  - Configurable via `OCRSettings.local_engine` (`khmerocr` = Netra, or `tesseract`) in [`apps/pdf/models.py`](apps/pdf/models.py).
+  - `OCRSettings.local_engine` only has the `khmerocr` (= Netra) choice in [`apps/pdf/models.py`](apps/pdf/models.py).
 
 

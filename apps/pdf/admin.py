@@ -379,7 +379,7 @@ class OCRSettingsAdmin(admin.ModelAdmin):
         }),
         ('Fallback & System', {
             'fields': ('fallback_to_tesseract', 'updated_at'),
-            'description': 'If enabled, automatically falls back to local Tesseract OCR if external AI API calls fail or run out of quota.'
+            'description': 'If enabled, a page is passed to the next engine when an external AI engine fails or runs out of quota. English-only files need Gemini, Claude or Google Vision enabled.'
         }),
     )
 

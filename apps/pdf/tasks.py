@@ -818,9 +818,9 @@ def organize_pdf(job_id, replace_files=None):
 # ── Google Cloud Vision OCR (optional, admin-configured) ───────────────────────
 # Off by default. When apps.pdf.models.OCRSettings.use_google_vision is turned
 # on (with a valid service account JSON pasted into the admin), ocr_pdf below
-# uses Vision's DOCUMENT_TEXT_DETECTION instead of Tesseract, per page, with
-# an automatic per-page fallback to Tesseract on any failure (network, quota,
-# bad credentials) unless the admin has switched that fallback off.
+# uses Vision's DOCUMENT_TEXT_DETECTION as a cloud engine, per page, falling
+# through to the next engine on any failure (network, quota, bad credentials)
+# unless the admin has switched that fallback off.
 
 
 
@@ -834,7 +834,6 @@ from apps.pdf.ocr.engines.claude import _claude_ocr_page  # noqa: F401
 from apps.pdf.ocr.engines.gemini import _gemini_ocr_page  # noqa: F401
 from apps.pdf.ocr.engines.gcv import _VISION_LANG_HINTS, _build_vision_client, _vision_ocr_page  # noqa: F401
 from apps.pdf.ocr.engines.netra import _reconstruct_netra_spatial_elements, _netraocr_page  # noqa: F401
-from apps.pdf.ocr.engines.tesseract import _tesseract_ocr_page_structured  # noqa: F401
 
 from apps.pdf.ocr.docx_writer import (  # noqa: F401  (re-exported for existing callers)
     _add_structured_json_to_docx, _add_structured_content_to_docx, _add_markdown_to_docx,
@@ -846,7 +845,6 @@ from apps.pdf.ocr.pages import _iter_document_pages  # noqa: F401
 def ocr_pdf(job_id):
     from apps.pdf.models import Job
     import logging
-    import pytesseract
     from PIL import Image
     logger = logging.getLogger(__name__)
     
@@ -856,19 +854,6 @@ def ocr_pdf(job_id):
 
     ocr_lang = job.compression_level or 'eng'
 
-    lang_map = {
-        'eng': 'eng',
-        'khm': 'khm',
-        'eng+khm': 'eng+khm'
-    }
-    tess_lang = lang_map.get(ocr_lang, 'eng')
-
-    tesseract_cmd = getattr(settings, 'TESSERACT_CMD', None)
-    if tesseract_cmd:
-        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
-    tessdata_dir = getattr(settings, 'TESSDATA_DIR', None)
-    if tessdata_dir:
-        os.environ['TESSDATA_PREFIX'] = tessdata_dir
     
     try:
         input_path = job.file.path
@@ -902,7 +887,7 @@ def ocr_pdf(job_id):
 
         # ── Engine cascade (admin-configured) — see apps/pdf/ocr/pipeline.py ──
         from apps.pdf.ocr.pipeline import build_engines, process_page
-        engines, ocr_dpi, fallback_ok = build_engines(_get_ocr_settings(), ocr_lang, tess_lang)
+        engines, ocr_dpi, fallback_ok = build_engines(_get_ocr_settings(), ocr_lang)
 
         failed_pages = []
         # Stream page-by-page (Low memory, handles 100+ pages without OOM)
@@ -938,10 +923,8 @@ def ocr_pdf(job_id):
 
         if extracted_chars == 0:
             raise RuntimeError(
-                'OCR produced no text on any page. This usually means Tesseract-OCR '
-                'is not installed / not found (check TESSERACT_CMD in settings.py or '
-                'that tesseract is on PATH), the wrong language pack is missing '
-                f"(requested '{tess_lang}'), or the source pages are blank/too low quality."
+                'OCR produced no text on any page. The pages may be blank or too low quality, '
+                'or the OCR engines failed (see the server log for the engine errors).'
             )
 
         orig_name = getattr(job, 'original_filename', None)

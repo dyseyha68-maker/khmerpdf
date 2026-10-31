@@ -132,20 +132,6 @@ POPPLER_PATH = os.environ.get('POPPLER_PATH') or (
     r"D:\08. Saas\poppler\Library\bin" if os.name == 'nt' else None
 )
 
-# Tesseract-OCR binary path (Windows). pytesseract only wraps the tesseract.exe
-# binary - it does not install it. Install from
-# https://github.com/UB-Mannheim/tesseract/wiki, then point this at tesseract.exe
-# (default install location shown below), or leave as None if tesseract is
-# already in system PATH (e.g. installed via apt on Linux/Docker).
-TESSERACT_CMD = os.environ.get('TESSERACT_CMD') or (
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe" if os.name == 'nt' else None
-)
-TESSDATA_DIR = os.environ.get('TESSDATA_PREFIX') or (
-    str(BASE_DIR / 'tessdata') if (BASE_DIR / 'tessdata').exists() else None
-)
-if TESSDATA_DIR:
-    os.environ['TESSDATA_PREFIX'] = TESSDATA_DIR
-
 ALLOWED_EXTENSIONS = ['pdf']
 
 # Celery settings

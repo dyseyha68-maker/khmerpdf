@@ -56,14 +56,9 @@ class Command(BaseCommand):
         parser.add_argument('--show', type=int, default=160, help='Characters of output to print per run (0 = none)')
 
     def handle(self, *args, **o):
-        import pytesseract
         from docx import Document
         from apps.pdf.ocr.pages import _iter_document_pages
-        from apps.pdf.ocr.engines.tesseract import TesseractEngine
         from apps.pdf.ocr.engines.netra import NetraEngine, _netraocr_page
-
-        if getattr(settings, 'TESSERACT_CMD', None):
-            pytesseract.pytesseract.tesseract_cmd = settings.TESSERACT_CMD
 
         truth = None
         if o['truth']:
@@ -87,8 +82,6 @@ class Command(BaseCommand):
         for dpi in o['dpi']:
             page = self._render(o['file'], o['page'], dpi, _iter_document_pages)
 
-            run('Tesseract', TesseractEngine(o['lang']), page, dpi)
-
             if o['lang'] in ('khm', 'eng+khm'):
                 for conf, dec in itertools.product(o['netra_conf'], o['netra_decoder']):
                     label = f'Netra conf={conf} dec={dec}'
@@ -108,6 +101,8 @@ class Command(BaseCommand):
                     if eng.remote:
                         run(eng.name, eng, page, dpi)
 
+        if not rows:
+            raise CommandError('Nothing to compare: English-only files need --cloud (Gemini/Claude).')
         self._report(rows, truth is not None)
 
     def _render(self, path, page_no, dpi, iter_pages):
