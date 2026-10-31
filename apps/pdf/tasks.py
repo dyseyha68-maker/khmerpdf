@@ -1851,10 +1851,11 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
     for b in coalesced_body:
         txt = b['text']
         if b['is_salutation']:
+            clean_s = txt.strip().strip('*').strip()
             elements.append({
                 'type': 'paragraph',
                 'align': 'center',
-                'text': f"**{txt}**" if not txt.startswith('**') else txt
+                'text': f"**{clean_s}**"
             })
         elif b['is_bullet']:
             elements.append({
