@@ -15,7 +15,7 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
     High-fidelity spatial layout analysis for Netra-OCR detections.
     Groups YOLO bounding boxes into structured document elements:
     1. Multi-column letterhead & top headers -> Borderless Word tables.
-    2. National mottos and decree titles -> Khmer OS Muol Light headings.
+    2. National mottos and decree titles -> centered bold headings.
     3. Multi-line body paragraphs -> Coalesced justified paragraphs.
     4. Bullet lists and legal labels -> Hanging indents.
     5. Signature & Carbon Copy (ចម្លងជូន) blocks -> Multi-column borderless tables.
@@ -241,7 +241,7 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
     Netra-OCR is a Squeeze-and-Excitation Transformer trained on Khmer script with
     YOLO-based text-line detection + Khmer Character Cluster tokenizer recognition.
     Automatically reconstructs spatial layout and formats native Microsoft Word (.docx)
-    elements using Khmer OS Battambang, Khmer OS Muol Light, and OpenXML tags.
+    elements using Khmer OS Battambang and OpenXML tags.
     Returns: total_chars_extracted (int)
     """
     import os
@@ -267,18 +267,14 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
         tmp_path = tmp.name
         pil_image.save(tmp_path, format='JPEG', quality=95)
 
+    # Errors propagate: the pipeline logs them under the engine name and falls through.
     try:
         _, meta = pipeline.process_image(
             image_path=tmp_path,
-            beam_width=1,
             batch_size=16,
             save_debug=False,
             return_segments=True
         )
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning(f'Netra-OCR process_image failed: {e}', exc_info=True)
-        return 0
     finally:
         if os.path.exists(tmp_path):
             try:
@@ -314,7 +310,7 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
         font_size = 11.0
         is_bold = False
 
-        # Detect Moul/heading lines heuristically (all-caps Khmer or short centered text)
+        # Detect motto/heading lines heuristically (all-caps Khmer or short centered text)
         is_moul = False
         if has_khmer and len(text) < 50:
             moul_keywords = ('ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'Kingdom of Cambodia', 'AVOCAT', 'ATTORNEY')
@@ -323,7 +319,7 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
 
         p = doc.add_paragraph()
         if is_moul:
-            font_name = 'Khmer OS Muol Light' if has_khmer else 'Calibri'
+            font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
             font_size = 13.0
             is_bold = True
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER

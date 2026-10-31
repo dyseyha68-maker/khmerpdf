@@ -176,15 +176,7 @@ def _add_structured_json_to_docx(doc, items):
             p.paragraph_format.space_before = Pt(6 if level == 1 else 4)
             p.paragraph_format.space_after = Pt(2)
 
-            # Use Khmer OS Muol Light for major headings, decrees, articles, and chapters
-            MUOL_KEYWORDS = (
-                'ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'សាលក្រម', 'សេចក្តីសម្រេច', 'ដីកា', 'ប្រកាស',
-                'អនុក្រឹត្យ', 'ព្រះរាជក្រម', 'សារាចរ', 'កិច្ចសន្យា', 'ពាក្យស្នើសុំ', 'សម្រេច',
-                'បង្គាប់', 'មាត្រា', 'ជំពូក', 'គន្ថី', 'ផ្នែក', 'ចំណុច'
-            )
-            use_muol = level <= 2 or any(k in text for k in MUOL_KEYWORDS)
-            heading_font = 'Khmer OS Muol Light' if use_muol else 'Khmer OS Battambang'
-            total_chars += _add_styled_runs(p, text, is_bold=True, font_size=font_size, font_name_override=heading_font)
+            total_chars += _add_styled_runs(p, text, is_bold=True, font_size=font_size)
 
         elif itype == 'list_item':
             is_sub = item.get('sub', False) or bool(re.match(r'^(?:[0-9\u17E0-\u17E9]+\.[0-9\u17E0-\u17E9]+|\([0-9\u17E0-\u17E9a-zA-Z\u1780-\u17B3]+\))', text))
@@ -700,14 +692,7 @@ def _add_markdown_to_docx(doc, markdown_text):
             elif line.startswith(('ខ្ញុំបាទ', 'ខ្ញុំនាងខ្ញុំ', 'ខ្ញុំព្រះករុណា', 'តាមកម្មវត្ថុ', 'អាស្រ័យ')):
                 p.paragraph_format.first_line_indent = Inches(0.4)
 
-        MUOL_KEYWORDS = (
-            'ព្រះរាជាណាចក្រ', 'ជាតិ សាសនា', 'សាលក្រម', 'សេចក្តីសម្រេច', 'ដីកា', 'ប្រកាស',
-            'អនុក្រឹត្យ', 'ព្រះរាជក្រម', 'កិច្ចសន្យា', 'សម្រេច', 'បង្គាប់', 'មាត្រា', 'ជំពូក'
-        )
-        use_muol = is_heading and (font_size >= 13.0 or any(k in line for k in MUOL_KEYWORDS))
-        heading_font = 'Khmer OS Muol Light' if use_muol else 'Khmer OS Battambang'
-
-        c_count = _add_styled_runs(p, line, is_bold=is_heading_bold, font_size=font_size, font_name_override=heading_font)
+        c_count = _add_styled_runs(p, line, is_bold=is_heading_bold, font_size=font_size)
         total_chars += c_count
         i += 1
 

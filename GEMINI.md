@@ -48,10 +48,10 @@ as `failed_pages` in the job status. Add a new engine by writing an `OCREngine` 
 ## 5. Zero-Cost Local Engine (Netra-OCR)
 - **Model**: [`netra-ai-lab/Netra-OCR`](https://github.com/netra-ai-lab/Netra-OCR)
   - Squeeze-and-Excitation Transformer with YOLOv2.6s text-line detection and Khmer Character Cluster (KCC) tokenizer.
-  - Runs on CPU with PyTorch and cached weights (~77MB).
+  - Runs on CPU (upstream uses ONNX Runtime; weights download from Hugging Face on first use and are cached). Weights/licences: see upstream `THIRD_PARTY_LICENSES.md` (default YOLO detector is AGPL-3.0).
   - Outperforms Tesseract on complex subscript consonant clusters (`ជើង`) and legal terminology with near-human transcription fidelity.
   - Implemented in `_netraocr_page()` in [`apps/pdf/ocr/engines/netra.py`](apps/pdf/ocr/engines/netra.py) with streaming compatibility.
-  - Automatically formats native Word (.docx) elements using `Khmer OS Battambang` for body and `Khmer OS Muol Light` for headings.
+  - Automatically formats native Word (.docx) elements using `Khmer OS Battambang` for body text and headings (headings are bold and larger).
   - Configurable via `OCRSettings.local_engine` (`khmerocr` = Netra, or `tesseract`) in [`apps/pdf/models.py`](apps/pdf/models.py).
 
 
