@@ -468,6 +468,8 @@ def job_status(request, job_id):
     if isinstance(job.files, dict):
         data['current_page'] = job.files.get('current_page', 0)
         data['total_pages'] = job.files.get('total_pages', 0)
+        if job.files.get('failed_pages'):
+            data['failed_pages'] = job.files['failed_pages']
 
     if job.status == 'failed':
         data['error'] = job.error_message
