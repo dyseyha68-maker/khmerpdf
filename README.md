@@ -1,108 +1,73 @@
-# PDF SaaS - Local Development Environment
+# KhmerPDF
 
-A Django-based PDF processing SaaS application with background job processing using Celery and Redis.
+A Django web app of PDF tools built for Khmer-speaking users (English / Khmer UI).
 
-## Project Structure
+## Tools
+
+| Page | API | What it does |
+|---|---|---|
+| `/pdf-compress/` | `POST /api/compress/` | Compress (Ghostscript, PyMuPDF fallback) |
+| `/pdf-merge/` | `POST /api/merge/` | Merge PDFs |
+| `/pdf-split/` | `POST /api/split/` | Split by range |
+| `/pdf-organize/` | `POST /api/organize/` | Reorder / delete / insert pages |
+| `/pdf-protect/` | `POST /api/protect/` | Password-protect |
+| `/pdf-ocr/` | `POST /api/ocr/` | OCR a PDF/image to an editable Word file (Khmer-focused) |
+| `/pdf-to-image/` | `POST /api/pdf-to-image/` | PDF pages to images |
+| `/image-to-pdf/` | `POST /api/image-to-pdf/` | Images to PDF |
+
+Also: a Gregorian/Buddhist-Era calendar with public holidays (`/pdf-calendar/`, see
+[CALENDAR_ADMIN.md](CALENDAR_ADMIN.md)), a KHQR donation page, and admin-managed ad snippets,
+site translations and page-visit stats.
+
+Every API call creates a `Job`; poll `GET /api/job/<uuid>/` for `status`, `current_page` /
+`total_pages` and, for OCR, `failed_pages`.
+
+## Project layout
 
 ```
-project_root/
-├── manage.py
-├── config/
-│   ├── __init__.py
-│   ├── settings.py
-│   ├── urls.py
-│   ├── celery.py
-├── apps/
-│   ├── pdf/
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── tasks.py
-│   │   ├── urls.py
-│   ├── users/
-├── templates/
-├── static/
-├── media/
-├── requirements.txt
-├── docker-compose.yml
-├── Dockerfile
-├── README.md
+config/             settings, urls, celery
+apps/pdf/
+  views.py          pages + API endpoints
+  tasks.py          PDF tools and the ocr_pdf orchestrator
+  models.py         Job, OCRSettings, Holiday, CalendarEvent, SiteTranslation, AdSnippet, PageVisit
+  admin.py          admin panels (OCR keys/engines, calendar, ads, translations)
+  ocr/
+    pipeline.py       engine selection + per-page fallback cascade (retry/backoff)
+    pages.py          memory-safe page streaming (one page in RAM at a time)
+    docx_writer.py    Word (.docx) builders using Khmer OS fonts
+    engines/          claude, gemini, gcv (Google Vision), netra, tesseract, shared prompt
+templates/  static/  locale/  tessdata/
 ```
 
-## Tech Stack
+## OCR in short
 
-- Django 4.x (Web Framework)
-- Django REST Framework (API)
-- Celery (Background Processing)
-- Redis (Message Broker)
-- SQLite (Database - dev)
-- pikepdf (PDF Processing)
+Per page, the first engine that returns text wins: **Claude → Gemini → Google Vision**
+(Vision only if neither AI engine is on) **→ Netra-OCR** (local, Khmer) **→ Tesseract**.
+Engines and API keys are configured in the Django admin under *OCR Settings*. Cloud engines retry
+twice with backoff; if "fall back" is switched off in settings, a cloud failure aborts the job
+instead. Details and rules: [GEMINI.md](GEMINI.md).
 
-## Quick Start
-
-### 1. Install Dependencies
+## Local setup
 
 ```bash
 pip install -r requirements.txt
-```
-
-### 2. Run Redis
-
-Using Docker:
-```bash
-docker run -d -p 6379:6379 redis
-```
-
-Or install Redis locally and run:
-```bash
-redis-server
-```
-
-### 3. Run Migrations
-
-```bash
 python manage.py migrate
+python manage.py populate_calendar     # optional: seed holidays
+python manage.py runserver             # or run_local.bat on Windows
 ```
 
-### 4. Start Django Server
+Tasks run in-process (`CELERY_TASK_ALWAYS_EAGER = True`), so Redis is **not** required for dev.
 
-```bash
-python manage.py runserver
-```
+External binaries (not tracked in git):
 
-### 5. Start Celery Worker (in new terminal)
+- **Poppler** (PDF to image, OCR fallback rendering). Windows: run `install_poppler.bat`, which
+  downloads it to `D:\poppler`, then `move_poppler.bat` to place it at `<repo>\poppler`
+  (or set `POPPLER_PATH` to its `Library\bin`). Linux/Docker: `poppler-utils`.
+- **Tesseract 5** with `eng` and `khm` data. `tessdata/` holds `eng` and `khm`; on Windows install
+  from <https://github.com/UB-Mannheim/tesseract/wiki> (or set `TESSERACT_CMD`).
+- **Ghostscript** (optional, better compression; PyMuPDF is used if absent).
 
-```bash
-celery -A config worker --loglevel=info
-```
+## Deploy
 
-## Usage
-
-1. Open browser at http://localhost:8000
-2. Upload a PDF file
-3. Wait for processing (Celery handles it in background)
-4. Download the compressed PDF
-5. View the KHQR tip page
-
-## API Endpoints
-
-- `POST /api/compress/` - Upload PDF for compression
-- `GET /api/job/<job_id>/` - Check job status
-
-## Using Docker
-
-```bash
-docker-compose up --build
-```
-
-This will start:
-- Django web server on port 8000
-- Redis on port 6379
-- Celery worker
-
-## Features
-
-- PDF compression using pikepdf
-- Background processing with Celery
-- Job status tracking (pending, processing, done, failed)
-- File validation (PDF only, 50MB max)
-- Clean, modern UI
+`Dockerfile` / `docker-compose.yml`, `Procfile`, `fly.toml`, or `setup_server.sh` + `start.sh`
+for a VPS. Copy `.env.example` to `.env` and set `SECRET_KEY` and `DEBUG=False`.

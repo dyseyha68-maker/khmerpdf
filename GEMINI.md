@@ -1,26 +1,26 @@
 # KhmerPDF Workspace Rules & Architecture Guidelines
 
 ## 1. OCR Architecture & Multi-Engine Hierarchy
-The OCR pipeline in [`apps/pdf/tasks.py`](apps/pdf/tasks.py) operates on a tiered fallback model:
-1. **Claude AI Vision (Primary High-Fidelity Multimodal)**:
-   - Uses Anthropic Vision (`claude-3-5-sonnet-20241022` or `claude-3-5-haiku-20241022`) via `_claude_ocr_page()`.
-   - Transcribes text and reconstructs full document structures into a strict JSON schema: `heading`, `paragraph`, `list_item`, `table` (grid or borderless).
-   - Reconstructs tables, side-by-side letterheads, signature sections, and dates with high fidelity.
-2. **Google Gemini Flash Vision (Ultra Low-Cost / Free Tier AI)**:
-   - Uses Google Gemini Vision (`gemini-1.5-flash` or `gemini-2.0-flash`) via `_gemini_ocr_page()`.
-   - ~100x cheaper than Sonnet, very fast (1-2s/page), and free tier available (15 RPM from Google AI Studio).
-   - Solves Khmer complex consonant clustering (`ជើង`) with full linguistic comprehension.
-3. **Google Cloud Vision (Traditional Cloud OCR)**:
-   - Uses `DOCUMENT_TEXT_DETECTION` via `_vision_ocr_page()`.
-4. **KhmerOCR ONNX (Zero-Cost Local Deep Learning)**:
-   - Local ONNX models (`det.onnx` + `rec.onnx` ~25MB) running on CPU via `_khmerocr_page()`.
-   - Trained on 3M lines, 800+ fonts; detects Moul vs Regular font styles.
-5. **Local Tesseract OCR (Legacy Offline Fallback)**:
-   - Uses `pytesseract.image_to_data` for spatial layout reconstruction, falling back to `--psm 6`.
+`ocr_pdf` in [`apps/pdf/tasks.py`](apps/pdf/tasks.py) is a thin orchestrator. The engine code lives in
+[`apps/pdf/ocr/`](apps/pdf/ocr): `pipeline.py` (engine selection, retry/backoff, per-page cascade),
+`pages.py` (page streaming), `docx_writer.py` (Word output) and `engines/` (one module per engine, each
+exposing an `OCREngine` subclass with `run(doc, page, gray) -> chars_written`).
+
+Per page, the first engine that returns text wins; an engine that errors or returns nothing hands the page on:
+1. **Claude AI Vision** (`engines/claude.py`): Anthropic vision, returns structured JSON (`heading`, `paragraph`, `list_item`, `table`).
+2. **Google Gemini Vision** (`engines/gemini.py`): same prompt (`engines/prompt.py`), very cheap, free tier available.
+3. **Google Cloud Vision** (`engines/gcv.py`): `DOCUMENT_TEXT_DETECTION`. Only used when neither Claude nor Gemini is enabled.
+4. **Netra-OCR** (`engines/netra.py`): local CNN-Transformer with YOLO line detection, for `khm` / `eng+khm` when `local_engine` is `khmerocr` (legacy value; it now means Netra).
+5. **Tesseract** (`engines/tesseract.py`): always last; spatial layout and table reconstruction.
+
+Cloud engines (1-3) retry twice with 2s/4s backoff. If `OCRSettings.fallback_to_tesseract` is off, a cloud
+engine failure aborts the job instead of falling through. Pages where no engine produced text are reported
+as `failed_pages` in the job status. Add a new engine by writing an `OCREngine` subclass and registering it in
+`pipeline.build_engines`.
 
 ## 2. Memory-Safe Page Streaming Generator
 - **Critical Rule**: NEVER load all pages of a multi-page PDF into memory simultaneously (e.g. avoid `convert_from_path(input_path)` without page limits). Fly.io/VPS VMs run with limited memory (1GB RAM) and will crash from Linux Out-Of-Memory (OOM) kills.
-- **Always use `_iter_document_pages(input_path, page_range_str, max_limit, dpi)`**:
+- **Always use `_iter_document_pages(input_path, page_range_str, max_limit, dpi)`** (in [`apps/pdf/ocr/pages.py`](apps/pdf/ocr/pages.py)):
   - Renders pages one by one using PyMuPDF (`fitz`), which operates directly in C/C++ in milliseconds with < 60MB RAM footprint.
   - Automatically falls back to single-page `pdf2image` if fitz encounters rare stream issues.
   - Deletes each rendered page and forces garbage collection immediately: `del page; del gray; gc.collect()`.
@@ -50,8 +50,8 @@ The OCR pipeline in [`apps/pdf/tasks.py`](apps/pdf/tasks.py) operates on a tiere
   - Squeeze-and-Excitation Transformer with YOLOv2.6s text-line detection and Khmer Character Cluster (KCC) tokenizer.
   - Runs on CPU with PyTorch and cached weights (~77MB).
   - Outperforms Tesseract on complex subscript consonant clusters (`ជើង`) and legal terminology with near-human transcription fidelity.
-  - Implemented in `_netraocr_page()` in [`apps/pdf/tasks.py`](apps/pdf/tasks.py) with streaming compatibility.
+  - Implemented in `_netraocr_page()` in [`apps/pdf/ocr/engines/netra.py`](apps/pdf/ocr/engines/netra.py) with streaming compatibility.
   - Automatically formats native Word (.docx) elements using `Khmer OS Battambang` for body and `Khmer OS Muol Light` for headings.
-  - Configurable via `OCRSettings.local_engine` (`khmerocr` vs `tesseract`) in [`apps/pdf/models.py`](apps/pdf/models.py).
+  - Configurable via `OCRSettings.local_engine` (`khmerocr` = Netra, or `tesseract`) in [`apps/pdf/models.py`](apps/pdf/models.py).
 
 

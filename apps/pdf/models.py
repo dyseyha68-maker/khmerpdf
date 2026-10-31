@@ -124,10 +124,10 @@ class Job(models.Model):
 
 
 class OCRSettings(models.Model):
-    """Singleton row (always pk=1) — lets the admin switch the OCR engine
-    from Tesseract (free, local) to Google Cloud Vision (paid, more
-    accurate — especially for Khmer script) without touching code or
-    redeploying. See apps/pdf/tasks.py:ocr_pdf for how this is read."""
+    """Singleton row (always pk=1) — lets the admin choose the OCR engines
+    (Claude, Gemini, Google Vision, or the local Netra / Tesseract engines)
+    without touching code or redeploying. See apps/pdf/ocr/pipeline.py:build_engines
+    for how this is read."""
 
     use_claude = models.BooleanField(
         default=False,

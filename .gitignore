@@ -13,3 +13,8 @@ deploy_pkg1.zip
 *.zip
 _iotest.txt
 scratch/
+
+# Local Windows tooling / large binaries (see README: Local setup)
+poppler/
+poppler-windows-*/
+tessdata/osd.traineddata
