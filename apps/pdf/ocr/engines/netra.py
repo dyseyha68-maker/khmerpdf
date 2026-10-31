@@ -235,21 +235,11 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img):
     return elements
 
 
-def _netraocr_page(doc, pil_image, ocr_lang='khm'):
-    """
-    Run Netra-OCR (CNN-Transformer) on a single page PIL image.
-    Netra-OCR is a Squeeze-and-Excitation Transformer trained on Khmer script with
-    YOLO-based text-line detection + Khmer Character Cluster tokenizer recognition.
-    Automatically reconstructs spatial layout and formats native Microsoft Word (.docx)
-    elements using Khmer OS Battambang and OpenXML tags.
-    Returns: total_chars_extracted (int)
-    """
+def _netra_segments(pil_image):
+    """Run Netra on one page image and return its detected text-line segments
+    (dicts with 'type', 'bbox', 'text'); [] if nothing was detected."""
     import os
-    import re
     import tempfile
-    from docx.shared import Pt
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from docx.oxml.ns import qn
 
     # Convert to RGB for YOLO detection
     if pil_image.mode != 'RGB':
@@ -282,7 +272,34 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
             except OSError:
                 pass
 
-    segments = meta.get('segments', []) if isinstance(meta, dict) else []
+    return meta.get('segments', []) if isinstance(meta, dict) else []
+
+
+def netra_page_elements(pil_image):
+    """Netra segments grouped into structured document elements (same schema
+    the Claude/Gemini prompt returns). Used by the layout scorer."""
+    segments = _netra_segments(pil_image)
+    if not segments:
+        return []
+    w_img, h_img = pil_image.size
+    return _reconstruct_netra_spatial_elements(segments, w_img, h_img)
+
+
+def _netraocr_page(doc, pil_image, ocr_lang='khm'):
+    """
+    Run Netra-OCR (CNN-Transformer) on a single page PIL image.
+    Netra-OCR is a Squeeze-and-Excitation Transformer trained on Khmer script with
+    YOLO-based text-line detection + Khmer Character Cluster tokenizer recognition.
+    Automatically reconstructs spatial layout and formats native Microsoft Word (.docx)
+    elements using Khmer OS Battambang and OpenXML tags.
+    Returns: total_chars_extracted (int)
+    """
+    import re
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml.ns import qn
+
+    segments = _netra_segments(pil_image)
     if not segments:
         return 0
 
