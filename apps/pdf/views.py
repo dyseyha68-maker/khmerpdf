@@ -510,6 +510,52 @@ def _save_replace_files(replace_files):
     return paths
 
 
+PREVIEW_MAX_ITEMS = 400
+
+
+@api_view(['GET'])
+def job_preview(request, job_id):
+    """Paragraphs of a finished OCR Word file with their formatting, for the result preview."""
+    from docx import Document
+    from docx.oxml.ns import qn
+    from docx.table import Table
+    from docx.text.paragraph import Paragraph
+
+    job = get_object_or_404(Job, id=job_id)
+    if job.tool != 'ocr' or job.status != 'done' or not job.result:
+        raise Http404('No preview available')
+
+    doc = Document(job.result.path)
+    items, truncated = [], False
+    for child in doc.element.body.iterchildren():
+        if len(items) >= PREVIEW_MAX_ITEMS:
+            truncated = True
+            break
+        if child.tag == qn('w:p'):
+            para = Paragraph(child, doc)
+            page_break = bool(child.xpath('.//w:br[@w:type="page"]'))
+            if not para.text.strip() and not page_break:
+                continue
+            runs = [r for r in para.runs if r.text.strip()]
+            pf = para.paragraph_format
+            pitch = getattr(pf.line_spacing, 'pt', None)
+            items.append({
+                'type': 'page_break' if page_break and not para.text.strip() else 'p',
+                'text': para.text,
+                'align': {0: 'left', 1: 'center', 2: 'right', 3: 'justify'}.get(
+                    int(para.alignment) if para.alignment is not None else 0, 'left'),
+                'bold': bool(runs) and all(r.bold for r in runs),
+                'size': next((r.font.size.pt for r in runs if r.font.size), None),
+                'before': pf.space_before.pt if pf.space_before is not None else None,
+                'pitch': pitch,
+                'indent': pf.first_line_indent.pt if pf.first_line_indent is not None else None,
+            })
+        elif child.tag == qn('w:tbl'):
+            table = Table(child, doc)
+            items.append({'type': 'table', 'rows': [[c.text for c in row.cells] for row in table.rows]})
+    return Response({'items': items, 'truncated': truncated})
+
+
 @csrf_exempt
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])

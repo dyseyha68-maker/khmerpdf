@@ -1030,6 +1030,41 @@
             box-shadow: 0 0 0 24px var(--surface);
         }
     }
+
+    /* Result panel + preview (shown after a job finishes) */
+    .result-modal { max-width: 520px; width: calc(100% - 32px); text-align: left; }
+    .result-modal h2 { text-align: center; }
+    .result-summary { font-size: 15px; font-weight: 600; text-align: center; margin: 6px 0 14px; color: var(--text); }
+    .result-warning {
+        background: #fff7ed; border: 1px solid #fdba74; color: #9a3412;
+        border-radius: 10px; padding: 12px 14px; font-size: 13.5px; line-height: 1.5; margin-bottom: 14px;
+    }
+    [data-theme="dark"] .result-warning { background: #3b2a1a; border-color: #9a3412; color: #fdba74; }
+    .result-warning strong { display: block; margin-bottom: 4px; }
+    .result-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .result-actions button {
+        flex: 1 1 140px; padding: 12px 16px; border-radius: 10px; font-size: 14.5px; font-weight: 600;
+        cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    }
+    .result-actions button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .result-actions button:disabled { opacity: .6; cursor: wait; }
+    .result-close { display: block; margin: 12px auto 0; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 13px; }
+
+    .preview-modal { max-width: 760px; width: calc(100% - 24px); max-height: calc(100vh - 40px); display: flex; flex-direction: column; text-align: left; padding: 18px; }
+    .preview-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .preview-head h2 { margin: 0; font-size: 17px; }
+    .preview-note { font-size: 12px; color: var(--text-secondary); margin: 0 0 10px; }
+    .preview-sheet {
+        background: #fff; color: #111; border: 1px solid #d1d5db; border-radius: 6px;
+        padding: 28px 32px; overflow-y: auto; flex: 1; min-height: 200px;
+        font-family: 'Khmer OS Battambang', 'Noto Sans Khmer', 'Kantumruy Pro', 'Inter', sans-serif;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,.02);
+    }
+    .preview-sheet p { margin: 0; white-space: pre-wrap; word-break: break-word; }
+    .pv-break { border-top: 2px dashed #cbd5e1; margin: 16px -8px; text-align: center; height: 0; }
+    .pv-break span { position: relative; top: -10px; background: #fff; padding: 0 8px; font: 11px 'Inter', sans-serif; color: #94a3b8; }
+    .pv-table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 11pt; }
+    .pv-table td { border: 1px solid #d1d5db; padding: 4px 8px; vertical-align: top; white-space: pre-wrap; }
 </style>
 {% endblock %}
 
@@ -1301,6 +1336,60 @@
         </div>
     </div>
 
+    <!-- Result Modal: summary, pages without text, preview + download -->
+    <div class="modal-overlay" x-show="resultVisible && !previewVisible" x-cloak>
+        <div class="modal result-modal" @click.stop>
+            <h2 x-text="isKhmer ? 'ការបម្លែងរួចរាល់' : 'Conversion complete'"></h2>
+            <p class="result-summary" x-text="resultSummary()"></p>
+
+            <div class="result-warning" x-show="resultJob && resultJob.failed.length" x-cloak>
+                <strong x-text="isKhmer ? 'រកមិនឃើញអក្សរនៅទំព័រខាងក្រោម' : 'No text was found on these pages'"></strong>
+                <span x-text="failedPagesText()"></span><br>
+                <span x-text="isKhmer
+                    ? 'ទំព័រទាំងនោះអាចទទេ មិនច្បាស់ ឬមិនអាចអានបាន។ សូមពិនិត្យ ហើយសាកល្បងម្ដងទៀត។'
+                    : 'They may be blank, too faint or unreadable. Check them and try again if needed.'"></span>
+            </div>
+
+            <div class="result-actions">
+                <button type="button" @click="openPreview()" :disabled="previewLoading">
+                    <i class="ti ti-eye"></i>
+                    <span x-text="previewLoading ? (isKhmer ? 'កំពុងផ្ទុក...' : 'Loading...') : (isKhmer ? 'មើលជាមុន' : 'Preview')"></span>
+                </button>
+                <button type="button" class="primary" @click="downloadResult()">
+                    <i class="ti ti-download"></i>
+                    <span x-text="isKhmer ? 'ទាញយក Word' : 'Download Word'"></span>
+                </button>
+            </div>
+            <button type="button" class="result-close" @click="resultVisible = false" x-text="isKhmer ? 'បិទ' : 'Close'"></button>
+        </div>
+    </div>
+
+    <!-- Preview Modal: the converted document, with the measured formatting -->
+    <div class="modal-overlay" x-show="previewVisible" x-cloak @click.self="previewVisible = false">
+        <div class="modal preview-modal" @click.stop>
+            <div class="preview-head">
+                <h2 x-text="isKhmer ? 'ការមើលជាមុន' : 'Preview'"></h2>
+                <button type="button" class="result-close" style="margin:0" @click="previewVisible = false" x-text="isKhmer ? 'បិទ' : 'Close'"></button>
+            </div>
+            <p class="preview-note" x-text="isKhmer
+                ? 'ការមើលជាមុនសាមញ្ញ ទម្រង់ក្នុង Microsoft Word អាចខុសគ្នាបន្តិចបន្តួច។'
+                : 'A simple preview: the formatting in Microsoft Word may differ slightly.'"></p>
+            <div class="preview-sheet">
+                <template x-for="(it, i) in previewItems" :key="i">
+                    <div>
+                        <template x-if="it.type === 'page_break'"><div class="pv-break"><span x-text="isKhmer ? 'ចុះបន្ទាត់ទំព័រ' : 'page break'"></span></div></template>
+                        <template x-if="it.type === 'table'">
+                            <table class="pv-table"><template x-for="(row, r) in it.rows" :key="r"><tr><template x-for="(cell, c) in row" :key="c"><td x-text="cell"></td></template></tr></template></table>
+                        </template>
+                        <template x-if="it.type === 'p'"><p :style="pvStyle(it)" x-text="it.text"></p></template>
+                    </div>
+                </template>
+                <p x-show="previewTruncated" style="color:#94a3b8;font:12px 'Inter',sans-serif;margin-top:12px"
+                   x-text="isKhmer ? '... មានច្រើនទៀតក្នុងឯកសារ Word' : '... more in the Word file'"></p>
+            </div>
+        </div>
+    </div>
+
     <!-- Range Selection Modal -->
     <div class="modal-overlay" x-show="rangeModalVisible" x-cloak @click.self="rangeModalVisible = false">
         <div class="modal range-modal" @click.stop>
@@ -1414,6 +1503,13 @@ function ocrApp() {
         serverTotalPages: 0,
         progressPercent: 0,
         progressText: '',
+        resultVisible: false,
+        resultJob: null,          // {id, url, name, total, failed: [position in the selected pages]}
+        previewVisible: false,
+        previewLoading: false,
+        previewItems: [],
+        previewTruncated: false,
+        _submittedPages: [],
         _nextId: 1,
 
         async init() {
@@ -1791,6 +1887,7 @@ function ocrApp() {
             }
 
             this.showModal();
+            this._submittedPages = activePages.map(p => ({ name: p.sourceName || '', num: p.pageNum }));
 
             try {
                 let fileToSend = null;
@@ -1901,10 +1998,13 @@ function ocrApp() {
                         this.progressPercent = 100;
                         this.progressText = (typeof isKhmer !== 'undefined' && isKhmer) ? 'បម្លែងរួចរាល់ 100%!' : 'Conversion completed 100%!';
                         await removeOcrSession();
-                        setTimeout(() => {
-                            window.location.href = '/khqr/?download=' + encodeURIComponent(job.result_url || '')
-                                + '&filename=' + encodeURIComponent(dlName);
-                        }, 400);
+                        this.hideModal();
+                        this.resultJob = {
+                            id: jobId, url: job.result_url || '', name: dlName,
+                            total: job.total_pages || this._submittedPages.length,
+                            failed: job.failed_pages || [],
+                        };
+                        this.resultVisible = true;
                     } else if (job.status === 'failed') {
                         clearInterval(iv);
                         this.hideModal();
@@ -1914,6 +2014,57 @@ function ocrApp() {
                     console.warn('Poll error:', err);
                 }
             }, 2000);
+        },
+
+        // ── Result panel ──
+        pageLabel(pos) {
+            // position in the selected pages -> the page's own number (+ file name when several files)
+            const p = this._submittedPages[pos - 1];
+            if (!p) return String(pos);
+            const names = new Set(this._submittedPages.map(x => x.name));
+            const kh = typeof isKhmer !== 'undefined' && isKhmer;
+            const num = (kh && typeof toKhNum === 'function') ? toKhNum(p.num) : p.num;
+            return names.size > 1 && p.name ? `${p.name} · ${num}` : String(num);
+        },
+        failedPagesText() {
+            return (this.resultJob ? this.resultJob.failed : []).map(n => this.pageLabel(n)).join(', ');
+        },
+        resultSummary() {
+            if (!this.resultJob) return '';
+            const kh = typeof isKhmer !== 'undefined' && isKhmer;
+            const total = this.resultJob.total, ok = Math.max(0, total - this.resultJob.failed.length);
+            const n = v => (kh && typeof toKhNum === 'function') ? toKhNum(v) : v;
+            return kh ? `បានបម្លែង ${n(ok)} ក្នុងចំណោម ${n(total)} ទំព័រ`
+                                : `${ok} of ${total} pages converted`;
+        },
+        downloadResult() {
+            const j = this.resultJob;
+            if (!j) return;
+            window.location.href = '/khqr/?download=' + encodeURIComponent(j.url || '') + '&filename=' + encodeURIComponent(j.name);
+        },
+        async openPreview() {
+            if (!this.resultJob || this.previewLoading) return;
+            this.previewLoading = true;
+            try {
+                const r = await fetch('/api/job/' + this.resultJob.id + '/preview/');
+                if (!r.ok) throw new Error('preview ' + r.status);
+                const d = await r.json();
+                this.previewItems = d.items || [];
+                this.previewTruncated = !!d.truncated;
+                this.previewVisible = true;
+            } catch (err) {
+                alert((typeof isKhmer !== 'undefined' && isKhmer) ? 'មិនអាចបង្ហាញការមើលជាមុនបានទេ។ សូមទាញយកឯកសារ Word។' : 'Could not load the preview. Please download the Word file.');
+            } finally {
+                this.previewLoading = false;
+            }
+        },
+        pvStyle(it) {
+            const parts = [`text-align:${it.align || 'left'}`, `font-weight:${it.bold ? 700 : 400}`, `font-size:${it.size || 11}pt`];
+            parts.push(`margin-top:${it.before || 0}pt`);
+            if (it.pitch) parts.push(`line-height:${it.pitch}pt`);
+            if (it.indent > 0) parts.push(`text-indent:${it.indent}pt`);
+            else if (it.indent < 0) parts.push(`padding-left:${-it.indent}pt`, `text-indent:${it.indent}pt`);   // hanging indent
+            return parts.join(';');
         },
 
         async imageToJpgBytes(file) {

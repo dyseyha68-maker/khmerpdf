@@ -49,6 +49,9 @@ Per page, the first engine that returns text wins.
   There is no local English engine, so **at least one cloud engine must be enabled**, otherwise the
   job fails with a clear message.
 
+When a job finishes, the OCR page shows a result panel (pages converted, pages with no text, a preview of the
+Word file, and the download button). Dev tools: `ocr_format_bench`, `ocr_layout`, `ocr_compare` (see GEMINI.md).
+
 Engines and API keys are configured in the Django admin under *OCR Settings*. Cloud engines retry
 twice with backoff; if "continue to the next engine" is switched off in settings, a cloud failure
 aborts the job instead. Details and rules: [GEMINI.md](GEMINI.md).

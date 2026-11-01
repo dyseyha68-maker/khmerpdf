@@ -56,4 +56,19 @@ as `failed_pages` in the job status. Add a new engine by writing an `OCREngine` 
   - Automatically formats native Word (.docx) elements using `Khmer OS Battambang` for body text and headings (headings are bold and larger).
   - `OCRSettings.local_engine` only has the `khmerocr` (= Netra) choice in [`apps/pdf/models.py`](apps/pdf/models.py).
 
+## 6. Formatting fidelity from the scan (Netra path)
+Netra only gives line boxes and text, so `engines/netra.py` measures the formatting from the page itself:
+- **Whole lines first** (`_merge_line_pieces`): the detector often returns a long box, a duplicate inside it and the
+  line's right-hand end; they are rebuilt into one line before any zone/paragraph rule runs.
+- **Paragraphs** break on a larger vertical gap, an indented first line, or a *short* last line ending in `។`/`:`;
+  a short line that changes weight or size is a heading.
+- **Measured per paragraph** (`_paragraph_format`, written to the element and applied by `docx_writer._apply_measured`):
+  `font_size`, `bold` (stroke thickness vs the page's body text, threshold `BOLD_RATIO`), exact `line_pitch`,
+  `space_before`, `first_line_indent`. Elements without these keys (Claude/Gemini output) keep the writer's defaults.
+- **Measure it, don't guess:** `python manage.py ocr_format_bench --synthetic [--font battambang|content|noto]`, or
+  `ocr_format_bench some_digital.pdf --pages 1-3 --dump`, compares the measurement with a digital PDF's own text layer.
+  Constants (`BOX_SLOPE`, `BOX_PAD_PT`, `LATIN_BOX_RATIO`, `BOLD_RATIO`) were fitted this way; re-run it after changing them.
+- **Known limits:** bold *inside* a line is not detected (whole paragraphs only); font size is approximate (about
+  0.3-0.7pt on Khmer OS fonts, ~3pt small on Noto Sans Khmer); the detector sometimes misses text in the middle of a line.
+- Other dev tools: `ocr_layout` (structure + score against a reference JSON), `ocr_compare` (engines/Netra settings).
 
