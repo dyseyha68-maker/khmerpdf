@@ -16,6 +16,5 @@ numpy>=1.24,<2.0.0
 google-cloud-vision>=3.7
 anthropic>=0.20.0
 google-generativeai>=0.8.0
-ultralytics
 onnxruntime>=1.17.0  # required at runtime by Netra-OCR (not declared by its package)
 git+https://github.com/netra-ai-lab/Netra-OCR.git
