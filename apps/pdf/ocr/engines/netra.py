@@ -29,10 +29,20 @@ def _line_stroke(gray, bbox):
 
 
 # Detector boxes include roughly constant padding, so box height is not proportional to font size.
-# Calibrated on Khmer OS Battambang renders: box_pt ~= BOX_SLOPE * font_pt + BOX_PAD_PT.
-BOX_SLOPE, BOX_PAD_PT = 1.48, 6.9
-BOLD_RATIO = 1.45        # stroke thickness vs the page's body text
+# Fitted with `manage.py ocr_format_bench --synthetic` (Khmer OS Battambang, 8.5-18pt):
+# box_pt ~= BOX_SLOPE * font_pt + BOX_PAD_PT.
+BOX_SLOPE, BOX_PAD_PT = 1.33, 6.7
+# Latin text has no subscripts/vowel stacks, so its boxes are tight: box_pt ~= LATIN_BOX_RATIO * font_pt
+# (measured on the English Consumer PDF: 9pt body -> ~13.7pt boxes).
+LATIN_BOX_RATIO = 1.5
+BOLD_RATIO = 1.10        # stroke thickness vs the page's body text: bold 1.16-1.41, regular 0.95-1.05 in the benchmark
+JOIN_GAP_LINES = 3.5      # pieces of one printed line are at most this many line-heights apart
 MIN_LINE_RATIO = 1.55    # exact line pitch never below this multiple of the font size (Khmer subscripts)
+
+
+def _khmer_share(text):
+    letters = [c for c in text if not c.isspace()]
+    return sum('ក' <= c <= '៿' for c in letters) / len(letters) if letters else 0.0
 
 
 def _median(values, default=None):
@@ -62,24 +72,27 @@ def _page_metrics(valid_segs, gray, w_img, dpi):
     pitch = _median(diffs)
     if not pitch:
         return None
-    body_pt = _median([((body_h * ptpp) - BOX_PAD_PT) / BOX_SLOPE], 11.0)
+    khmer = _khmer_share(' '.join(s['text'] for s in text_segs)) > 0.3
+    body_pt = _box_to_pt(body_h * ptpp, khmer)
     return {
         'ptpp': ptpp,
         'body_h': body_h,
         'pitch': pitch,
         'left': _median([s['x1'] for s in text_segs]),
-        'body_pt': min(13.0, max(9.0, round(body_pt * 2) / 2.0)),
+        'khmer': khmer,
+        'body_pt': min(14.0, max(8.0, round(body_pt * 2) / 2.0)),
         'body_stroke': _median([s['stroke_rel'] for s in text_segs]),
     }
 
 
-def _line_font_pt(h_px, m):
-    """Font size of a line relative to the body text (padding-corrected), snapped to 0.5pt."""
-    body_box = m['body_h'] * m['ptpp'] - BOX_PAD_PT
-    if body_box <= 0:
-        return m['body_pt']
-    size = m['body_pt'] * (h_px * m['ptpp'] - BOX_PAD_PT) / body_box
-    return min(24.0, max(7.0, round(size * 2) / 2.0))
+def _box_to_pt(box_pt, khmer):
+    """Font size from a detector box height; the padding differs by script."""
+    return (box_pt - BOX_PAD_PT) / BOX_SLOPE if khmer else box_pt / LATIN_BOX_RATIO
+
+
+def _line_font_pt(h_px, m, khmer):
+    """Font size of a line from its detector box height, snapped to 0.5pt."""
+    return min(30.0, max(6.0, round(_box_to_pt(h_px * m['ptpp'], khmer) * 2) / 2.0))
 
 
 def _paragraph_format(lines, m, w_img, prev_last_cy):
@@ -87,15 +100,19 @@ def _paragraph_format(lines, m, w_img, prev_last_cy):
     fmt = {}
     pt = lambda px: px * m['ptpp']
     line_h = _median([l['h'] for l in lines])
-    size = _line_font_pt(line_h, m)
+    size = _line_font_pt(line_h, m, _khmer_share(' '.join(l['text'] for l in lines)) > 0.3)
     if abs(size - m['body_pt']) < 1.6:      # box heights jitter with subscripts: snap near-body sizes to body
         size = m['body_pt']
     size = round(max(size, 0.72 * m['body_pt']) * 2) / 2.0   # footnotes shrink, but not below readable
     fmt['font_size'] = size
+    fmt['box_h_pt'] = round(line_h * m['ptpp'], 1)   # raw detector box height, for calibration
 
     rels = [l.get('stroke_rel') for l in lines]
-    if m['body_stroke'] and _median(rels) and _median(rels) / m['body_stroke'] >= BOLD_RATIO:
-        fmt['bold'] = True
+    if m['body_stroke'] and _median(rels):
+        ratio = _median(rels) / m['body_stroke']
+        fmt['stroke_ratio'] = round(ratio, 2)   # thickness vs the page's body text (bold if >= BOLD_RATIO)
+        if ratio >= BOLD_RATIO:
+            fmt['bold'] = True
 
     cys = sorted(l['cy'] for l in lines)
     steps = [b - a for a, b in zip(cys, cys[1:]) if b - a > 0.5 * m['body_h']]
@@ -116,6 +133,72 @@ def _paragraph_format(lines, m, w_img, prev_last_cy):
     return fmt
 
 
+def _join_pieces(a, b):
+    """Merge two boxes of one printed line (b to the right of a)."""
+    wa, wb = max(1, a['w']), max(1, b['w'])
+    out = dict(a)
+    out.update(
+        text=(a['text'] + ' ' + b['text']).strip(),
+        x1=min(a['x1'], b['x1']), y1=min(a['y1'], b['y1']),
+        x2=max(a['x2'], b['x2']), y2=max(a['y2'], b['y2']),
+    )
+    out.update(cx=(out['x1'] + out['x2']) / 2.0, cy=(out['y1'] + out['y2']) / 2.0,
+               w=out['x2'] - out['x1'], h=out['y2'] - out['y1'])
+    ra, rb = a.get('stroke_rel'), b.get('stroke_rel')
+    out['stroke_rel'] = (ra * wa + rb * wb) / (wa + wb) if ra and rb else (ra or rb)
+    return out
+
+
+def _merge_line_pieces(segs, body_h, w_img=None):
+    """The detector often returns one printed line as several boxes: a long box plus a duplicate
+    inside it, plus the line's right-hand end. Rebuild whole lines before grouping paragraphs:
+    drop duplicate overlapping boxes and join adjacent pieces; boxes far apart on the same row
+    (columns, margin notes) stay separate."""
+    text = [s for s in segs if s['type'] != 'logo' and s['text']]
+    others = [s for s in segs if not (s['type'] != 'logo' and s['text'])]
+    # text column edges: justified lines run from the left to the right margin
+    left_edge = right_edge = None
+    if len(text) >= 5:
+        left_edge = sorted(s['x1'] for s in text)[len(text) // 5]
+        right_edge = sorted(s['x2'] for s in text)[(4 * len(text)) // 5]
+    rows = []
+    for s in sorted(text, key=lambda s: s['cy']):
+        for row in rows:
+            if abs(row['cy'] - s['cy']) <= 0.3 * min(row['h'], s['h']):
+                row['parts'].append(s)
+                break
+        else:
+            rows.append({'cy': s['cy'], 'h': s['h'], 'parts': [s]})
+    merged = []
+    for row in rows:
+        kept = []
+        for p in sorted(row['parts'], key=lambda p: p['x1']):
+            dup = next((k for k in kept if min(p['x2'], k['x2']) - max(p['x1'], k['x1']) > 0.6 * min(p['w'], k['w'])), None)
+            if dup is None:
+                kept.append(p)
+            elif len(p['text']) > len(dup['text']):
+                kept[kept.index(dup)] = p
+        line = [kept[0]]
+        for p in kept[1:]:
+            gap = p['x1'] - line[-1]['x2']
+            spans_column = (
+                w_img and left_edge is not None and gap <= 0.4 * w_img
+                and line[-1]['x1'] <= left_edge + 0.06 * w_img      # starts at the left margin (or a paragraph indent)
+                and p['x2'] >= right_edge - 0.03 * w_img            # ends at the right margin
+            )
+            if gap <= JOIN_GAP_LINES * body_h or spans_column:
+                line[-1] = _join_pieces(line[-1], p)
+            else:
+                line.append(p)
+        merged.extend(line)
+    return sorted(merged + others, key=lambda s: s['cy'])
+
+
+def _is_bold_line(seg, m):
+    rel = seg.get('stroke_rel')
+    return bool(rel and m.get('body_stroke') and rel / m['body_stroke'] >= BOLD_RATIO)
+
+
 def _apply_measured_format(el, b, m, w_img, prev_last_cy):
     """Copy measured size/bold/spacing/indent onto an element; promote a short bold
     single line (title / section heading) to a heading."""
@@ -130,6 +213,8 @@ def _apply_measured_format(el, b, m, w_img, prev_last_cy):
     if el['type'] == 'list_item':
         fmt.pop('first_line_indent', None)  # list items keep their hanging indent
     el.update(fmt)
+    el['bbox'] = [min(l['x1'] for l in b['lines']), min(l['y1'] for l in b['lines']),
+                  max(l['x2'] for l in b['lines']), max(l['y2'] for l in b['lines'])]  # px, for matching/preview
 
 
 def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=None):
@@ -177,6 +262,13 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=N
 
     valid_segs.sort(key=lambda s: s['cy'])
     metrics = _page_metrics(valid_segs, gray, w_img, dpi)
+    # whole printed lines first: the zone rules below (letterhead, tail, margin notes) assume one box per line
+    valid_segs = _merge_line_pieces(valid_segs, metrics['body_h'] if metrics else _median([s['h'] for s in valid_segs], 40), w_img)
+    if metrics:  # recompute the left margin from whole lines (pieces of right-hand line ends skewed it)
+        xs = sorted(s['x1'] for s in valid_segs if s['type'] != 'logo' and s['text'])
+        metrics['left'] = _median(xs[:max(1, len(xs) // 2)], metrics['left'])
+        x2s = sorted(s['x2'] for s in valid_segs if s['type'] != 'logo' and s['text'])
+        metrics['col_w'] = max(1.0, x2s[(4 * len(x2s)) // 5] - metrics['left'])   # text column width
     elements = []
 
     # ── 1. Top Letterhead Zone (cy < 0.22 * h_img) ──
@@ -269,8 +361,11 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=N
             nxt_salutation = any(k in nxt_txt for k in ('សូមគោរពជូន', 'គោរពជូន', 'ឯកឧត្តម', 'លោកជំទាវ', 'លោកប្រធាន')) and len(nxt_txt) < 80
             nxt_marginalia = (nxt['x1'] > 0.68 * w_img) and (nxt['w'] < 0.32 * w_img) and (not nxt_bullet) and (len(nxt_txt) < 40)
 
-            # If current ends with Khmer terminal '។' or '៖', do not merge
-            if full_text.rstrip().endswith(('។', '៖', ':', '.')):
+            # A sentence end only closes the paragraph on a short last line; a full-width
+            # justified line that happens to end with '។' continues into the next line
+            prev_line = para_lines[-1]
+            short_prev = (not metrics) or prev_line['w'] < 0.8 * metrics['col_w']
+            if full_text.rstrip().endswith(('។', '៖', ':', '.')) and short_prev:
                 break
 
             if nxt_bullet or nxt_label or nxt_salutation or nxt_marginalia:
@@ -281,6 +376,11 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=N
                 if nxt['cy'] - para_lines[-1]['cy'] > 1.35 * metrics['pitch']:
                     break
                 if nxt['x1'] - metrics['left'] > 0.03 * w_img:
+                    break
+                # a short line that changes weight or size is a heading / caption, not part of the paragraph
+                if prev_line['w'] < 0.7 * metrics['col_w'] and (
+                        _is_bold_line(prev_line, metrics) != _is_bold_line(nxt, metrics)
+                        or abs(prev_line['h'] - nxt['h']) > 0.25 * metrics['body_h']):
                     break
 
             full_text = full_text + ' ' + nxt_txt
