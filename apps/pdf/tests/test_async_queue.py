@@ -13,7 +13,7 @@ from unittest import mock
 import fitz
 from celery.contrib.testing.worker import start_worker
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TransactionTestCase, override_settings
+from django.test import Client, SimpleTestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 
 from apps.pdf.models import Job
@@ -149,10 +149,24 @@ class StaleJobTests(TransactionTestCase):
         self.assertEqual(Client().get(f'/api/job/{job.id}/').json()['status'], 'processing')
 
 
-class TaskRoutingTests(TransactionTestCase):
-    def test_ocr_task_is_routed_to_the_ocr_queue_without_importing_the_celery_app_by_hand(self):
+class TaskRoutingTests(SimpleTestCase):
+    def test_ocr_task_is_routed_to_the_ocr_queue_in_a_fresh_process(self):
         """Regression: with an empty config/__init__.py, tasks used an unconfigured default app and
-        ocr_pdf went to the general queue (so Netra loaded in the tools worker)."""
-        from apps.pdf.tasks import compress_pdf, ocr_pdf
-        self.assertEqual(ocr_pdf.app.amqp.router.route({}, ocr_pdf.name)['queue'].name, 'ocr')
-        self.assertEqual(compress_pdf.app.amqp.router.route({}, compress_pdf.name)['queue'].name, 'celery')
+        ocr_pdf went to the general queue (so Netra loaded in the tools worker). Checked in a fresh
+        process, because other test modules import the Celery app by hand and would mask the bug."""
+        import os
+        import subprocess
+        import sys
+        from django.conf import settings
+
+        script = (
+            "import os, django\n"
+            "os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'\n"
+            "django.setup()\n"
+            "from apps.pdf.tasks import compress_pdf, ocr_pdf\n"
+            "r = lambda t: t.app.amqp.router.route({}, t.name)['queue'].name\n"
+            "print('ROUTES', r(ocr_pdf), r(compress_pdf))\n"
+        )
+        out = subprocess.run([sys.executable, '-c', script], cwd=str(settings.BASE_DIR), capture_output=True,
+                             text=True, env={**os.environ, 'PYTHONPATH': str(settings.BASE_DIR)}, timeout=120)
+        self.assertIn('ROUTES ocr celery', out.stdout, out.stdout + out.stderr)
