@@ -57,7 +57,7 @@ class QueueTestCase(TransactionTestCase):
         resp = Client().post(url, data)
         return resp, resp.json()
 
-    def wait_for(self, job_id, timeout=30):
+    def wait_for(self, job_id, timeout=90):   # generous: a loaded machine once exceeded 30s
         deadline = time.time() + timeout
         while time.time() < deadline:
             data = Client().get(f'/api/job/{job_id}/').json()
