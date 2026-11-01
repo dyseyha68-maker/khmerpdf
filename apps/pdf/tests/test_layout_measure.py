@@ -98,3 +98,19 @@ class HelperTests(SimpleTestCase):
         self.assertGreater(_khmer_share('ក្នុងករណី'), 0.9)
         self.assertEqual(_khmer_share('Consumer protection'), 0.0)
         self.assertEqual(_khmer_share(''), 0.0)
+
+
+class StrokeMeasureTests(SimpleTestCase):
+    def test_stroke_thickness_is_measurable(self):
+        """Bold detection needs OpenCV: if it is missing the measurement silently returns None."""
+        import numpy as np
+        from apps.pdf.ocr.engines.netra import _line_stroke
+
+        img = np.full((60, 200), 255, dtype=np.uint8)
+        img[20:40, 10:190] = 0                         # a 20px-thick bar
+        thick = _line_stroke(img, (0, 0, 200, 60))
+        img2 = np.full((60, 200), 255, dtype=np.uint8)
+        img2[28:32, 10:190] = 0                        # a 4px-thick bar
+        thin = _line_stroke(img2, (0, 0, 200, 60))
+        self.assertIsNotNone(thick, 'opencv-python-headless is not installed')
+        self.assertGreater(thick, 2 * thin)
