@@ -6,8 +6,6 @@ RUN apt-get update && apt-get install -y \
     git \
     ghostscript \
     poppler-utils \
-    libgl1 \
-    libglib2.0-0 \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
