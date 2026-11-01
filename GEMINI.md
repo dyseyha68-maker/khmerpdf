@@ -62,9 +62,13 @@ Netra only gives line boxes and text, so `engines/netra.py` measures the formatt
   line's right-hand end; they are rebuilt into one line before any zone/paragraph rule runs.
 - **Paragraphs** break on a larger vertical gap, an indented first line, or a *short* last line ending in `។`/`:`;
   a short line that changes weight or size is a heading.
-- **Measured per paragraph** (`_paragraph_format`, written to the element and applied by `docx_writer._apply_measured`):
-  `font_size`, `bold` (stroke thickness vs the page's body text, threshold `BOLD_RATIO`), exact `line_pitch`,
-  `space_before`, `first_line_indent`. Elements without these keys (Claude/Gemini output) keep the writer's defaults.
+- **Measured per paragraph** (`_paragraph_format`, written to the element): `font_size`, `bold` (stroke thickness vs
+  the page's body text, threshold `BOLD_RATIO`), `line_pitch`, `space_before`, `first_line_indent`.
+- **What the Word file uses** (`docx_writer`): bold, alignment, `space_before` and `first_line_indent` come from the source,
+  but **font size and line spacing are fixed for every engine and every element (headings, lists, table cells)**:
+  `DOC_FONT_SIZE = 11` and `DOC_LINE_SPACING = 1.5` (Word "1.5 lines"). Change those two constants to change the look.
+  Note: Word multiplies the font's own line height (about 1.81 em for Khmer OS fonts), so 1.5 lines at 11pt is about 30pt
+  between lines; the scan itself is usually about 23pt.
 - **Measure it, don't guess:** `python manage.py ocr_format_bench --synthetic [--font battambang|content|noto]`, or
   `ocr_format_bench some_digital.pdf --pages 1-3 --dump`, compares the measurement with a digital PDF's own text layer.
   Constants (`BOX_SLOPE`, `BOX_PAD_PT`, `LATIN_BOX_RATIO`, `BOLD_RATIO`) were fitted this way; re-run it after changing them.

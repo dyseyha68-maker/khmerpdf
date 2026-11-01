@@ -2062,6 +2062,11 @@ function ocrApp() {
             const parts = [`text-align:${it.align || 'left'}`, `font-weight:${it.bold ? 700 : 400}`, `font-size:${it.size || 11}pt`];
             parts.push(`margin-top:${it.before || 0}pt`);
             if (it.pitch) parts.push(`line-height:${it.pitch}pt`);
+            else if (it.mult) {
+                // Word's "1.5 lines" multiplies the font's own line height: ~1.81 em for Khmer OS fonts, ~1.22 em for Calibri
+                const natural = /[ក-៿]/.test(it.text || '') ? 1.81 : 1.22;
+                parts.push(`line-height:${(it.mult * natural).toFixed(2)}`);
+            }
             if (it.indent > 0) parts.push(`text-indent:${it.indent}pt`);
             else if (it.indent < 0) parts.push(`padding-left:${-it.indent}pt`, `text-indent:${it.indent}pt`);   // hanging indent
             return parts.join(';');

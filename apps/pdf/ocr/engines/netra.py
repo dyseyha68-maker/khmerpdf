@@ -590,12 +590,12 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
         p = doc.add_paragraph()
         if is_moul:
             font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'
-            font_size = 13.0
+            font_size = 11.0
             is_bold = True
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.paragraph_format.space_before = Pt(4)
             p.paragraph_format.space_after = Pt(2)
-            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.line_spacing = 1.5
         else:
             # Smart alignment heuristics
             if re.search(r'ថ្ងៃទី\s*[0-9\u17E0-\u17E9]+\s*ខែ', text) and len(text) < 70:
@@ -606,7 +606,7 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
                 p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(2)
-            p.paragraph_format.line_spacing = 1.15
+            p.paragraph_format.line_spacing = 1.5
 
         run = p.add_run(text)
         run.bold = is_bold

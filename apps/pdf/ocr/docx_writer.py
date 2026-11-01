@@ -6,6 +6,12 @@ import os
 
 logger = logging.getLogger(__name__)
 
+# One look for every OCR Word file, whatever the engine: all text (headings, lists, table cells)
+# at the same size, with 1.5-line spacing. Bold, alignment, indents and gaps between paragraphs
+# are still kept from the source.
+DOC_FONT_SIZE = 11
+DOC_LINE_SPACING = 1.5
+
 
 def _add_structured_json_to_docx(doc, items):
     """
@@ -43,7 +49,7 @@ def _add_structured_json_to_docx(doc, items):
             run = paragraph.add_run(part)
             run.bold = run_bold
             run.font.name = font_name
-            run.font.size = Pt(font_size)
+            run.font.size = Pt(DOC_FONT_SIZE)
 
             rPr = run._element.get_or_add_rPr()
             rFonts = rPr.get_or_add_rFonts()
@@ -56,13 +62,11 @@ def _add_structured_json_to_docx(doc, items):
         return chars
 
     def _apply_measured(paragraph, item, font_size):
-        """Apply formatting measured from the original page (set by the Netra layout step):
-        exact line pitch, space before, first-line indent. No-op for elements without them."""
-        from docx.enum.text import WD_LINE_SPACING
+        """Formatting measured from a scanned page (set by the Netra layout step): the first-line indent
+        and the gap before the paragraph. Font size and line spacing are fixed (DOC_*), not measured."""
         pf = paragraph.paragraph_format
-        if item.get('line_pitch'):
-            pf.line_spacing = Pt(max(item['line_pitch'], 1.55 * font_size))
-            pf.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+        pf.line_spacing = DOC_LINE_SPACING
+        if item.get('line_pitch'):                       # the element came from a scan
             pf.space_after = Pt(0)
             # keep hanging indents (negative); otherwise use the measured first-line indent
             if pf.first_line_indent is None or pf.first_line_indent >= 0:
@@ -181,13 +185,12 @@ def _add_structured_json_to_docx(doc, items):
 
         if itype == 'heading':
             level = item.get('level', 1)
-            size_map = {1: 15.0, 2: 13.0, 3: 12.0}
-            font_size = item.get('font_size') or size_map.get(level, 13.0)
+            font_size = DOC_FONT_SIZE
             align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.CENTER)
             
             p = doc.add_paragraph()
             p.alignment = align
-            p.paragraph_format.line_spacing = 1.25
+            p.paragraph_format.line_spacing = DOC_LINE_SPACING
             p.paragraph_format.space_before = Pt(6 if level == 1 else 4)
             p.paragraph_format.space_after = Pt(2)
             _apply_measured(p, item, font_size)
@@ -200,7 +203,7 @@ def _add_structured_json_to_docx(doc, items):
 
             p = doc.add_paragraph()
             p.alignment = align
-            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.line_spacing = DOC_LINE_SPACING
             p.paragraph_format.space_before = Pt(1)
             p.paragraph_format.space_after = Pt(2)
 
@@ -212,7 +215,7 @@ def _add_structured_json_to_docx(doc, items):
                 p.paragraph_format.left_indent = Inches(0.35)
                 p.paragraph_format.first_line_indent = Inches(-0.25)
 
-            list_size = item.get('font_size') or 11
+            list_size = DOC_FONT_SIZE
             _apply_measured(p, item, list_size)
             total_chars += _add_styled_runs(p, text, is_bold=bool(item.get('bold')), font_size=list_size)
 
@@ -279,10 +282,10 @@ def _add_structured_json_to_docx(doc, items):
                     for l_i, l_str in enumerate(lines):
                         p = cell.paragraphs[0] if l_i == 0 else cell.add_paragraph()
                         p.alignment = c_align
-                        p.paragraph_format.line_spacing = 1.15
+                        p.paragraph_format.line_spacing = DOC_LINE_SPACING
                         p.paragraph_format.space_before = Pt(0)
                         p.paragraph_format.space_after = Pt(2)
-                        total_chars += _add_styled_runs(p, l_str, is_bold=c_bold, font_size=10.5)
+                        total_chars += _add_styled_runs(p, l_str, is_bold=c_bold, font_size=DOC_FONT_SIZE)
 
             sp = doc.add_paragraph()
             sp.paragraph_format.space_before = Pt(0)
@@ -294,7 +297,7 @@ def _add_structured_json_to_docx(doc, items):
                 sub_lines = [l.strip() for l in text.split('\n') if l.strip()]
                 for sl in sub_lines:
                     p = doc.add_paragraph()
-                    p.paragraph_format.line_spacing = 1.2
+                    p.paragraph_format.line_spacing = DOC_LINE_SPACING
                     p.paragraph_format.space_before = Pt(1)
                     p.paragraph_format.space_after = Pt(2)
                     if sl.startswith(('-', '–', '—', '•', '*', '+')) and not sl.startswith(('--', '---')):
@@ -309,7 +312,7 @@ def _add_structured_json_to_docx(doc, items):
                         p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                     else:
                         p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                    total_chars += _add_styled_runs(p, sl, is_bold=False, font_size=11)
+                    total_chars += _add_styled_runs(p, sl, is_bold=False, font_size=DOC_FONT_SIZE)
                 continue
 
             # Check if this paragraph is a bullet point or numbered item (with OR WITHOUT space after dash!)
@@ -322,7 +325,7 @@ def _add_structured_json_to_docx(doc, items):
                 is_bullet = True
 
             p = doc.add_paragraph()
-            p.paragraph_format.line_spacing = 1.25
+            p.paragraph_format.line_spacing = DOC_LINE_SPACING
             p.paragraph_format.space_before = Pt(1)
             p.paragraph_format.space_after = Pt(2)
 
@@ -345,7 +348,7 @@ def _add_structured_json_to_docx(doc, items):
                 elif text.startswith(('ខ្ញុំបាទ', 'ខ្ញុំនាងខ្ញុំ', 'ខ្ញុំព្រះករុណា', 'តាមកម្មវត្ថុ', 'អាស្រ័យ')):
                     p.paragraph_format.first_line_indent = Inches(0.4)
 
-            body_size = item.get('font_size') or 11
+            body_size = DOC_FONT_SIZE
             _apply_measured(p, item, body_size)
             total_chars += _add_styled_runs(p, text, is_bold=bool(item.get('bold')), font_size=body_size)
 
@@ -451,7 +454,7 @@ def _add_markdown_to_docx(doc, markdown_text):
             run = paragraph.add_run(part)
             run.bold = run_bold
             run.font.name = font_name
-            run.font.size = Pt(font_size)
+            run.font.size = Pt(DOC_FONT_SIZE)
 
             # Explicitly set Word's Complex Script (w:cs) and East Asia fonts
             # so Windows Word renders Khmer characters using Khmer OS Battambang
@@ -583,11 +586,11 @@ def _add_markdown_to_docx(doc, markdown_text):
                             cl = re.sub(r'\[/?CENTER\]|\[/?center\]|\[/?RIGHT\]|\[/?right\]|\[/?JUSTIFY\]|\[/?justify\]|\[/?LEFT\]|\[/?left\]', '', cl).strip()
 
                             p.alignment = p_align
-                            p.paragraph_format.line_spacing = 1.15
+                            p.paragraph_format.line_spacing = DOC_LINE_SPACING
                             p.paragraph_format.space_before = Pt(0)
                             p.paragraph_format.space_after = Pt(2)
 
-                            c_count = _add_styled_runs(p, cl, is_bold=is_header, font_size=10.5 if not is_header else 11)
+                            c_count = _add_styled_runs(p, cl, is_bold=is_header, font_size=DOC_FONT_SIZE)
                             total_chars += c_count
 
                 # Subtle spacing paragraph after table
@@ -618,7 +621,7 @@ def _add_markdown_to_docx(doc, markdown_text):
             explicit_align = WD_ALIGN_PARAGRAPH.LEFT
             line = re.sub(r'\[/?LEFT\]|\[/?left\]', '', line).strip()
 
-        font_size = 11.0
+        font_size = DOC_FONT_SIZE
         is_heading_bold = False
         space_before = Pt(0)
         space_after = Pt(3)
@@ -627,21 +630,21 @@ def _add_markdown_to_docx(doc, markdown_text):
         # Check Heading levels
         if line.startswith('# '):
             is_heading = True
-            font_size = 15.0
+            font_size = DOC_FONT_SIZE
             is_heading_bold = True
             space_before = Pt(6)
             space_after = Pt(2)
             line = line[2:].strip()
         elif line.startswith('## '):
             is_heading = True
-            font_size = 13.0
+            font_size = DOC_FONT_SIZE
             is_heading_bold = True
             space_before = Pt(5)
             space_after = Pt(2)
             line = line[3:].strip()
         elif line.startswith('### '):
             is_heading = True
-            font_size = 12.0
+            font_size = DOC_FONT_SIZE
             is_heading_bold = True
             space_before = Pt(4)
             space_after = Pt(2)
@@ -693,7 +696,7 @@ def _add_markdown_to_docx(doc, markdown_text):
 
         p = doc.add_paragraph()
         p.alignment = align
-        p.paragraph_format.line_spacing = 1.25
+        p.paragraph_format.line_spacing = DOC_LINE_SPACING
         p.paragraph_format.space_before = space_before
         p.paragraph_format.space_after = space_after
         if is_sub:

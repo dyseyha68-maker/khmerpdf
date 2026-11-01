@@ -72,6 +72,7 @@ class GoogleVisionEngine(OCREngine):
             if not line:
                 continue
             p = doc.add_paragraph(line)
+            p.paragraph_format.line_spacing = 1.5
             total += len(line)
             has_khmer = any('ក' <= c <= '៿' for c in line)
             font_name = 'Khmer OS Battambang' if has_khmer else 'Calibri'

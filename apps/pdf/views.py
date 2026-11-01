@@ -539,6 +539,7 @@ def job_preview(request, job_id):
             runs = [r for r in para.runs if r.text.strip()]
             pf = para.paragraph_format
             pitch = getattr(pf.line_spacing, 'pt', None)
+            mult = pf.line_spacing if isinstance(pf.line_spacing, float) else None
             items.append({
                 'type': 'page_break' if page_break and not para.text.strip() else 'p',
                 'text': para.text,
@@ -548,6 +549,7 @@ def job_preview(request, job_id):
                 'size': next((r.font.size.pt for r in runs if r.font.size), None),
                 'before': pf.space_before.pt if pf.space_before is not None else None,
                 'pitch': pitch,
+                'mult': mult,
                 'indent': pf.first_line_indent.pt if pf.first_line_indent is not None else None,
             })
         elif child.tag == qn('w:tbl'):
