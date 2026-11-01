@@ -147,3 +147,12 @@ class StaleJobTests(TransactionTestCase):
     def test_recent_processing_job_is_left_alone(self):
         job = Job.objects.create(tool='compress', status='processing')
         self.assertEqual(Client().get(f'/api/job/{job.id}/').json()['status'], 'processing')
+
+
+class TaskRoutingTests(TransactionTestCase):
+    def test_ocr_task_is_routed_to_the_ocr_queue_without_importing_the_celery_app_by_hand(self):
+        """Regression: with an empty config/__init__.py, tasks used an unconfigured default app and
+        ocr_pdf went to the general queue (so Netra loaded in the tools worker)."""
+        from apps.pdf.tasks import compress_pdf, ocr_pdf
+        self.assertEqual(ocr_pdf.app.amqp.router.route({}, ocr_pdf.name)['queue'].name, 'ocr')
+        self.assertEqual(compress_pdf.app.amqp.router.route({}, compress_pdf.name)['queue'].name, 'celery')
