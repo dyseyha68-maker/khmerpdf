@@ -13,7 +13,10 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 
+from django.utils import timezone
 from .models import Job, Holiday
+
+STALE_JOB_SECONDS = 3 * 3600
 from django.db import models
 from .tasks import compress_pdf, merge_pdf, split_pdf, organize_pdf, protect_pdf
 
@@ -275,26 +278,34 @@ def compress_api(request):
         
         logger.info(f'Job created: {job.id}')
 
-        # Run synchronously — progress bar animates via hyperbolic curve
-        # during the blocking fetch; no threading/SQLite issues.
         from apps.pdf.tasks import compress_pdf
-        try:
-            compress_pdf(str(job.id))
-        except Exception as task_err:
-            logger.error(f'Task error: {task_err}', exc_info=True)
+        if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+            # Local dev: run inline (no worker needed)
+            try:
+                compress_pdf(str(job.id))
+            except Exception as task_err:
+                logger.error(f'Task error: {task_err}', exc_info=True)
 
-        job.refresh_from_db()
+            job.refresh_from_db()
 
-        if job.status == 'failed':
+            if job.status == 'failed':
+                return Response({
+                    'error': job.error_message or 'Compression failed',
+                    'job_id': str(job.id),
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
             return Response({
-                'error': job.error_message or 'Compression failed',
                 'job_id': str(job.id),
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                'status': job.status,
+                'result_url': job.result.url if job.result else None,
+            }, status=status.HTTP_201_CREATED)
 
+        # Production: queue it; the page polls /api/job/<id>/ until it is done
+        compress_pdf.delay(str(job.id))
         return Response({
             'job_id': str(job.id),
-            'status': job.status,
-            'result_url': job.result.url if job.result else None,
+            'status': 'pending',
+            'message': 'Job created successfully'
         }, status=status.HTTP_201_CREATED)
 
     except Exception as e:
@@ -451,6 +462,14 @@ def protect_api(request):
 @api_view(['GET'])
 def job_status(request, job_id):
     job = get_object_or_404(Job, id=job_id)
+
+    # A worker killed mid-job (restart, out of memory) leaves the row 'processing' forever.
+    # Past this age no job can still be running, so report it as failed instead of polling for ever.
+    if job.status in ('pending', 'processing') and \
+            (timezone.now() - job.created_at).total_seconds() > STALE_JOB_SECONDS:
+        job.status = 'failed'
+        job.error_message = 'The job did not finish (the server may have restarted). Please try again.'
+        job.save(update_fields=['status', 'error_message'])
     
     data = {
         'job_id': str(job.id),
@@ -475,6 +494,20 @@ def job_status(request, job_id):
         data['error'] = job.error_message
     
     return Response(data)
+
+
+def _save_replace_files(replace_files):
+    """Uploaded files can't go through the Celery queue (JSON): save them and pass their paths."""
+    uploads_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+    os.makedirs(uploads_dir, exist_ok=True)
+    paths = {}
+    for idx, f in replace_files.items():
+        path = os.path.join(uploads_dir, f'{uuid.uuid4().hex}_{os.path.basename(f.name)}')
+        with open(path, 'wb') as dest:
+            for chunk in f.chunks():
+                dest.write(chunk)
+        paths[str(idx)] = path
+    return paths
 
 
 @csrf_exempt
@@ -543,7 +576,7 @@ def organize_api(request):
             'message': 'File organized successfully'
         }, status=status.HTTP_201_CREATED)
     else:
-        organize_pdf.delay(str(job.id), replace_files)
+        organize_pdf.delay(str(job.id), _save_replace_files(replace_files))
         
         return Response({
             'job_id': str(job.id),
@@ -590,25 +623,27 @@ def ocr_api(request):
     
     logger.info(f'Created job {job.id}')
     
-    # Start OCR in background - don't wait for completion
     from .tasks import ocr_pdf
-    
-    def run_ocr():
-        try:
-            ocr_pdf(str(job.id))
-        except Exception as e:
-            logger.error(f'OCR background error: {e}')
+
+    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+        # Local dev (no worker): run in a background thread so the request returns at once
+        def run_ocr():
             try:
-                job.refresh_from_db()
-                job.status = 'failed'
-                job.error_message = str(e)
-                job.save()
-            except:
-                pass
-    
-    # Start background thread - don't wait
-    background_thread = threading.Thread(target=run_ocr, daemon=True)
-    background_thread.start()
+                ocr_pdf(str(job.id))
+            except Exception as e:
+                logger.error(f'OCR background error: {e}')
+                try:
+                    job.refresh_from_db()
+                    job.status = 'failed'
+                    job.error_message = str(e)
+                    job.save()
+                except Exception:
+                    pass
+
+        threading.Thread(target=run_ocr, daemon=True).start()
+    else:
+        # Production: the 'ocr' queue is served by the dedicated Netra worker (see settings routes)
+        ocr_pdf.delay(str(job.id))
     
     return Response({
         'job_id': str(job.id),

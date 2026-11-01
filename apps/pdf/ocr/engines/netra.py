@@ -374,6 +374,19 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=N
     return elements
 
 
+def _get_pipeline():
+    """Lazy singleton so the models load once per process, not once per page."""
+    if not hasattr(_netraocr_page, '_pipeline'):
+        from netra_ocr.ocr_engine import KhmerOCRPipeline
+        _netraocr_page._pipeline = KhmerOCRPipeline(detector='yolo', conf=0.4)
+    return _netraocr_page._pipeline
+
+
+def warm_up():
+    """Load the Netra models now (used by the OCR worker at startup)."""
+    _get_pipeline()
+
+
 def _netra_segments(pil_image):
     """Run Netra on one page image and return its detected text-line segments
     (dicts with 'type', 'bbox', 'text'); [] if nothing was detected."""
@@ -384,12 +397,7 @@ def _netra_segments(pil_image):
     if pil_image.mode != 'RGB':
         pil_image = pil_image.convert('RGB')
 
-    # Lazy-init singleton pipeline to avoid reloading models on every page
-    if not hasattr(_netraocr_page, '_pipeline'):
-        from netra_ocr.ocr_engine import KhmerOCRPipeline
-        _netraocr_page._pipeline = KhmerOCRPipeline(detector='yolo', conf=0.4)
-
-    pipeline = _netraocr_page._pipeline
+    pipeline = _get_pipeline()
 
     # Save to temporary image file for pipeline processing
     with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:

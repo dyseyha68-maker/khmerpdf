@@ -462,6 +462,7 @@ def compress_pdf(job_id):
         raise
 
 
+@shared_task
 def merge_pdf(job_id):
     from apps.pdf.models import Job
     
@@ -522,6 +523,7 @@ def merge_pdf(job_id):
         raise
 
 
+@shared_task
 def split_pdf(job_id):
     from apps.pdf.models import Job
     
@@ -740,7 +742,7 @@ def organize_pdf(job_id, replace_files=None):
                 else:
                     with open(extra_file, 'rb') as ef:
                         content = ef.read()
-                extra_readers[idx] = PdfReader(io.BytesIO(content))
+                extra_readers[int(idx) if str(idx).lstrip('-').isdigit() else idx] = PdfReader(io.BytesIO(content))
             except Exception as ef_err:
                 logger.error(f'Error loading extra file index {idx}: {ef_err}')
         

@@ -75,3 +75,12 @@ External binaries (not tracked in git):
 
 `Dockerfile` / `docker-compose.yml`, `Procfile`, `fly.toml`, or `setup_server.sh` + `start.sh`
 for a VPS. Copy `.env.example` to `.env` and set `SECRET_KEY` and `DEBUG=False`.
+
+### Job queue
+In production every tool runs through Celery/Redis (`CELERY_ALWAYS_EAGER=False`, set in `docker-compose.yml`):
+the API answers `pending` at once and the page polls `/api/job/<id>/`. `docker-compose.yml` runs
+`celery` (general PDF tools, concurrency 2) and `celery-ocr` (OCR only, concurrency 1, preloads the Netra
+model at start-up and keeps its model cache on the `/data` volume). Locally the default is
+`CELERY_ALWAYS_EAGER=True`: tasks run inline and no Redis is needed. A job still `pending`/`processing`
+after 3 hours (worker died) is reported as failed. Run the tests with `python manage.py test apps.pdf`
+(they use an in-memory broker and a test worker).

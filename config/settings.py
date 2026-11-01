@@ -135,10 +135,22 @@ POPPLER_PATH = os.environ.get('POPPLER_PATH') or (
 ALLOWED_EXTENSIONS = ['pdf']
 
 # Celery settings
-CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously (no Redis needed)
-CELERY_TASK_EAGER_PROPAGATES = True
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# Local dev default: run tasks inline (no Redis/worker needed). Production sets
+# CELERY_ALWAYS_EAGER=False so jobs go through the Redis queue to the celery workers.
+CELERY_TASK_ALWAYS_EAGER = os.environ.get('CELERY_ALWAYS_EAGER', 'True') == 'True'
+CELERY_TASK_EAGER_PROPAGATES = False  # tasks record failures on the Job row; the API reports it via /api/job/
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_TASK_IGNORE_RESULT = True  # job state lives in the Job table, not the result backend
+CELERY_TASK_ROUTES = {'apps.pdf.tasks.ocr_pdf': {'queue': 'ocr'}}  # heavy Netra worker, concurrency 1
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 4 * 3600}  # long OCR jobs must not be redelivered
+
+import sys
+if 'test' in sys.argv:
+    # `manage.py test`: real queue semantics (jobs are queued, a test worker runs them) without Redis
+    CELERY_TASK_ALWAYS_EAGER = False
+    CELERY_BROKER_URL = 'memory://'
+    CELERY_RESULT_BACKEND = 'cache+memory://'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

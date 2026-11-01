@@ -25,15 +25,18 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
       - DATA_DIR=/data
+      - CELERY_ALWAYS_EAGER=False
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - redis
 
+  # General PDF tools (compress, merge, split, protect, organize, images)
   celery:
     build: .
+    image: khmerpdf-celery
     restart: unless-stopped
-    command: celery -A config worker --loglevel=info --concurrency=2
+    command: celery -A config worker -Q celery --loglevel=info --concurrency=2
     volumes:
       - .:/app
       - data_volume:/data
@@ -42,6 +45,29 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
       - DATA_DIR=/data
+      - CELERY_ALWAYS_EAGER=False
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  # OCR only: one process so Netra is loaded once (memory), warmed at start-up
+  celery-ocr:
+    build: .
+    image: khmerpdf-celery
+    restart: unless-stopped
+    command: celery -A config worker -Q ocr --loglevel=info --concurrency=1 --hostname=ocr@%h
+    volumes:
+      - .:/app
+      - data_volume:/data
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DATA_DIR=/data
+      - CELERY_ALWAYS_EAGER=False
+      - WARM_NETRA=1
+      - HF_HOME=/data/hf_cache
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
