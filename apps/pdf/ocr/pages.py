@@ -70,8 +70,14 @@ def _iter_document_pages(input_path, page_range_str=None, max_limit=150, dpi=200
         target_indices = list(dict.fromkeys(target_indices))
 
     if not target_indices:
-        limit = min(total_pages, max_limit) if max_limit else total_pages
-        target_indices = list(range(limit))
+        target_indices = list(range(total_pages))
+
+    # Fail clearly instead of silently cutting pages off (the caller sets the limit: settings.OCR_MAX_PAGES)
+    if max_limit and len(target_indices) > max_limit:
+        raise RuntimeError(
+            f'This file has {len(target_indices)} pages to convert, but the limit is {max_limit} pages per OCR job. '
+            'Please select fewer pages (use the batch buttons on the page picker) and run it again.'
+        )
 
     total_to_process = len(target_indices)
 

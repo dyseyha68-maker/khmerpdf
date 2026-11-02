@@ -888,7 +888,7 @@ def ocr_pdf(job_id):
         page_stream = _iter_document_pages(
             input_path,
             page_range_str=job.page_range,
-            max_limit=150,
+            max_limit=getattr(settings, 'OCR_MAX_PAGES', 60),
             dpi=ocr_dpi
         )
 

@@ -66,7 +66,9 @@ def build_engines(ocr_settings, ocr_lang):
             'Turn on Gemini, Claude or Google Vision (with its API key) under OCR Settings in the admin.'
         )
 
-    dpi = 250 if (use_claude or use_gemini) else 200
+    # Netra (Khmer) runs first and its measurements are calibrated at 200 dpi; the cloud engines get
+    # the sharper 250 dpi only for English-only files. Lower dpi also means less memory per page.
+    dpi = 250 if (not khmer and (use_claude or use_gemini)) else 200
     return engines, dpi, fallback_ok
 
 

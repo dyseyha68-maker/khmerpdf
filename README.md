@@ -88,3 +88,9 @@ model at start-up and keeps its model cache on the `/data` volume). Locally the 
 `CELERY_ALWAYS_EAGER=True`: tasks run inline and no Redis is needed. A job still `pending`/`processing`
 after 3 hours (worker died) is reported as failed. Run the tests with `python manage.py test apps.pdf`
 (they use an in-memory broker and a test worker).
+
+**Memory guards (the server has 2 GB):** both workers replace a process that grows past a limit
+(`--max-memory-per-child`: about 340 MB for the tools worker, 1 GB for the OCR worker, which reloads Netra on
+restart). One OCR job may convert at most `OCR_MAX_PAGES` pages (default 60, env var); a larger file fails with a
+clear "select fewer pages" message instead of being cut off. Khmer files are rendered at 200 dpi, English-only
+files at 250 dpi for the cloud engine.

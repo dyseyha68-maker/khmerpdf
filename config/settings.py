@@ -138,6 +138,10 @@ ALLOWED_EXTENSIONS = ['pdf']
 # page) and about 1 GB of memory; set NETRA_LAYOUT=0 to use the faster line-based path only.
 NETRA_LAYOUT_ANALYSIS = os.environ.get('NETRA_LAYOUT', '1') == '1'
 
+# Most pages one OCR job may convert. Larger files fail with a clear message (select fewer pages) instead of
+# being cut off silently; big jobs also caused the memory spikes that got the OCR worker killed on the 2 GB server.
+OCR_MAX_PAGES = int(os.environ.get('OCR_MAX_PAGES', '60'))
+
 # Celery settings
 # Local dev default: run tasks inline (no Redis/worker needed). Production sets
 # CELERY_ALWAYS_EAGER=False so jobs go through the Redis queue to the celery workers.
