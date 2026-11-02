@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 from apps.pdf.ocr.docx_writer import _add_structured_json_to_docx
 from apps.pdf.ocr.engines.base import OCREngine
+from apps.pdf.ocr.tables import detect_grid_tables, fill_table, inside
 
 
 def _line_stroke(gray, bbox):
@@ -217,7 +218,7 @@ def _apply_measured_format(el, b, m, w_img, prev_last_cy):
                   max(l['x2'] for l in b['lines']), max(l['y2'] for l in b['lines'])]  # px, for matching/preview
 
 
-def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=None):
+def _reconstruct_core(segments, w_img, h_img, gray=None, dpi=None):
     """
     High-fidelity spatial layout analysis for Netra-OCR detections.
     Groups YOLO bounding boxes into structured document elements:
@@ -474,6 +475,43 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=N
     return elements
 
 
+def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=None):
+    """Document elements from Netra's line segments.
+
+    Ruled tables are found from the drawn grid lines (apps/pdf/ocr/tables.py) and their cells filled from the
+    text lines inside; the paragraphs / letterhead above and below each table go through the normal line-based
+    reconstruction. Without a detected table this is exactly the line-based reconstruction."""
+    tables = detect_grid_tables(gray) if gray is not None else []
+    if not tables:
+        return _reconstruct_core(segments, w_img, h_img, gray, dpi)
+
+    placed, consumed = [], set()
+    for tb in tables:
+        items = [{'bbox': s['bbox'], 'text': s.get('text', ''), 'seg': s}
+                 for s in segments if s.get('type') != 'logo' and s.get('bbox') and inside(tb, s['bbox'])]
+        rows, used, widths = fill_table(tb, items)
+        if len(rows) >= 2 and max(len(r) for r in rows) >= 2:          # a real table, not a boxed paragraph
+            placed.append((tb, rows, widths))
+            consumed.update(id(it['seg']) for it in items)             # also unplaced items inside the border
+    if not placed:
+        return _reconstruct_core(segments, w_img, h_img, gray, dpi)
+
+    def centre_y(seg):
+        return (seg['bbox'][1] + seg['bbox'][3]) / 2.0
+
+    outside = [s for s in segments if id(s) not in consumed]
+    elements, top = [], float('-inf')
+    for tb, rows, widths in placed + [(None, None, None)]:
+        bottom = tb['bbox'][1] if tb else float('inf')
+        group = [s for s in outside if top <= centre_y(s) < bottom]
+        elements.extend(_reconstruct_core(group, w_img, h_img, gray, dpi))
+        if tb:
+            elements.append({'type': 'table', 'layout': 'grid', 'rows': _table_cells(rows), 'bbox': list(tb['bbox']),
+                             'col_widths': [round(w) for w in widths]})
+            top = tb['bbox'][3]
+    return elements
+
+
 _PIPELINES = {}
 
 
@@ -548,7 +586,21 @@ def _netra_segments(pil_image):
             except OSError:
                 pass
 
-    return meta.get('segments', []) if isinstance(meta, dict) else []
+    segments = meta.get('segments', []) if isinstance(meta, dict) else []
+    for seg in segments:
+        if seg.get('type') == 'text':
+            seg['text'] = _clean_text(seg.get('text'))
+    # boxes with nothing readable (an ornament read as "<unk> )") are dropped
+    return [s for s in segments if s.get('type') != 'text' or _has_content(s['text'])]
+
+
+def _clean_text(text):
+    """Drop the recognizer's <unk> placeholder and collapse spaces."""
+    return ' '.join((text or '').replace('<unk>', ' ').split())
+
+
+def _has_content(text):
+    return any(ch.isalnum() for ch in text)
 
 
 def _measure_kwargs(pil_image):
@@ -598,7 +650,7 @@ def _blocks_to_elements(blocks, w_img, dpi=None):
     for b in blocks:
         kind, bbox = b.get('type'), b.get('bbox')
         if kind in TEXT_BLOCKS:
-            lines = [ln.strip() for ln in (b.get('text') or '').split('\n') if ln.strip()]
+            lines = [c for c in (_clean_text(ln) for ln in (b.get('text') or '').split('\n')) if _has_content(c)]
             if not lines:
                 continue
             # soft-wrapped body lines join into one paragraph; short multi-line blocks (letterhead,

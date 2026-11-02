@@ -258,6 +258,11 @@ def _add_structured_json_to_docx(doc, items):
             else:
                 col_widths = [Inches(6.5 / num_cols)] * num_cols
 
+            # keep the source table's column proportions when they are known (measured from its grid lines)
+            custom = item.get('col_widths')
+            if layout != 'borderless' and isinstance(custom, list) and len(custom) == num_cols and sum(custom) > 0:
+                col_widths = [Inches(6.5 * w / sum(custom)) for w in custom]
+
             for row_idx, r in enumerate(rows_data):
                 row_elem = tbl.rows[row_idx]
                 for col_idx in range(num_cols):

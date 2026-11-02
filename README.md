@@ -51,7 +51,7 @@ Per page, the first engine that returns text wins.
 
 When a job finishes, the OCR page shows a result panel (pages converted, pages with no text, a preview of the
 Word file, and the download button). Dev tools: `ocr_format_bench`, `ocr_layout`, `ocr_compare` (see GEMINI.md).
-Layout analysis (tables, headings) is on locally and off on the 2 GB server: set `NETRA_LAYOUT=1` to turn it on (about 1 GB RAM, 10-30 s a page).
+Tables with drawn borders are rebuilt in every mode (grid detection, no extra memory). Layout analysis (tables, headings) is on locally and off on the 2 GB server: set `NETRA_LAYOUT=1` to turn it on (about 1 GB RAM, 10-30 s a page).
 
 Engines and API keys are configured in the Django admin under *OCR Settings*. Cloud engines retry
 twice with backoff; if "continue to the next engine" is switched off in settings, a cloud failure

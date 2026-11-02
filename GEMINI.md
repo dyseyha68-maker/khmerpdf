@@ -93,3 +93,15 @@ Netra 1.2.0 can analyse the whole page (headings, paragraphs, **tables**, figure
 - **Netra version:** `requirements.txt` pins the Netra-OCR commit for 1.2.0 (ONNX, no PyTorch). The 1.1.1 wheel requires
   torch/torchvision/transformers and `pillow<11`; do not use it. `analyze_page` in 1.2.0 takes no `beam_width`.
 
+## 8. Ruled tables in the line-based path (no model, cheap)
+`apps/pdf/ocr/tables.py` finds tables that have drawn borders, so production (layout analysis off, 2 GB RAM) still gets real Word tables:
+- `detect_grid_tables(gray)`: OpenCV isolates long horizontal/vertical lines (about 0.1 s a page); the line positions give the
+  grid. A grid needs at least 3 row lines and 3 column lines (a plain box is not a table) and may have gaps (stamps).
+- `fill_table(table, items)`: each recognised text line goes into the cell holding its centre; overlapping duplicate boxes are
+  read once, a box that straddles two columns loses the neighbour's repeated text, bracket/bar noise from the ruling is
+  stripped, empty rows/columns are dropped, and the real column widths are returned (`col_widths`, used by the Word writer).
+- `_reconstruct_netra_spatial_elements` splices the table between the paragraphs above and below it (those still go through the
+  normal line reconstruction). Tables without borders are not detected; use layout analysis for them.
+- On the 28-row Khmer sample photo the grid came out as 28 x 7, exactly the original (the layout model merged two columns).
+- Netra's `<unk>` placeholder is removed from recognised text, and boxes with no letters/digits are dropped.
+
