@@ -474,12 +474,41 @@ def _reconstruct_netra_spatial_elements(segments, w_img, h_img, gray=None, dpi=N
     return elements
 
 
-def _get_pipeline():
-    """Lazy singleton so the models load once per process, not once per page."""
-    if not hasattr(_netraocr_page, '_pipeline'):
+_PIPELINES = {}
+
+
+def _layout_enabled():
+    """Page layout analysis (DocLayout-YOLO: headings, tables, reading order). It is slower (about
+    10-15 s a page) and needs about 1 GB of memory, so it can be switched off: NETRA_LAYOUT=0."""
+    from django.conf import settings
+    return bool(getattr(settings, 'NETRA_LAYOUT_ANALYSIS', True))
+
+
+def _get_layout_pipeline():
+    """Netra with layout analysis. It owns the loaded models (once per process, not once per page)."""
+    if 'layout' not in _PIPELINES:
         from netra_ocr.ocr_engine import KhmerOCRPipeline
-        _netraocr_page._pipeline = KhmerOCRPipeline(detector='yolo', conf=0.4)
-    return _netraocr_page._pipeline
+        _PIPELINES['layout'] = KhmerOCRPipeline(detector='yolo', conf=0.4, layout=True)
+    return _PIPELINES['layout']
+
+
+def _get_pipeline():
+    """Line-detection pipeline (used for the measured-formatting path).
+
+    With layout analysis on, a pipeline that has a layout analyzer switches process_image() to
+    paragraph-level blocks, so this one is a shallow copy of the layout pipeline with the analyzer
+    removed: it shares the same loaded models (no second copy in memory) but returns lines."""
+    if 'lines' not in _PIPELINES:
+        if _layout_enabled():
+            import copy
+            pipeline = copy.copy(_get_layout_pipeline())
+            pipeline.layout_analyzer = None
+            pipeline.layout = False
+        else:
+            from netra_ocr.ocr_engine import KhmerOCRPipeline
+            pipeline = KhmerOCRPipeline(detector='yolo', conf=0.4)
+        _PIPELINES['lines'] = pipeline
+    return _PIPELINES['lines']
 
 
 def warm_up():
@@ -529,9 +558,94 @@ def _measure_kwargs(pil_image):
     return {'gray': np.array(pil_image.convert('L')), 'dpi': dpi if dpi and dpi > 0 else None}
 
 
+TEXT_BLOCKS = ('heading', 'paragraph', 'caption', 'page_header', 'page_footer')
+_TABLE_NUMBER_CHARS = set('0123456789\u17e0\u17e1\u17e2\u17e3\u17e4\u17e5\u17e6\u17e7\u17e8\u17e9.,-/: ')
+
+
+def _layout_blocks(pil_image):
+    """Netra layout analysis of one page: blocks in reading order (netra_ocr.document schema)."""
+    import cv2
+    import numpy as np
+
+    rgb = pil_image.convert('RGB') if pil_image.mode != 'RGB' else pil_image
+    _, blocks = _get_layout_pipeline().analyze_page(cv2.cvtColor(np.array(rgb), cv2.COLOR_RGB2BGR))
+    return blocks
+
+
+def _table_cells(rows):
+    """Table rows -> cells with the standard table look: bold centred header row, numbers centred."""
+    out = []
+    for r, row in enumerate(rows):
+        cells = []
+        for cell in row:
+            text = str(cell if cell is not None else '').strip()
+            numeric = bool(text) and len(text) <= 12 and all(ch in _TABLE_NUMBER_CHARS for ch in text)
+            cells.append({'text': text, 'align': 'center' if (r == 0 or numeric) else 'left', 'bold': r == 0})
+        out.append(cells)
+    return out
+
+
+def _blocks_to_elements(blocks, w_img, dpi=None):
+    """Netra layout blocks -> the element schema the Word writer (and the layout scorer) use.
+
+    Figures/formulas are skipped. The gap between blocks becomes the space before a paragraph, and
+    headings are bold. Bold *body* paragraphs are not detected here (a stroke measure on whole blocks
+    was unreliable; the line-based path, NETRA_LAYOUT=0, does detect them). Font size and line spacing
+    are fixed by the writer, so they are not measured."""
+    ptpp = 72.0 / dpi if dpi else 595.3 / max(1, w_img)
+
+    elements, prev_bottom = [], None
+    for b in blocks:
+        kind, bbox = b.get('type'), b.get('bbox')
+        if kind in TEXT_BLOCKS:
+            lines = [ln.strip() for ln in (b.get('text') or '').split('\n') if ln.strip()]
+            if not lines:
+                continue
+            # soft-wrapped body lines join into one paragraph; short multi-line blocks (letterhead,
+            # signature, titles) keep their line breaks
+            short_block = bool(bbox) and (bbox[2] - bbox[0]) < 0.5 * w_img and len(lines) <= 3
+            keep_breaks = kind != 'paragraph' or short_block
+            el = {'type': 'heading' if kind == 'heading' else 'paragraph',
+                  'text': ('\n' if keep_breaks else ' ').join(lines)}
+            if kind == 'heading':
+                el['level'] = b.get('level') or 1
+                el['align'] = b.get('align') or 'center'
+                el['bold'] = True
+            else:
+                if b.get('align') in ('center', 'right'):
+                    el['align'] = b['align']       # 'left' lets the writer justify long paragraphs
+        elif kind == 'table':
+            rows = [list(r) for r in (b.get('rows') or []) if r]
+            if not rows:
+                continue
+            el = {'type': 'table', 'layout': 'grid', 'rows': _table_cells(rows)}
+        else:
+            continue                                # figure, formula
+        if bbox:
+            el['bbox'] = [int(v) for v in bbox]
+            if prev_bottom is not None and el['type'] != 'table':
+                gap = (bbox[1] - prev_bottom) * ptpp
+                if gap >= 2.0:
+                    el['space_before'] = round(min(36.0, gap) * 2) / 2.0
+            prev_bottom = bbox[3]
+        elements.append(el)
+    return elements
+
+
 def netra_page_elements(pil_image):
-    """Netra segments grouped into structured document elements (same schema
-    the Claude/Gemini prompt returns). Used by the layout scorer."""
+    """Structured document elements for one page (the schema the Claude/Gemini prompt returns).
+
+    Layout analysis first (tables, headings, reading order); if it is switched off, fails, or finds
+    nothing, the line-based path with measured formatting. Used by the OCR engine and the scorers."""
+    if _layout_enabled():
+        try:
+            dpi = (pil_image.info.get('dpi') or (None,))[0]
+            elements = _blocks_to_elements(_layout_blocks(pil_image), pil_image.size[0], dpi if dpi and dpi > 0 else None)
+            if elements:
+                return elements
+        except Exception as e:
+            logger.warning(f'Netra layout analysis failed, using the line-based path: {e}', exc_info=True)
+
     segments = _netra_segments(pil_image)
     if not segments:
         return []
@@ -540,11 +654,9 @@ def netra_page_elements(pil_image):
 
 def _netraocr_page(doc, pil_image, ocr_lang='khm'):
     """
-    Run Netra-OCR (CNN-Transformer) on a single page PIL image.
-    Netra-OCR is a Squeeze-and-Excitation Transformer trained on Khmer script with
-    YOLO-based text-line detection + Khmer Character Cluster tokenizer recognition.
-    Automatically reconstructs spatial layout and formats native Microsoft Word (.docx)
-    elements using Khmer OS Battambang and OpenXML tags.
+    Run Netra-OCR on a single page PIL image and write it into the Word document.
+    Structure comes from layout analysis when enabled (tables, headings, reading order), otherwise
+    from line detection with measured formatting; Khmer OS Battambang is used for Khmer text.
     Returns: total_chars_extracted (int)
     """
     import re
@@ -552,17 +664,15 @@ def _netraocr_page(doc, pil_image, ocr_lang='khm'):
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.oxml.ns import qn
 
-    segments = _netra_segments(pil_image)
-    if not segments:
-        return 0
-
-    # ── High-Fidelity Spatial Layout Reconstruction ──
-    w_img, h_img = pil_image.size
-    elements = _reconstruct_netra_spatial_elements(segments, w_img, h_img, **_measure_kwargs(pil_image))
+    elements = netra_page_elements(pil_image)
     if elements:
         c_count = _add_structured_json_to_docx(doc, elements)
         if c_count > 0:
             return c_count
+
+    segments = _netra_segments(pil_image)
+    if not segments:
+        return 0
 
     # Fallback to sequential paragraph generation if spatial clustering yielded no elements
     total_chars = 0

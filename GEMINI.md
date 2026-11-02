@@ -76,3 +76,20 @@ Netra only gives line boxes and text, so `engines/netra.py` measures the formatt
   0.3-0.7pt on Khmer OS fonts, ~3pt small on Noto Sans Khmer); the detector sometimes misses text in the middle of a line.
 - Other dev tools: `ocr_layout` (structure + score against a reference JSON), `ocr_compare` (engines/Netra settings).
 
+## 7. Layout analysis mode (Netra DocLayout-YOLO)
+Netra 1.2.0 can analyse the whole page (headings, paragraphs, **tables**, figures, headers/footers, reading order).
+`engines/netra.py` uses it when `settings.NETRA_LAYOUT_ANALYSIS` is on (env `NETRA_LAYOUT=1`, the local default;
+`docker-compose.yml` sets `NETRA_LAYOUT=${NETRA_LAYOUT:-0}` for the OCR worker because of memory):
+- `_layout_blocks()` -> `pipeline.analyze_page(bgr)`; `_blocks_to_elements()` maps the blocks to the same element schema
+  as the other engines. Tables become grid tables (bold centred header row, numbers centred); the gap between blocks
+  becomes the space before a paragraph; headings are bold; figures/formulas (logos, stamps) are skipped.
+- **One set of models:** the layout pipeline owns the loaded models; the line-based path uses a shallow copy with the
+  analyzer removed (`_get_pipeline`), because a pipeline with an analyzer makes `process_image` return paragraph blocks,
+  not lines. Never set `layout=True` on the pipeline used for lines.
+- **Fallbacks:** if layout analysis is off, errors, or finds nothing, the line-based path with measured formatting runs.
+- **Cost:** about 10-30 s a page on CPU and about 1 GB of memory (vs 1-2 s for lines). On the 2 GB server keep it off.
+- **Limits:** table columns can be merged by the detector (a 7-column table came back with 6); equal column widths; no
+  first-line indent and no bold *body* paragraphs in this mode (the line-based path measures both); logo and stamp are dropped.
+- **Netra version:** `requirements.txt` pins the Netra-OCR commit for 1.2.0 (ONNX, no PyTorch). The 1.1.1 wheel requires
+  torch/torchvision/transformers and `pillow<11`; do not use it. `analyze_page` in 1.2.0 takes no `beam_width`.
+

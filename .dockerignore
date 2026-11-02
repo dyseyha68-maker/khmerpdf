@@ -17,3 +17,4 @@ poppler-windows*
 *.zip
 *.bat
 .system_generated
+packages/

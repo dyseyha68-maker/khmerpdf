@@ -134,6 +134,10 @@ POPPLER_PATH = os.environ.get('POPPLER_PATH') or (
 
 ALLOWED_EXTENSIONS = ['pdf']
 
+# Netra page layout analysis (DocLayout-YOLO: headings, tables, reading order). Slower (about 10-15 s a
+# page) and about 1 GB of memory; set NETRA_LAYOUT=0 to use the faster line-based path only.
+NETRA_LAYOUT_ANALYSIS = os.environ.get('NETRA_LAYOUT', '1') == '1'
+
 # Celery settings
 # Local dev default: run tasks inline (no Redis/worker needed). Production sets
 # CELERY_ALWAYS_EAGER=False so jobs go through the Redis queue to the celery workers.

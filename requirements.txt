@@ -18,4 +18,4 @@ anthropic>=0.20.0
 google-generativeai>=0.8.0
 onnxruntime>=1.17.0  # required at runtime by Netra-OCR (not declared by its package)
 opencv-python-headless>=4.8  # bold/stroke measurement in the OCR layout (Netra itself does not need it)
-git+https://github.com/netra-ai-lab/Netra-OCR.git
+git+https://github.com/netra-ai-lab/Netra-OCR.git@064e44585d148848e722f4bdea65ec3caa88c7a7  # Netra-OCR 1.2.0 pinned (ONNX, no PyTorch); layout analysis built in
