@@ -831,16 +831,7 @@ def _get_ocr_settings():
     return OCRSettings.objects.filter(pk=1).first()
 
 
-from apps.pdf.ocr.engines.prompt import _get_vision_prompt  # noqa: F401
-from apps.pdf.ocr.engines.claude import _claude_ocr_page  # noqa: F401
-from apps.pdf.ocr.engines.gemini import _gemini_ocr_page  # noqa: F401
-from apps.pdf.ocr.engines.gcv import _VISION_LANG_HINTS, _build_vision_client, _vision_ocr_page  # noqa: F401
-from apps.pdf.ocr.engines.netra import _reconstruct_netra_spatial_elements, _netraocr_page  # noqa: F401
-
-from apps.pdf.ocr.docx_writer import (  # noqa: F401  (re-exported for existing callers)
-    _add_structured_json_to_docx, _add_structured_content_to_docx, _add_markdown_to_docx,
-)
-from apps.pdf.ocr.pages import _iter_document_pages  # noqa: F401
+from apps.pdf.ocr.pages import _iter_document_pages
 
 
 @shared_task

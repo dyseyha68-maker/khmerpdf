@@ -59,7 +59,9 @@ class Command(BaseCommand):
 
         if not o['cloud']:
             raise CommandError(f'--engine {o["engine"]} calls a paid API; add --cloud to confirm.')
-        from apps.pdf.tasks import _get_ocr_settings, _claude_ocr_page, _gemini_ocr_page
+        from apps.pdf.ocr.engines.claude import _claude_ocr_page
+        from apps.pdf.ocr.engines.gemini import _gemini_ocr_page
+        from apps.pdf.tasks import _get_ocr_settings
         s = _get_ocr_settings()
         if o['engine'] == 'gemini':
             key = (s.gemini_api_key or '').strip() if s else ''
