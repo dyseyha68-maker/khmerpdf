@@ -40,7 +40,7 @@ def build_engines(ocr_settings, ocr_lang, is_vip=False):
 
     cloud_engines = []
     if use_claude:
-        model = (s.claude_model or 'claude-3-5-sonnet-20241022').strip()
+        model = (s.claude_model or 'claude-sonnet-5-5').strip()
         logger.info(f'OCR: Claude AI Vision enabled ({model})')
         cloud_engines.append(ClaudeEngine(claude_key, model, ocr_lang))
     if use_gemini:

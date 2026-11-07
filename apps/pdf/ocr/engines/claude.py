@@ -22,10 +22,12 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
 
     # Normalize model string to ensure valid Anthropic model identifier
     chosen_model = (model or '').strip()
-    if not chosen_model or 'sonnet' in chosen_model.lower():
-        chosen_model = 'claude-3-5-sonnet-20241022'
-    elif 'haiku' in chosen_model.lower():
-        chosen_model = 'claude-3-5-haiku-20241022'
+    if not chosen_model:
+        chosen_model = 'claude-sonnet-5-5'
+    elif chosen_model in ('claude-3-5-sonnet-20241022', 'claude-3-5-sonnet-latest', 'claude-3-5-sonnet'):
+        chosen_model = 'claude-sonnet-5-5'
+    elif chosen_model in ('claude-3-5-haiku-20241022', 'claude-3-5-haiku-latest', 'claude-3-5-haiku'):
+        chosen_model = 'claude-haiku-5-5'
 
     create_kwargs = {
         'model': chosen_model,

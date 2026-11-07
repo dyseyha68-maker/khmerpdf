@@ -154,9 +154,9 @@ class OCRSettings(models.Model):
     )
     claude_model = models.CharField(
         max_length=60,
-        default='claude-3-5-sonnet-20241022',
+        default='claude-sonnet-5-5',
         verbose_name='Claude Model',
-        help_text='e.g. claude-3-5-sonnet-20241022 (highest precision for complex scans) or claude-3-5-haiku-20241022 (fast, economical).',
+        help_text='e.g. claude-sonnet-5-5 (highest precision for complex scans) or claude-haiku-5-5 (fast, economical).',
     )
     use_gemini = models.BooleanField(
         default=False,
