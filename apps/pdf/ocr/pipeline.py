@@ -21,44 +21,57 @@ BACKOFF_SECONDS = 2  # doubles each retry (2s, 4s) - helps with free-tier rate l
 _LEGACY_GEMINI = ('gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash', 'gemini-flash-latest')
 
 
-def build_engines(ocr_settings, ocr_lang):
+def build_engines(ocr_settings, ocr_lang, is_vip=False):
     """Return (engines, dpi, fallback_ok) for this job from the admin settings.
 
-    Raises RuntimeError when no engine can handle the language (English-only
-    file with no cloud engine enabled)."""
+    is_vip: When True, prioritizes Cloud Vision AI (Claude / Gemini) first for
+    maximum accuracy, complex tables, and official typography, with Netra as fallback.
+    When False (Standard Free Mode), runs local Netra-OCR first (zero API cost).
+    """
     s = ocr_settings
     fallback_ok = s.fallback_to_tesseract if s else True
     khmer = ocr_lang in ('khm', 'eng+khm')
     engines = []
-
-    if khmer:
-        engines.append(NetraEngine(ocr_lang))
 
     claude_key = (s.claude_api_key or '').strip() if s else ''
     use_claude = bool(s and s.use_claude and claude_key)
     gemini_key = (s.gemini_api_key or '').strip() if s else ''
     use_gemini = bool(s and s.use_gemini and gemini_key)
 
+    cloud_engines = []
     if use_claude:
         model = (s.claude_model or 'claude-3-5-sonnet-20241022').strip()
         logger.info(f'OCR: Claude AI Vision enabled ({model})')
-        engines.append(ClaudeEngine(claude_key, model, ocr_lang))
+        cloud_engines.append(ClaudeEngine(claude_key, model, ocr_lang))
     if use_gemini:
         model = (s.gemini_model or 'gemini-flash-lite-latest').strip()
         if model in _LEGACY_GEMINI:
             model = 'gemini-flash-lite-latest'
         logger.info(f'OCR: Google Gemini Flash Vision enabled ({model})')
-        engines.append(GeminiEngine(gemini_key, model, ocr_lang))
+        cloud_engines.append(GeminiEngine(gemini_key, model, ocr_lang))
 
     if not use_claude and not use_gemini and s and s.use_google_vision and s.google_credentials_json.strip():
         try:
             client = _build_vision_client(s)
             logger.info('OCR: Google Cloud Vision enabled (DOCUMENT_TEXT_DETECTION)')
-            engines.append(GoogleVisionEngine(client, _VISION_LANG_HINTS.get(ocr_lang, ['en'])))
+            cloud_engines.append(GoogleVisionEngine(client, _VISION_LANG_HINTS.get(ocr_lang, ['en'])))
         except Exception as e:
             logger.error(f'OCR: Google Vision client init failed: {e}', exc_info=True)
             if not fallback_ok:
                 raise RuntimeError(f'Google Vision is enabled but could not be configured: {e}')
+
+    if is_vip and cloud_engines:
+        logger.info('OCR Priority: VIP Mode active -> Cloud Vision AI first')
+        engines.extend(cloud_engines)
+        if khmer:
+            engines.append(NetraEngine(ocr_lang))
+        dpi = 250
+    else:
+        logger.info('OCR Priority: Standard Mode -> Local Netra-OCR first')
+        if khmer:
+            engines.append(NetraEngine(ocr_lang))
+        engines.extend(cloud_engines)
+        dpi = 250 if (not khmer and cloud_engines) else 200
 
     if not engines:
         raise RuntimeError(
@@ -66,9 +79,6 @@ def build_engines(ocr_settings, ocr_lang):
             'Turn on Gemini, Claude or Google Vision (with its API key) under OCR Settings in the admin.'
         )
 
-    # Netra (Khmer) runs first and its measurements are calibrated at 200 dpi; the cloud engines get
-    # the sharper 250 dpi only for English-only files. Lower dpi also means less memory per page.
-    dpi = 250 if (not khmer and (use_claude or use_gemini)) else 200
     return engines, dpi, fallback_ok
 
 

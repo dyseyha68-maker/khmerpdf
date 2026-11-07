@@ -881,7 +881,7 @@ def ocr_pdf(job_id):
 
         # ── Engine cascade (admin-configured) — see apps/pdf/ocr/pipeline.py ──
         from apps.pdf.ocr.pipeline import build_engines, process_page
-        engines, ocr_dpi, fallback_ok = build_engines(_get_ocr_settings(), ocr_lang)
+        engines, ocr_dpi, fallback_ok = build_engines(_get_ocr_settings(), ocr_lang, is_vip=getattr(job, 'is_vip', False))
 
         failed_pages = []
         # Stream page-by-page (Low memory, handles 100+ pages without OOM)

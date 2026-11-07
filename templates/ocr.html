@@ -1175,13 +1175,13 @@
                 <button type="button" class="lang-pill" :class="{ active: !isVip }" @click="isVip = false" style="justify-content:center; text-align:center; padding:8px 6px;">
                     <div>
                         <div style="font-weight:700; font-size:13px;">{% trans "Standard" %}</div>
-                        <div style="font-size:10.5px; opacity:0.75;">Netra (Free)</div>
+                        <div style="font-size:10.5px; opacity:0.75;">Netra ({% trans "Free" %})</div>
                     </div>
                 </button>
                 <button type="button" class="lang-pill" :class="{ active: isVip }" @click="isVip = true" style="justify-content:center; text-align:center; padding:8px 6px; border-color: rgba(124, 58, 237, 0.4);">
                     <div>
                         <div style="font-weight:700; font-size:13px; color:#7c3aed;">✨ {% trans "VIP AI" %}</div>
-                        <div style="font-size:10.5px; opacity:0.85;">Vision AI (2,000 ៛)</div>
+                        <div style="font-size:10.5px; opacity:0.85;">{% if enable_khqr_paywall %}Vision AI ({{ vip_price_khr|default:2000 }} &#x17DB;){% else %}Vision AI ({% trans "Free" %}){% endif %}</div>
                     </div>
                 </button>
             </div>

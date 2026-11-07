@@ -398,8 +398,7 @@ class OCRSettingsAdmin(admin.ModelAdmin):
         }),
         ('Google Cloud Vision', {
             'fields': ('use_google_vision', 'google_credentials_json'),
-            'classes': ('collapse',),
-            'description': 'Alternative OCR engine via Google Cloud Vision DOCUMENT_TEXT_DETECTION.'
+            'description': 'Alternative OCR engine via Google Cloud Vision DOCUMENT_TEXT_DETECTION. Paste your Service Account Key JSON here.'
         }),
         ('Bakong KHQR Automated Paywall (VIP OCR)', {
             'fields': (

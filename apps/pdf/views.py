@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from django.utils import timezone
-from .models import Job, Holiday
+from .models import Job, Holiday, OCRSettings
 
 STALE_JOB_SECONDS = 3 * 3600
 from django.db import models
@@ -168,7 +168,12 @@ def calendar_page(request):
 
 
 def ocr_page(request):
-    return render(request, 'ocr.html')
+    ocr_settings = OCRSettings.load()
+    return render(request, 'ocr.html', {
+        'ocr_settings': ocr_settings,
+        'vip_price_khr': ocr_settings.vip_price_khr or 2000,
+        'enable_khqr_paywall': ocr_settings.enable_khqr_paywall,
+    })
 
 
 def pdf_to_image_page(request):
