@@ -183,6 +183,7 @@ def download_file(request):
     """Serve a processed media file with the original filename as Content-Disposition."""
     rel_path = request.GET.get('path', '')   # e.g. processed/processed_xxx.pdf
     filename  = request.GET.get('filename', 'download.pdf')
+    job_id = request.GET.get('job_id', '')
 
     # Security: only allow files inside MEDIA_ROOT/processed/
     safe_path = os.path.normpath(os.path.join(settings.MEDIA_ROOT, rel_path))
@@ -193,12 +194,21 @@ def download_file(request):
     if not os.path.exists(safe_path):
         raise Http404
 
+    # Paywall verification: if job is VIP and paywall is enabled, must be paid
+    if job_id:
+        try:
+            target_job = Job.objects.filter(id=job_id).first()
+            if target_job and target_job.is_vip:
+                ocr_settings = OCRSettings.load()
+                if ocr_settings.enable_khqr_paywall and target_job.payment_status != 'paid':
+                    from django.core.exceptions import PermissionDenied
+                    raise PermissionDenied('Payment required via Bakong KHQR to download this VIP document.')
+        except Exception:
+            pass
+
     # Sanitize filename (no path traversal in the suggested name)
     filename = os.path.basename(filename) or 'download.pdf'
 
-    # Guess content type from the *actual* file being served, falling back to
-    # the suggested filename, then to PDF. Using a hardcoded 'application/pdf'
-    # here mislabels non-PDF results (e.g. OCR's .docx output).
     content_type = (
         mimetypes.guess_type(safe_path)[0]
         or mimetypes.guess_type(filename)[0]
@@ -217,17 +227,56 @@ def download_file(request):
 def khqr(request):
     download_url = request.GET.get('download', '')
     filename = request.GET.get('filename', 'download.pdf')
-    # Build a server-side download URL that forces the correct filename
-    # download_url is like /media/processed/processed_xxx.pdf
-    # → extract the relative path after MEDIA_URL
-    media_url = settings.MEDIA_URL  # '/media/'
-    if download_url.startswith(media_url):
+    job_id = request.GET.get('job_id', '')
+
+    ocr_settings = OCRSettings.load()
+    job = None
+    requires_payment = False
+    qr_data_url = None
+    amount = ocr_settings.vip_price_khr or 2000
+
+    if job_id:
+        try:
+            job = Job.objects.filter(id=job_id).first()
+            if job and job.is_vip and ocr_settings.enable_khqr_paywall and job.payment_status != 'paid':
+                requires_payment = True
+                amount = job.payment_amount or amount
+                from apps.pdf.ocr.khqr import generate_bakong_khqr
+                khqr_str, md5_hash, qr_data_url = generate_bakong_khqr(
+                    bakong_account_id=ocr_settings.bakong_account_id,
+                    merchant_name=ocr_settings.merchant_name,
+                    merchant_city=ocr_settings.merchant_city,
+                    amount=amount,
+                    currency='KHR',
+                    bill_no=str(job.id)[:8]
+                )
+                job.khqr_string = khqr_str
+                job.khqr_md5 = md5_hash
+                job.save(update_fields=['khqr_string', 'khqr_md5'])
+        except Exception:
+            pass
+
+    media_url = settings.MEDIA_URL
+    if download_url and download_url.startswith(media_url):
         rel_path = download_url[len(media_url):]
         import urllib.parse
         forced_url = '/download/?path=' + urllib.parse.quote(rel_path) + '&filename=' + urllib.parse.quote(filename)
+        if job_id:
+            forced_url += '&job_id=' + str(job_id)
     else:
         forced_url = download_url
-    return render(request, 'khqr.html', {'download_url': forced_url, 'filename': filename})
+
+    return render(request, 'khqr.html', {
+        'download_url': forced_url,
+        'filename': filename,
+        'job_id': str(job.id) if job else job_id,
+        'requires_payment': requires_payment,
+        'payment_status': job.payment_status if job else 'paid',
+        'amount': amount,
+        'qr_data_url': qr_data_url,
+        'merchant_name': ocr_settings.merchant_name,
+        'bakong_account': ocr_settings.bakong_account_id,
+    })
 
 
 def contact_page(request):
@@ -471,16 +520,28 @@ def job_status(request, job_id):
         job.error_message = 'The job did not finish (the server may have restarted). Please try again.'
         job.save(update_fields=['status', 'error_message'])
     
+    ocr_settings = OCRSettings.load()
+    requires_payment = bool(ocr_settings.enable_khqr_paywall and job.is_vip and job.payment_status != 'paid')
+    
     data = {
         'job_id': str(job.id),
         'status': job.status,
         'tool': job.tool,
+        'is_vip': job.is_vip,
+        'requires_payment': requires_payment,
+        'payment_status': job.payment_status,
+        'payment_amount': job.payment_amount,
         'created_at': job.created_at.isoformat(),
     }
     
     if job.status == 'done' and job.result:
-        data['result_url'] = job.result.url
-        data['result_size'] = job.result.size
+        if requires_payment:
+            data['result_url'] = None
+            data['payment_qr_url'] = f'/api/job/{job.id}/payment-qr/'
+            data['check_payment_url'] = f'/api/job/{job.id}/check-payment/'
+        else:
+            data['result_url'] = job.result.url
+            data['result_size'] = job.result.size
         if getattr(job, 'original_filename', None):
             data['original_filename'] = job.original_filename
 
@@ -660,13 +721,20 @@ def ocr_api(request):
     
     orig_name = getattr(file, 'name', '') or 'document.pdf'
     page_range = (request.data.get('page_range') or '').strip()
+    is_vip = str(request.data.get('is_vip', 'false')).lower() in ('true', '1')
+    ocr_settings = OCRSettings.load()
+    vip_price = ocr_settings.vip_price_khr or 2000
+
     job = Job.objects.create(
         file=file,
         original_filename=orig_name,
         tool='ocr',
         compression_level=ocr_lang,
         page_range=page_range or None,
-        files={'current_page': 0, 'total_pages': 0}
+        files={'current_page': 0, 'total_pages': 0},
+        is_vip=is_vip,
+        payment_amount=vip_price,
+        payment_status='paid' if (not ocr_settings.enable_khqr_paywall or not is_vip) else 'unpaid'
     )
     
     logger.info(f'Created job {job.id}')
@@ -824,3 +892,91 @@ def image_to_pdf_api(request):
     except Exception as e:
         logger.error(f'Image to PDF API error: {e}', exc_info=True)
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def api_job_payment_qr(request, job_id):
+    """Generate dynamic Bakong KHQR for unlocking a VIP OCR document."""
+    job = get_object_or_404(Job, id=job_id)
+    ocr_settings = OCRSettings.load()
+
+    amount = job.payment_amount or ocr_settings.vip_price_khr or 2000
+    bakong_id = ocr_settings.bakong_account_id or 'khmerpdf@aba'
+    m_name = ocr_settings.merchant_name or 'KhmerPDF'
+    m_city = ocr_settings.merchant_city or 'Phnom Penh'
+    short_id = str(job.id)[:8]
+
+    from apps.pdf.ocr.khqr import generate_bakong_khqr
+    khqr_str, md5_hash, qr_data_url = generate_bakong_khqr(
+        bakong_account_id=bakong_id,
+        merchant_name=m_name,
+        merchant_city=m_city,
+        amount=amount,
+        currency='KHR',
+        bill_no=short_id,
+        store_label='KhmerPDF'
+    )
+    job.khqr_string = khqr_str
+    job.khqr_md5 = md5_hash
+    job.payment_amount = amount
+    job.save(update_fields=['khqr_string', 'khqr_md5', 'payment_amount'])
+
+    return Response({
+        'status': 'ok',
+        'job_id': str(job.id),
+        'payment_status': job.payment_status,
+        'amount': amount,
+        'currency': 'KHR',
+        'bakong_account': bakong_id,
+        'merchant_name': m_name,
+        'md5': md5_hash,
+        'qr_data_url': qr_data_url,
+        'khqr_string': khqr_str
+    })
+
+
+@api_view(['GET', 'POST'])
+def api_job_check_payment(request, job_id):
+    """Check Bakong OpenAPI transaction status in real-time."""
+    job = get_object_or_404(Job, id=job_id)
+    ocr_settings = OCRSettings.load()
+
+    # If already paid, return immediately
+    if job.payment_status == 'paid':
+        return Response({
+            'status': 'paid',
+            'job_id': str(job.id),
+            'result_url': job.result.url if job.result else None
+        })
+
+    # Demo bypass for development / testing
+    if request.GET.get('demo_pay') == '1':
+        job.payment_status = 'paid'
+        job.save(update_fields=['payment_status'])
+        return Response({
+            'status': 'paid',
+            'demo': True,
+            'job_id': str(job.id),
+            'result_url': job.result.url if job.result else None
+        })
+
+    if not job.khqr_md5:
+        return Response({'status': 'unpaid', 'error': 'No KHQR generated yet'}, status=400)
+
+    from apps.pdf.ocr.khqr import verify_bakong_transaction
+    is_paid, raw_data = verify_bakong_transaction(job.khqr_md5, ocr_settings.bakong_api_token)
+
+    if is_paid:
+        job.payment_status = 'paid'
+        job.save(update_fields=['payment_status'])
+        return Response({
+            'status': 'paid',
+            'job_id': str(job.id),
+            'result_url': job.result.url if job.result else None
+        })
+
+    return Response({
+        'status': job.payment_status,
+        'job_id': str(job.id),
+        'raw': raw_data
+    })

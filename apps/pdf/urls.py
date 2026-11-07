@@ -12,4 +12,6 @@ urlpatterns = [
     path('image-to-pdf/', views.image_to_pdf_api, name='image_to_pdf'),
     path('job/<uuid:job_id>/', views.job_status, name='job_status'),
     path('job/<uuid:job_id>/preview/', views.job_preview, name='job_preview'),
+    path('job/<uuid:job_id>/payment-qr/', views.api_job_payment_qr, name='job_payment_qr'),
+    path('job/<uuid:job_id>/check-payment/', views.api_job_check_payment, name='job_check_payment'),
 ]

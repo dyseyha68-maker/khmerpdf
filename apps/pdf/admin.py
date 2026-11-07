@@ -44,8 +44,8 @@ def reset_jobs(modeladmin, request, queryset):
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display  = ['short_id', 'tool', 'status_badge', 'file_size_display', 'created_at']
-    list_filter   = ['status', 'tool', 'created_at']
+    list_display  = ['short_id', 'tool', 'status_badge', 'vip_badge', 'payment_badge', 'file_size_display', 'created_at']
+    list_filter   = ['status', 'is_vip', 'payment_status', 'tool', 'created_at']
     search_fields = ['id']
     readonly_fields = ['id', 'created_at']
     actions = [mark_failed, reset_jobs]
@@ -67,6 +67,22 @@ class JobAdmin(admin.ModelAdmin):
             color, obj.status.upper()
         )
     status_badge.short_description = 'Status'
+
+    def vip_badge(self, obj):
+        if obj.is_vip:
+            return format_html('<span style="background:#7c3aed;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">VIP AI</span>')
+        return format_html('<span style="color:#64748b;font-size:11px;">Standard</span>')
+    vip_badge.short_description = 'Tier'
+
+    def payment_badge(self, obj):
+        if not obj.is_vip:
+            return '—'
+        colors = {'paid': '#059669', 'pending': '#d97706', 'unpaid': '#dc2626'}
+        c = colors.get(obj.payment_status, '#64748b')
+        return format_html(
+            f'<span style="background:{c};color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">{obj.payment_status.upper()}</span>'
+        )
+    payment_badge.short_description = 'Payment'
 
     def file_size_display(self, obj):
         if obj.file:
@@ -352,6 +368,14 @@ class OCRSettingsForm(forms.ModelForm):
                 'style': 'font-family:monospace;font-size:12px;width:100%;max-width:700px;',
                 'placeholder': '{\n  "type": "service_account",\n  "project_id": "...",\n  ...\n}',
             }),
+            'bakong_api_token': forms.PasswordInput(render_value=True, attrs={
+                'style': 'font-family:monospace;font-size:12px;width:100%;max-width:500px;',
+                'placeholder': 'Bearer token from bakong.nbc.gov.kh',
+            }),
+            'bakong_account_id': forms.TextInput(attrs={
+                'style': 'font-family:monospace;font-size:12px;width:100%;max-width:350px;',
+                'placeholder': 'e.g. seyha_dy@aba',
+            }),
         }
 
 
@@ -376,6 +400,17 @@ class OCRSettingsAdmin(admin.ModelAdmin):
             'fields': ('use_google_vision', 'google_credentials_json'),
             'classes': ('collapse',),
             'description': 'Alternative OCR engine via Google Cloud Vision DOCUMENT_TEXT_DETECTION.'
+        }),
+        ('Bakong KHQR Automated Paywall (VIP OCR)', {
+            'fields': (
+                'enable_khqr_paywall',
+                'vip_price_khr',
+                'bakong_account_id',
+                'merchant_name',
+                'merchant_city',
+                'bakong_api_token'
+            ),
+            'description': 'Configure automated scan-to-pay via Bakong KHQR. When enabled, users must pay the specified amount (e.g. 2,000 KHR) to download VIP Word (.docx) files. The system checks Bakong in real-time and auto-unlocks downloads.'
         }),
         ('Fallback & System', {
             'fields': ('fallback_to_tesseract', 'updated_at'),

@@ -116,6 +116,18 @@ class Job(models.Model):
     page_range = models.CharField(max_length=100, blank=True, null=True)
     compression_level = models.CharField(max_length=20, default='extreme')
 
+    # ── VIP & Bakong KHQR Paywall Fields ──
+    is_vip = models.BooleanField(default=False, verbose_name='Is VIP AI OCR')
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[('unpaid', 'Unpaid'), ('pending', 'Pending'), ('paid', 'Paid')],
+        default='unpaid',
+        verbose_name='Payment Status'
+    )
+    payment_amount = models.IntegerField(default=2000, verbose_name='Payment Amount (KHR)')
+    khqr_string = models.TextField(blank=True, null=True, verbose_name='KHQR Payload String')
+    khqr_md5 = models.CharField(max_length=64, blank=True, null=True, verbose_name='KHQR MD5 Hash')
+
     class Meta:
         ordering = ['-created_at']
 
@@ -192,6 +204,40 @@ class OCRSettings(models.Model):
         help_text='Recommended. If a Cloud / AI engine fails (invalid key, quota used up, service '
                    'unreachable) the page is passed to the next engine; if off, the job stops.',
     )
+    # ── Bakong KHQR Automated Paywall ──
+    enable_khqr_paywall = models.BooleanField(
+        default=False,
+        verbose_name='Enable KHQR Paywall for VIP OCR',
+        help_text='When enabled, users must scan Bakong KHQR to download VIP Word (.docx) files. Standard Netra-OCR remains free.',
+    )
+    vip_price_khr = models.IntegerField(
+        default=2000,
+        verbose_name='VIP Price in Khmer Riel (KHR)',
+        help_text='e.g. 2000 Riel (~.50) or 4000 Riel (~.00).',
+    )
+    bakong_account_id = models.CharField(
+        max_length=100,
+        default='khmerpdf@aba',
+        verbose_name='Bakong Account ID',
+        help_text='Your Bakong account or ABA ID (e.g. yourname@aba or phone@devb). Payments go directly into this account.',
+    )
+    merchant_name = models.CharField(
+        max_length=100,
+        default='KhmerPDF',
+        verbose_name='Merchant Display Name',
+        help_text='Appears on customer banking app when scanning the QR code.',
+    )
+    merchant_city = models.CharField(
+        max_length=100,
+        default='Phnom Penh',
+        verbose_name='Merchant City',
+    )
+    bakong_api_token = models.TextField(
+        blank=True,
+        verbose_name='Bakong OpenAPI Bearer Token',
+        help_text='From bakong.nbc.gov.kh developer portal. If empty, Demo mode allows instant unlock.',
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

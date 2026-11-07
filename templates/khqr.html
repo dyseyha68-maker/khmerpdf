@@ -10,11 +10,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
-    /* Override outer page wrapper layout to center the card, both
-       horizontally and vertically. .page-main already has flex:1 from
-       base.html (body is a flex column), so it fills all space below
-       the header — justify-content:center then centers the card in
-       that space vertically, matching align-items:center horizontally. */
     .page-main {
         display: flex;
         flex-direction: column;
@@ -24,19 +19,17 @@
         box-sizing: border-box;
     }
 
-    /* ── Card shell ─────────────────────────────────────────── */
     .card {
         background: var(--surface);
         border-radius: 16px;
         border: 0.5px solid var(--border);
         width: 100%;
-        max-width: 700px;
+        max-width: 720px;
         overflow: hidden;
         display: flex;
         box-shadow: var(--shadow-md);
     }
 
-    /* ── Left panel ─────────────────────────────────────────── */
     .left {
         flex: 1;
         padding: 36px 32px;
@@ -59,7 +52,12 @@
         width: fit-content;
     }
     [data-theme="dark"] .status-badge { background: #173404; color: #c0dd97; }
-    .status-badge i { font-size: 13px; }
+
+    .status-badge.vip {
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+    [data-theme="dark"] .status-badge.vip { background: #3b0764; color: #ddd6fe; }
 
     .card-title {
         font-size: 22px;
@@ -83,7 +81,7 @@
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
         padding: 9px 12px;
-        margin-bottom: 28px;
+        margin-bottom: 24px;
     }
     .filename-pill i { font-size: 16px; color: var(--text-secondary); flex-shrink: 0; }
     .filename-pill span {
@@ -116,21 +114,29 @@
         transition: background 0.15s, transform 0.1s;
     }
     .dl-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .dl-btn i { font-size: 18px; }
+    .dl-btn.locked {
+        background: #64748b;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .dl-btn.success {
+        background: #059669;
+        cursor: pointer;
+    }
 
     .home-link {
         display: block;
         text-align: center;
         font-size: 13px;
         color: var(--text-secondary);
-        text-decoration: none;
         margin-top: 12px;
+        text-decoration: none;
     }
     .home-link:hover { color: var(--text); }
 
     /* ── Right panel ────────────────────────────────────────── */
     .right {
-        width: 290px;
+        width: 310px;
         flex-shrink: 0;
         background: var(--surface-hover);
         border-left: 1px solid var(--border);
@@ -138,84 +144,64 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
     }
 
-    .qr-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-secondary);
+    .qr-card-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
         margin-bottom: 14px;
-        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .qr-img {
-        width: 100%;
-        max-width: 242px;
-        height: auto;
-        border-radius: 10px;
-        border: 1px solid var(--border);
+        width: 220px;
+        height: 220px;
         display: block;
-        margin-bottom: 16px;
+        border-radius: 8px;
     }
 
-    .amount-chips {
-        display: flex;
-        flex-wrap: wrap;
+    .khqr-header-pill {
+        display: inline-flex;
+        align-items: center;
         gap: 6px;
-        justify-content: center;
-        margin-bottom: 10px;
+        background: #e11d48;
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-bottom: 8px;
     }
 
-    .chip {
-        padding: 5px 10px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border);
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        background: var(--surface);
-        cursor: pointer;
-        font-family: inherit;
-        transition: all 0.12s;
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #d97706;
+        border-radius: 50%;
+        display: inline-block;
+        animation: pulse 1.6s infinite ease-in-out;
     }
-    .chip:hover { border-color: var(--primary); color: var(--primary); }
-    .chip.active {
-        background: #e6f1fb;
-        border-color: #b5d4f4;
-        color: #185fa5;
-    }
-    [data-theme="dark"] .chip.active {
-        background: #042c53;
-        border-color: #0c447c;
-        color: #b5d4f4;
+    @keyframes pulse {
+        0% { transform: scale(0.85); opacity: 0.6; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(0.85); opacity: 0.6; }
     }
 
-    .donate-hint {
-        font-size: 11px;
-        color: var(--text-secondary);
-        text-align: center;
-        line-height: 1.5;
-    }
-
-    /* ── Responsive ─────────────────────────────────────────── */
-    @media (max-width: 700px) {
-        .page-main { padding: 16px; }
+    @media (max-width: 720px) {
         .card { flex-direction: column; }
-        .left { padding: 24px 20px 20px; }
         .right {
             width: 100%;
             border-left: none;
             border-top: 1px solid var(--border);
-            padding: 20px;
-            flex-direction: row;
-            align-items: center;
-            gap: 16px;
+            padding: 24px 20px;
         }
-        .qr-img { width: 90px; max-width: 90px; margin-bottom: 0; flex-shrink: 0; }
-        .qr-donate-col { flex: 1; }
-        .qr-label { text-align: left; margin-bottom: 8px; }
-        .amount-chips { justify-content: flex-start; }
-        .donate-hint { text-align: left; }
     }
 </style>
 {% endblock %}
@@ -225,52 +211,140 @@
 
     <!-- ── Left: success + download ─────────────────────────── -->
     <div class="left">
+        {% if requires_payment %}
+        <div class="status-badge vip">
+            <i class="ti ti-sparkles"></i>
+            {% trans "VIP AI OCR" %}
+        </div>
+        <h1 class="card-title">{% trans "Scan KHQR to Download" %}</h1>
+        <p class="card-sub">
+            {% trans "Your VIP Word file is ready. Please scan to unlock the download." %}
+        </p>
+        {% else %}
         <div class="status-badge">
-            <i class="ti ti-circle-check" aria-hidden="true"></i>
+            <i class="ti ti-circle-check"></i>
             {% trans "Done" %}
         </div>
-
         <h1 class="card-title">{% trans "Your file is ready" %}</h1>
         <p class="card-sub">{% trans "Processed and ready to download." %}</p>
+        {% endif %}
 
         <div class="filename-pill">
-            <i class="ti {% if '.docx' in filename %}ti-file-type-docx{% elif '.zip' in filename %}ti-file-zip{% else %}ti-file-type-pdf{% endif %}" aria-hidden="true"></i>
+            <i class="ti {% if '.docx' in filename %}ti-file-type-docx{% elif '.zip' in filename %}ti-file-zip{% else %}ti-file-type-pdf{% endif %}"></i>
             <span title="{{ filename }}">{{ filename }}</span>
         </div>
 
         <div class="spacer"></div>
 
+        {% if requires_payment %}
+        <button id="dl-button" class="dl-btn locked" disabled>
+            <i class="ti ti-lock" id="dl-icon"></i>
+            <span id="dl-text">ស្កេន KHQR ដើម្បីទាញយក ({{ amount }} ៛)</span>
+        </button>
+        {% else %}
         <a href="{{ download_url }}" class="dl-btn" download="{{ filename }}">
-            <i class="ti ti-download" aria-hidden="true"></i>
+            <i class="ti ti-download"></i>
             {% trans "Download file" %}
         </a>
-        <a href="/" class="home-link">{% trans "Back to home" %}</a>
+        {% endif %}
+
+        <a href="/pdf-ocr/" class="home-link">← {% trans "Convert another file" %}</a>
     </div>
 
-    <!-- ── Right: QR donate ──────────────────────────────────── -->
+    <!-- ── Right: Dynamic KHQR or Support QR ─────────────────── -->
     <div class="right">
-        <p class="qr-label">{% trans "Support this tool" %}</p>
-        <img src="{% static 'khqr.jpg' %}" alt="{% trans 'KHQR donation code' %}" class="qr-img">
-        <div class="qr-donate-col">
-            <div class="amount-chips">
-                <button class="chip active" onclick="selectChip(this)">$2</button>
-                <button class="chip" onclick="selectChip(this)">$3</button>
-                <button class="chip" onclick="selectChip(this)">$5</button>
-                <button class="chip" onclick="selectChip(this)">$8</button>
-                <button class="chip" onclick="selectChip(this)">$10</button>
-            </div>
-            <p class="donate-hint">{% trans "Any amount is appreciated" %}</p>
+        {% if requires_payment %}
+        <div class="khqr-header-pill">
+            <i class="ti ti-qrcode"></i> BAKONG KHQR
         </div>
+        <div class="qr-card-box">
+            {% if qr_data_url %}
+            <img src="{{ qr_data_url }}" alt="Bakong KHQR" class="qr-img">
+            {% else %}
+            <div style="width:220px;height:220px;display:flex;align-items:center;justify-content:center;color:#64748b;">
+                Loading QR...
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align:center; width:100%;">
+            <div style="font-size:22px; font-weight:800; color:#e11d48; letter-spacing:-0.5px;">
+                {{ amount }} ៛
+            </div>
+            <div style="font-size:12px; color:var(--text); font-weight:600; margin-top:2px;">
+                {{ merchant_name }}
+            </div>
+            <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">
+                ស្កេនជាមួយ ABA, ACLEDA, Wing ឬកម្មវិធី Bakong ទាំងអស់
+            </div>
+            <div id="payment-status-pill" style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:#d97706; margin-top:8px;">
+                <span class="pulse-dot"></span>
+                <span>រង់ចាំការទូទាត់... (Waiting)</span>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Standard Voluntary Donation QR -->
+        <p style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:12px; text-align:center;">
+            {% trans "Support KhmerPDF Tools" %} ☕
+        </p>
+        <img src="{% static 'khqr.jpg' %}" alt="KHQR" class="qr-img" style="border: 1px solid var(--border); border-radius:10px; margin-bottom:12px;">
+        <p style="font-size:11.5px; color:var(--text-secondary); text-align:center; line-height:1.4;">
+            {% trans "Any donation helps keep our servers running!" %}
+        </p>
+        {% endif %}
     </div>
 
 </div>
 {% endblock %}
 
 {% block scripts %}
+{% if requires_payment and job_id %}
 <script>
-    function selectChip(el) {
-        el.closest('.amount-chips').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-    }
+    (function() {
+        const jobId = "{{ job_id }}";
+        const dlBtn = document.getElementById('dl-button');
+        const dlIcon = document.getElementById('dl-icon');
+        const dlText = document.getElementById('dl-text');
+        const statusPill = document.getElementById('payment-status-pill');
+
+        let isChecking = false;
+        let pollTimer = setInterval(async () => {
+            if (isChecking) return;
+            isChecking = true;
+            try {
+                const res = await fetch(`/api/job/${jobId}/check-payment/`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'paid') {
+                        clearInterval(pollTimer);
+                        
+                        // Update UI to paid state
+                        statusPill.innerHTML = '<span style="color:#059669; font-weight:700;"><i class="ti ti-circle-check"></i> ទូទាត់ជោគជ័យ! (Paid)</span>';
+                        dlBtn.classList.remove('locked');
+                        dlBtn.classList.add('success');
+                        dlBtn.disabled = false;
+                        dlIcon.className = 'ti ti-download';
+                        dlText.innerText = 'ទាញយកឯកសារ Word (.docx)';
+
+                        const fileUrl = data.result_url || '{{ download_url }}';
+                        dlBtn.onclick = () => {
+                            window.location.href = fileUrl;
+                        };
+
+                        // Auto download immediately
+                        setTimeout(() => {
+                            window.location.href = fileUrl;
+                        }, 500);
+                    }
+                }
+            } catch (err) {
+                console.warn('Payment check polling error:', err);
+            } finally {
+                isChecking = false;
+            }
+        }, 2000);
+    })();
 </script>
+{% endif %}
 {% endblock %}

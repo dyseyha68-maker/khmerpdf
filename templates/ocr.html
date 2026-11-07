@@ -1160,6 +1160,33 @@
             </div>
         </div>
 
+        <!-- OCR Tier Mode (Standard Free vs VIP AI) -->
+        <div class="options-section" style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px;">
+            <div class="lang-section-header">
+                <div class="lang-header-title">
+                    <i class="ti ti-sparkles" style="color:#7c3aed;"></i>
+                    <span>{% trans "OCR Mode" %}</span>
+                </div>
+                <span style="font-size:11px; font-weight:700; color:#7c3aed; background:#ede9fe; padding:2px 8px; border-radius:12px;" x-show="isVip">
+                    VIP AI
+                </span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+                <button type="button" class="lang-pill" :class="{ active: !isVip }" @click="isVip = false" style="justify-content:center; text-align:center; padding:8px 6px;">
+                    <div>
+                        <div style="font-weight:700; font-size:13px;">{% trans "Standard" %}</div>
+                        <div style="font-size:10.5px; opacity:0.75;">Netra (Free)</div>
+                    </div>
+                </button>
+                <button type="button" class="lang-pill" :class="{ active: isVip }" @click="isVip = true" style="justify-content:center; text-align:center; padding:8px 6px; border-color: rgba(124, 58, 237, 0.4);">
+                    <div>
+                        <div style="font-weight:700; font-size:13px; color:#7c3aed;">✨ {% trans "VIP AI" %}</div>
+                        <div style="font-size:10.5px; opacity:0.85;">Vision AI (2,000 ៛)</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
         <!-- Action Button -->
         <button class="action-btn" :disabled="selectedCount === 0 || isLoadingPages" @click="submit()">
             <span x-text="submitButtonText"></span>
@@ -1356,8 +1383,8 @@
                     <span x-text="previewLoading ? (isKhmer ? 'កំពុងផ្ទុក...' : 'Loading...') : (isKhmer ? 'មើលជាមុន' : 'Preview')"></span>
                 </button>
                 <button type="button" class="primary" @click="downloadResult()">
-                    <i class="ti ti-download"></i>
-                    <span x-text="isKhmer ? 'ទាញយក Word' : 'Download Word'"></span>
+                    <i :class="resultJob && resultJob.requires_payment ? 'ti ti-lock' : 'ti ti-download'"></i>
+                    <span x-text="resultJob && resultJob.requires_payment ? (isKhmer ? 'ស្កេន KHQR ដើម្បីទាញយក' : 'Scan KHQR to Unlock') : (isKhmer ? 'ទាញយក Word' : 'Download Word')"></span>
                 </button>
             </div>
             <button type="button" class="result-close" @click="resultVisible = false" x-text="isKhmer ? 'បិទ' : 'Close'"></button>
@@ -1494,6 +1521,7 @@ function ocrApp() {
         pages: [],
         loadedFiles: new Set(),
         ocrLang: (typeof isKhmer !== 'undefined' && isKhmer) ? 'khm' : 'eng+khm',
+        isVip: false,
         isLoadingPages: false,
         loadingProgress: '',
         draggingRight: false,
@@ -1544,6 +1572,12 @@ function ocrApp() {
             const count = this.selectedCount;
             if (count === 0) {
                 return (typeof isKhmer !== 'undefined' && isKhmer) ? 'សូមជ្រើសរើសយ៉ាងហោច ១ ទំព័រ' : 'Select at least 1 page';
+            }
+            if (this.isVip) {
+                if (typeof isKhmer !== 'undefined' && isKhmer) {
+                    return `បម្លែង ${toKhNum(count)} ទំព័រ (VIP AI ✨)`;
+                }
+                return `Convert ${count} Pages (VIP AI ✨)`;
             }
             if (typeof isKhmer !== 'undefined' && isKhmer) {
                 return `បម្លែង ${toKhNum(count)} ទំព័រទៅជា Word`;
@@ -1959,6 +1993,7 @@ function ocrApp() {
                 const fd = new FormData();
                 fd.append('file', fileToSend);
                 fd.append('ocr_lang', this.ocrLang);
+                fd.append('is_vip', this.isVip ? '1' : '0');
 
                 const d = await fetch('/api/ocr/', { method: 'POST', body: fd }).then(r => r.json());
                 const baseName = firstSourceName || 'document';
@@ -2003,6 +2038,8 @@ function ocrApp() {
                             id: jobId, url: job.result_url || '', name: dlName,
                             total: job.total_pages || this._submittedPages.length,
                             failed: job.failed_pages || [],
+                            requires_payment: job.requires_payment || false,
+                            is_vip: job.is_vip || false,
                         };
                         this.resultVisible = true;
                     } else if (job.status === 'failed') {
@@ -2040,7 +2077,11 @@ function ocrApp() {
         downloadResult() {
             const j = this.resultJob;
             if (!j) return;
-            window.location.href = '/khqr/?download=' + encodeURIComponent(j.url || '') + '&filename=' + encodeURIComponent(j.name);
+            let url = '/khqr/?download=' + encodeURIComponent(j.url || '') + '&filename=' + encodeURIComponent(j.name);
+            if (j.id) {
+                url += '&job_id=' + encodeURIComponent(j.id);
+            }
+            window.location.href = url;
         },
         async openPreview() {
             if (!this.resultJob || this.previewLoading) return;
