@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans "File Ready" %} - Khmer PDF Tools{% endblock %}
+{% block title %}{% if is_docx %}{% trans "Word File Ready" %}{% else %}{% trans "File Ready" %}{% endif %} - Khmer PDF Tools{% endblock %}
 {% block meta_robots %}noindex, follow{% endblock %}
-{% block meta_description %}Your processed PDF file is ready to download from DAMSPEY - free Khmer PDF tools.{% endblock %}
+{% block meta_description %}{% if is_docx %}Your converted Word (.docx) document is ready to download.{% else %}Your processed PDF file is ready to download.{% endif %}{% endblock %}
 {% block page_path %}/khqr/{% endblock %}
 {% block og_path %}/khqr/{% endblock %}
 
@@ -15,19 +15,20 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 24px;
+        padding: 28px 16px;
         box-sizing: border-box;
+        min-height: calc(100vh - 160px);
     }
 
     .card {
         background: var(--surface);
-        border-radius: 16px;
-        border: 0.5px solid var(--border);
+        border-radius: 18px;
+        border: 1px solid var(--border);
         width: 100%;
-        max-width: 720px;
+        max-width: 740px;
         overflow: hidden;
         display: flex;
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
     }
 
     .left {
@@ -41,14 +42,14 @@
     .status-badge {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
         background: #eaf3de;
         color: #3b6d11;
         font-size: 12px;
-        font-weight: 600;
-        padding: 4px 10px;
+        font-weight: 700;
+        padding: 4px 12px;
         border-radius: 999px;
-        margin-bottom: 18px;
+        margin-bottom: 16px;
         width: fit-content;
     }
     [data-theme="dark"] .status-badge { background: #173404; color: #c0dd97; }
@@ -59,41 +60,50 @@
     }
     [data-theme="dark"] .status-badge.vip { background: #3b0764; color: #ddd6fe; }
 
+    .status-badge.docx {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+    [data-theme="dark"] .status-badge.docx { background: #1e3a8a; color: #bfdbfe; }
+
     .card-title {
         font-size: 22px;
-        font-weight: 600;
+        font-weight: 700;
         color: var(--text);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
+        line-height: 1.3;
     }
 
     .card-sub {
-        font-size: 14px;
+        font-size: 13.5px;
         color: var(--text-secondary);
-        margin-bottom: 18px;
+        margin-bottom: 20px;
         line-height: 1.5;
     }
 
     .filename-pill {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         background: var(--surface-hover);
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
-        padding: 9px 12px;
+        padding: 10px 14px;
         margin-bottom: 24px;
     }
-    .filename-pill i { font-size: 16px; color: var(--text-secondary); flex-shrink: 0; }
+    .filename-pill i { font-size: 20px; color: var(--text-secondary); flex-shrink: 0; }
+    .filename-pill i.docx-icon { color: #2563eb; }
     .filename-pill span {
-        font-size: 12px;
-        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         min-width: 0;
     }
 
-    .spacer { flex: 1; }
+    .spacer { flex: 1; min-height: 20px; }
 
     .dl-btn {
         display: flex;
@@ -114,6 +124,8 @@
         transition: background 0.15s, transform 0.1s;
     }
     .dl-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .dl-btn.docx { background: #2563eb; }
+    .dl-btn.docx:hover { background: #1d4ed8; }
     .dl-btn.locked {
         background: #64748b;
         cursor: not-allowed;
@@ -129,22 +141,23 @@
         text-align: center;
         font-size: 13px;
         color: var(--text-secondary);
-        margin-top: 12px;
+        margin-top: 14px;
         text-decoration: none;
     }
     .home-link:hover { color: var(--text); }
 
     /* ── Right panel ────────────────────────────────────────── */
     .right {
-        width: 310px;
+        width: 320px;
         flex-shrink: 0;
         background: var(--surface-hover);
         border-left: 1px solid var(--border);
-        padding: 28px 24px 24px;
+        padding: 24px 20px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        box-sizing: border-box;
     }
 
     .qr-card-box {
@@ -153,17 +166,35 @@
         border-radius: 14px;
         padding: 12px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-        margin-bottom: 14px;
+        margin-bottom: 12px;
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
+        max-width: 100%;
     }
 
     .qr-img {
-        width: 220px;
-        height: 220px;
+        width: 200px;
+        height: 200px;
+        max-width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
         display: block;
         border-radius: 8px;
+    }
+
+    .static-khqr-img {
+        width: 100%;
+        max-width: 220px;
+        height: auto;
+        aspect-ratio: 471 / 623;
+        object-fit: contain;
+        display: block;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        margin: 0 auto 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .khqr-header-pill {
@@ -172,12 +203,12 @@
         gap: 6px;
         background: #e11d48;
         color: #ffffff;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 800;
         letter-spacing: 0.6px;
-        padding: 3px 10px;
+        padding: 4px 12px;
         border-radius: 20px;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
 
     .pulse-dot {
@@ -195,12 +226,16 @@
     }
 
     @media (max-width: 720px) {
+        .page-main { padding: 12px; }
         .card { flex-direction: column; }
         .right {
             width: 100%;
             border-left: none;
             border-top: 1px solid var(--border);
-            padding: 24px 20px;
+            padding: 24px 18px;
+        }
+        .left {
+            padding: 24px 18px;
         }
     }
 </style>
@@ -218,8 +253,15 @@
         </div>
         <h1 class="card-title">{% trans "Scan KHQR to Download" %}</h1>
         <p class="card-sub">
-            {% trans "Your VIP Word file is ready. Please scan to unlock the download." %}
+            {% trans "Your VIP Word file is ready. Please scan the QR code to unlock and download." %}
         </p>
+        {% elif is_docx %}
+        <div class="status-badge docx">
+            <i class="ti ti-file-type-docx"></i>
+            Word (.docx)
+        </div>
+        <h1 class="card-title">{% trans "Your Word Document is Ready" %}</h1>
+        <p class="card-sub">{% trans "Converted from OCR into editable Microsoft Word (.docx) format." %}</p>
         {% else %}
         <div class="status-badge">
             <i class="ti ti-circle-check"></i>
@@ -230,7 +272,13 @@
         {% endif %}
 
         <div class="filename-pill">
-            <i class="ti {% if '.docx' in filename %}ti-file-type-docx{% elif '.zip' in filename %}ti-file-zip{% else %}ti-file-type-pdf{% endif %}"></i>
+            {% if is_docx %}
+            <i class="ti ti-file-type-docx docx-icon"></i>
+            {% elif '.zip' in filename %}
+            <i class="ti ti-file-zip"></i>
+            {% else %}
+            <i class="ti ti-file-type-pdf"></i>
+            {% endif %}
             <span title="{{ filename }}">{{ filename }}</span>
         </div>
 
@@ -242,9 +290,9 @@
             <span id="dl-text">ស្កេន KHQR ដើម្បីទាញយក ({{ amount }} ៛)</span>
         </button>
         {% else %}
-        <a href="{{ download_url }}" class="dl-btn" download="{{ filename }}">
-            <i class="ti ti-download"></i>
-            {% trans "Download file" %}
+        <a href="{{ download_url }}" class="dl-btn {% if is_docx %}docx{% endif %}" download="{{ filename }}">
+            <i class="ti {% if is_docx %}ti-file-type-docx{% else %}ti-download{% endif %}"></i>
+            {% if is_docx %}{% trans "Download Word (.docx)" %}{% else %}{% trans "Download file" %}{% endif %}
         </a>
         {% endif %}
 
@@ -261,7 +309,7 @@
             {% if qr_data_url %}
             <img src="{{ qr_data_url }}" alt="Bakong KHQR" class="qr-img">
             {% else %}
-            <div style="width:220px;height:220px;display:flex;align-items:center;justify-content:center;color:#64748b;">
+            <div style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;color:#64748b;">
                 Loading QR...
             </div>
             {% endif %}
@@ -285,11 +333,11 @@
 
         {% else %}
         <!-- Standard Voluntary Donation QR -->
-        <p style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:12px; text-align:center;">
+        <p style="font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:10px; text-align:center;">
             {% trans "Support KhmerPDF Tools" %} ☕
         </p>
-        <img src="{% static 'khqr.jpg' %}" alt="KHQR" class="qr-img" style="border: 1px solid var(--border); border-radius:10px; margin-bottom:12px;">
-        <p style="font-size:11.5px; color:var(--text-secondary); text-align:center; line-height:1.4;">
+        <img src="{% static 'khqr.jpg' %}" alt="KHQR" class="static-khqr-img">
+        <p style="font-size:11.5px; color:var(--text-secondary); text-align:center; line-height:1.4; margin:0;">
             {% trans "Any donation helps keep our servers running!" %}
         </p>
         {% endif %}

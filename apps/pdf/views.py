@@ -231,7 +231,7 @@ def download_file(request):
 
 def khqr(request):
     download_url = request.GET.get('download', '')
-    filename = request.GET.get('filename', 'download.pdf')
+    filename = request.GET.get('filename', '')
     job_id = request.GET.get('job_id', '')
 
     ocr_settings = OCRSettings.load()
@@ -243,23 +243,39 @@ def khqr(request):
     if job_id:
         try:
             job = Job.objects.filter(id=job_id).first()
-            if job and job.is_vip and ocr_settings.enable_khqr_paywall and job.payment_status != 'paid':
-                requires_payment = True
-                amount = job.payment_amount or amount
-                from apps.pdf.ocr.khqr import generate_bakong_khqr
-                khqr_str, md5_hash, qr_data_url = generate_bakong_khqr(
-                    bakong_account_id=ocr_settings.bakong_account_id,
-                    merchant_name=ocr_settings.merchant_name,
-                    merchant_city=ocr_settings.merchant_city,
-                    amount=amount,
-                    currency='KHR',
-                    bill_no=str(job.id)[:8]
-                )
-                job.khqr_string = khqr_str
-                job.khqr_md5 = md5_hash
-                job.save(update_fields=['khqr_string', 'khqr_md5'])
-        except Exception:
-            pass
+            if job:
+                # If this is an OCR job, ensure the download filename is Word (.docx)
+                if job.tool == 'ocr':
+                    orig_name = job.original_filename or 'document'
+                    base_name = os.path.splitext(orig_name)[0]
+                    if base_name.endswith('_selected'):
+                        base_name = base_name[:-9]
+                    filename = f"{base_name}.docx"
+
+                # If download_url was masked or empty, recover from job.result
+                if (not download_url or download_url in ('', 'null', 'None')) and job.result:
+                    download_url = job.result.url
+
+                if job.is_vip and ocr_settings.enable_khqr_paywall and job.payment_status != 'paid':
+                    requires_payment = True
+                    amount = job.payment_amount or amount
+                    from apps.pdf.ocr.khqr import generate_bakong_khqr
+                    khqr_str, md5_hash, qr_data_url = generate_bakong_khqr(
+                        bakong_account_id=ocr_settings.bakong_account_id,
+                        merchant_name=ocr_settings.merchant_name,
+                        merchant_city=ocr_settings.merchant_city,
+                        amount=amount,
+                        currency='KHR',
+                        bill_no=str(job.id)[:8]
+                    )
+                    job.khqr_string = khqr_str
+                    job.khqr_md5 = md5_hash
+                    job.save(update_fields=['khqr_string', 'khqr_md5'])
+        except Exception as e:
+            logger.error(f"khqr view error: {e}")
+
+    if not filename:
+        filename = 'document.docx' if (job and job.tool == 'ocr') else 'download.pdf'
 
     media_url = settings.MEDIA_URL
     if download_url and download_url.startswith(media_url):
@@ -271,6 +287,7 @@ def khqr(request):
     else:
         forced_url = download_url
 
+    is_docx = filename.lower().endswith('.docx')
     return render(request, 'khqr.html', {
         'download_url': forced_url,
         'filename': filename,
@@ -281,6 +298,8 @@ def khqr(request):
         'qr_data_url': qr_data_url,
         'merchant_name': ocr_settings.merchant_name,
         'bakong_account': ocr_settings.bakong_account_id,
+        'is_docx': is_docx,
+        'job_tool': job.tool if job else '',
     })
 
 
