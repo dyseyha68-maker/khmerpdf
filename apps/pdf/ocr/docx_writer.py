@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 # at the same size, with 1.5-line spacing. Bold, alignment, indents and gaps between paragraphs
 # are still kept from the source.
 DOC_FONT_SIZE = 11
-DOC_LINE_SPACING = 1.5
+DOC_LINE_SPACING = 1.15
 
 
 def _add_structured_json_to_docx(doc, items):
@@ -71,8 +71,8 @@ def _add_structured_json_to_docx(doc, items):
             # keep hanging indents (negative); otherwise use the measured first-line indent
             if pf.first_line_indent is None or pf.first_line_indent >= 0:
                 pf.first_line_indent = Pt(item.get('first_line_indent', 0))
-        if item.get('space_before') is not None:
-            pf.space_before = Pt(item['space_before'])
+        pf.space_before = Pt(0)
+        pf.space_after = Pt(0)
 
     # ── Sanitization 1: Unpack fake borderless tables that trap narrative paragraphs or have empty padding cells ──
     APPROVAL_KEYWORDS = ('បានឃើញ', 'ប្រធាន', 'អគ្គលេខាធិការ', 'ហត្ថលេខា', 'ក្រឡាបញ្ជី', 'ចៅក្រម', 'អ្នកស្នើសុំ', 'សាមីខ្លួន', 'សាលាដំបូង', 'ក្រសួង', 'ព្រះរាជាណាចក្រ', 'តាងនាម')
@@ -191,8 +191,8 @@ def _add_structured_json_to_docx(doc, items):
             p = doc.add_paragraph()
             p.alignment = align
             p.paragraph_format.line_spacing = DOC_LINE_SPACING
-            p.paragraph_format.space_before = Pt(6 if level == 1 else 4)
-            p.paragraph_format.space_after = Pt(2)
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
             _apply_measured(p, item, font_size)
 
             total_chars += _add_styled_runs(p, text, is_bold=True, font_size=font_size)
@@ -204,8 +204,8 @@ def _add_structured_json_to_docx(doc, items):
             p = doc.add_paragraph()
             p.alignment = align
             p.paragraph_format.line_spacing = DOC_LINE_SPACING
-            p.paragraph_format.space_before = Pt(1)
-            p.paragraph_format.space_after = Pt(2)
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
 
             # Hanging indent creates clean bullet/number alignment without Word's duplicate marker bug
             if is_sub:
@@ -289,12 +289,12 @@ def _add_structured_json_to_docx(doc, items):
                         p.alignment = c_align
                         p.paragraph_format.line_spacing = DOC_LINE_SPACING
                         p.paragraph_format.space_before = Pt(0)
-                        p.paragraph_format.space_after = Pt(2)
+                        p.paragraph_format.space_after = Pt(0)
                         total_chars += _add_styled_runs(p, l_str, is_bold=c_bold, font_size=DOC_FONT_SIZE)
 
             sp = doc.add_paragraph()
             sp.paragraph_format.space_before = Pt(0)
-            sp.paragraph_format.space_after = Pt(2)
+            sp.paragraph_format.space_after = Pt(0)
 
         else:  # paragraph
             # Unpack multiline bullet lists (e.g. យោង ៖ \n- ... or ចម្លងជូន ៖ \n- ...)
@@ -303,8 +303,8 @@ def _add_structured_json_to_docx(doc, items):
                 for sl in sub_lines:
                     p = doc.add_paragraph()
                     p.paragraph_format.line_spacing = DOC_LINE_SPACING
-                    p.paragraph_format.space_before = Pt(1)
-                    p.paragraph_format.space_after = Pt(2)
+                    p.paragraph_format.space_before = Pt(0)
+                    p.paragraph_format.space_after = Pt(0)
                     if sl.startswith(('-', '–', '—', '•', '*', '+')) and not sl.startswith(('--', '---')):
                         if len(sl) > 1 and sl[1] != ' ':
                             sl = sl[0] + ' ' + sl[1:]
@@ -331,8 +331,8 @@ def _add_structured_json_to_docx(doc, items):
 
             p = doc.add_paragraph()
             p.paragraph_format.line_spacing = DOC_LINE_SPACING
-            p.paragraph_format.space_before = Pt(1)
-            p.paragraph_format.space_after = Pt(2)
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
 
             if is_bullet:
                 p.paragraph_format.left_indent = Inches(0.35)
@@ -593,7 +593,7 @@ def _add_markdown_to_docx(doc, markdown_text):
                             p.alignment = p_align
                             p.paragraph_format.line_spacing = DOC_LINE_SPACING
                             p.paragraph_format.space_before = Pt(0)
-                            p.paragraph_format.space_after = Pt(2)
+                            p.paragraph_format.space_after = Pt(0)
 
                             c_count = _add_styled_runs(p, cl, is_bold=is_header, font_size=DOC_FONT_SIZE)
                             total_chars += c_count
@@ -601,7 +601,7 @@ def _add_markdown_to_docx(doc, markdown_text):
                 # Subtle spacing paragraph after table
                 sp = doc.add_paragraph()
                 sp.paragraph_format.space_before = Pt(0)
-                sp.paragraph_format.space_after = Pt(2)
+                sp.paragraph_format.space_after = Pt(0)
             continue
 
         # ── 2. Omit standalone page numbers ──────────────────────
@@ -629,7 +629,7 @@ def _add_markdown_to_docx(doc, markdown_text):
         font_size = DOC_FONT_SIZE
         is_heading_bold = False
         space_before = Pt(0)
-        space_after = Pt(3)
+        space_after = Pt(0)
         is_heading = False
 
         # Check Heading levels
@@ -637,22 +637,22 @@ def _add_markdown_to_docx(doc, markdown_text):
             is_heading = True
             font_size = DOC_FONT_SIZE
             is_heading_bold = True
-            space_before = Pt(6)
-            space_after = Pt(2)
+            space_before = Pt(0)
+            space_after = Pt(0)
             line = line[2:].strip()
         elif line.startswith('## '):
             is_heading = True
             font_size = DOC_FONT_SIZE
             is_heading_bold = True
-            space_before = Pt(5)
-            space_after = Pt(2)
+            space_before = Pt(0)
+            space_after = Pt(0)
             line = line[3:].strip()
         elif line.startswith('### '):
             is_heading = True
             font_size = DOC_FONT_SIZE
             is_heading_bold = True
-            space_before = Pt(4)
-            space_after = Pt(2)
+            space_before = Pt(0)
+            space_after = Pt(0)
             line = line[4:].strip()
 
         # Lists & Sub-clause indentations

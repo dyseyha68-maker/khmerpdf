@@ -869,7 +869,9 @@ def ocr_pdf(job_id):
         # Set table auto-style and default Complex Script font for Khmer
         doc.styles['Normal'].font.name = 'Calibri'
         doc.styles['Normal'].font.size = Pt(11)
-        doc.styles['Normal'].paragraph_format.line_spacing = 1.5
+        doc.styles['Normal'].paragraph_format.line_spacing = 1.15
+        doc.styles['Normal'].paragraph_format.space_before = Pt(0)
+        doc.styles['Normal'].paragraph_format.space_after = Pt(0)
         try:
             norm_rPr = doc.styles['Normal']._element.get_or_add_rPr()
             norm_rFonts = norm_rPr.get_or_add_rFonts()
