@@ -1172,17 +1172,11 @@
                 </span>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
-                <button type="button" class="lang-pill" :class="{ active: !isVip }" @click="isVip = false" style="justify-content:center; text-align:center; padding:8px 6px;">
-                    <div>
-                        <div style="font-weight:700; font-size:13px;">{% trans "Standard" %}</div>
-                        <div style="font-size:10.5px; opacity:0.75;">{% trans "Free" %}</div>
-                    </div>
+                <button type="button" class="lang-pill" :class="{ active: !isVip }" @click="isVip = false" style="justify-content:center; text-align:center; padding:10px 8px;">
+                    <div style="font-weight:700; font-size:13.5px;">{% trans "Standard" %}</div>
                 </button>
-                <button type="button" class="lang-pill" :class="{ active: isVip }" @click="isVip = true" style="justify-content:center; text-align:center; padding:8px 6px; border-color: rgba(124, 58, 237, 0.4);">
-                    <div>
-                        <div style="font-weight:700; font-size:13px; color:#7c3aed;">✨ {% trans "VIP AI" %}</div>
-                        <div style="font-size:10.5px; opacity:0.85;">{% if enable_khqr_paywall %}{{ vip_price_khr|default:2000 }} &#x17DB;{% else %}{% trans "Free" %}{% endif %}</div>
-                    </div>
+                <button type="button" class="lang-pill" :class="{ active: isVip }" @click="isVip = true" style="justify-content:center; text-align:center; padding:10px 8px; border-color: rgba(124, 58, 237, 0.4);">
+                    <div style="font-weight:700; font-size:13.5px; color:#7c3aed;">✨ {% trans "VIP AI" %}</div>
                 </button>
             </div>
         </div>

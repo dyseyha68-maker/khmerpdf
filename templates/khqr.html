@@ -225,6 +225,46 @@
         100% { transform: scale(0.85); opacity: 0.6; }
     }
 
+    .donation-amounts {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 6px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    .donate-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    .donate-chip:hover {
+        background: var(--primary);
+        color: #ffffff;
+        border-color: var(--primary);
+        transform: translateY(-1px);
+    }
+    [data-theme="dark"] .donate-chip {
+        background: var(--surface);
+        border-color: var(--border);
+        color: var(--text);
+    }
+    [data-theme="dark"] .donate-chip:hover {
+        background: var(--primary);
+        color: #ffffff;
+    }
+
     @media (max-width: 720px) {
         .page-main { padding: 12px; }
         .card { flex-direction: column; }
@@ -337,6 +377,12 @@
             {% trans "Support KhmerPDF Tools" %} ☕
         </p>
         <img src="{% static 'khqr.jpg' %}" alt="KHQR" class="static-khqr-img">
+        <div class="donation-amounts">
+            <a href="https://buymeacoffee.com/complete-your-page" target="_blank" rel="noopener" class="donate-chip" title="Donate $2">$2</a>
+            <a href="https://buymeacoffee.com/complete-your-page" target="_blank" rel="noopener" class="donate-chip" title="Donate $5">$5</a>
+            <a href="https://buymeacoffee.com/complete-your-page" target="_blank" rel="noopener" class="donate-chip" title="Donate $10">$10</a>
+            <a href="https://buymeacoffee.com/complete-your-page" target="_blank" rel="noopener" class="donate-chip" title="Donate $50">$50</a>
+        </div>
         <p style="font-size:11.5px; color:var(--text-secondary); text-align:center; line-height:1.4; margin:0;">
             {% trans "Any donation helps keep our servers running!" %}
         </p>
