@@ -49,7 +49,7 @@ def _add_structured_json_to_docx(doc, items):
             run = paragraph.add_run(part)
             run.bold = run_bold
             run.font.name = font_name
-            run.font.size = Pt(DOC_FONT_SIZE)
+            run.font.size = Pt(font_size)
 
             rPr = run._element.get_or_add_rPr()
             rFonts = rPr.get_or_add_rFonts()
@@ -296,7 +296,44 @@ def _add_structured_json_to_docx(doc, items):
             sp.paragraph_format.space_before = Pt(0)
             sp.paragraph_format.space_after = Pt(0)
 
+        elif itype == 'header':
+            align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.LEFT)
+            sub_lines = [l.strip() for l in text.split('\n') if l.strip()]
+            if not sub_lines:
+                sub_lines = [text.strip()] if text.strip() else []
+            for l_idx, sl in enumerate(sub_lines):
+                p = doc.add_paragraph()
+                p.alignment = align
+                p.paragraph_format.line_spacing = DOC_LINE_SPACING
+                p.paragraph_format.space_before = Pt(0)
+                p.paragraph_format.space_after = Pt(2) if l_idx == len(sub_lines) - 1 else Pt(0)
+                total_chars += _add_styled_runs(p, sl, is_bold=bool(item.get('bold', False)), font_size=10)
+
+        elif itype == 'footer':
+            align = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.CENTER)
+            sub_lines = [l.strip() for l in text.split('\n') if l.strip()]
+            if not sub_lines:
+                sub_lines = [text.strip()] if text.strip() else []
+            for l_idx, sl in enumerate(sub_lines):
+                p = doc.add_paragraph()
+                p.alignment = align
+                p.paragraph_format.line_spacing = DOC_LINE_SPACING
+                p.paragraph_format.space_before = Pt(6) if l_idx == 0 else Pt(0)
+                p.paragraph_format.space_after = Pt(0)
+                total_chars += _add_styled_runs(p, sl, is_bold=bool(item.get('bold', False)), font_size=9.5)
+
         else:  # paragraph
+            # Check if this paragraph is actually a standalone page number -> style as centered footer
+            clean_page_test = re.sub(r'[\*\s\-\—\–]', '', text)
+            PAGE_NUM_RE = re.compile(r'^(?:[0-9\u17E0-\u17E9]{1,3}|ទំព័រ(?:ទី)?[0-9\u17E0-\u17E9]+(?:\s*(?:/|នៃ)\s*[0-9\u17E0-\u17E9]+)?|[0-9\u17E0-\u17E9]+\s*/\s*[0-9\u17E0-\u17E9]+)$')
+            if PAGE_NUM_RE.match(clean_page_test) or PAGE_NUM_RE.match(text.strip()):
+                p = doc.add_paragraph()
+                p.alignment = ALIGN_MAP.get(align_str, WD_ALIGN_PARAGRAPH.CENTER)
+                p.paragraph_format.line_spacing = DOC_LINE_SPACING
+                p.paragraph_format.space_before = Pt(6)
+                p.paragraph_format.space_after = Pt(0)
+                total_chars += _add_styled_runs(p, text, is_bold=bool(item.get('bold', False)), font_size=9.5)
+                continue
             # Unpack multiline bullet lists (e.g. យោង ៖ \n- ... or ចម្លងជូន ៖ \n- ...)
             if '\n-' in text or '\n•' in text or '\n–' in text:
                 sub_lines = [l.strip() for l in text.split('\n') if l.strip()]
@@ -459,7 +496,7 @@ def _add_markdown_to_docx(doc, markdown_text):
             run = paragraph.add_run(part)
             run.bold = run_bold
             run.font.name = font_name
-            run.font.size = Pt(DOC_FONT_SIZE)
+            run.font.size = Pt(font_size)
 
             # Explicitly set Word's Complex Script (w:cs) and East Asia fonts
             # so Windows Word renders Khmer characters using Khmer OS Battambang
@@ -604,14 +641,28 @@ def _add_markdown_to_docx(doc, markdown_text):
                 sp.paragraph_format.space_after = Pt(0)
             continue
 
-        # ── 2. Omit standalone page numbers ──────────────────────
-        # Standalone '1', '2', '១', '២', '៨' at page margins
-        clean_num_check = re.sub(r'\[/?CENTER\]|\[/?RIGHT\]|\[/?center\]|\[/?right\]', '', line).strip()
-        if re.match(r'^[0-9\u17E0-\u17E9]{1,3}$', clean_num_check):
+        # ── 2. Page numbers & Running Footers ────────────────────
+        clean_num_check = re.sub(r'\[/?CENTER\]|\[/?RIGHT\]|\[/?LEFT\]|\[/?center\]|\[/?right\]|\[/?left\]', '', line).strip()
+        clean_page_test = re.sub(r'[\*\s\-\—\–]', '', clean_num_check)
+        PAGE_NUM_RE = re.compile(r'^(?:[0-9\u17E0-\u17E9]{1,3}|ទំព័រ(?:ទី)?[0-9\u17E0-\u17E9]+(?:\s*(?:/|នៃ)\s*[0-9\u17E0-\u17E9]+)?|[0-9\u17E0-\u17E9]+\s*/\s*[0-9\u17E0-\u17E9]+)$')
+        if PAGE_NUM_RE.match(clean_page_test) or PAGE_NUM_RE.match(clean_num_check):
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.line_spacing = DOC_LINE_SPACING
+            p.paragraph_format.space_before = Pt(6)
+            p.paragraph_format.space_after = Pt(0)
+            total_chars += _add_styled_runs(p, clean_num_check, is_bold=False, font_size=9.5)
             i += 1
             continue
 
-        # ── 3. Alignment & Heading tags ──────────────────────────
+        # ── 3. Alignment, Header, and Footer tags ────────────────
+        is_explicit_header = bool(re.search(r'\[/?HEADER\]|\[/?header\]', line))
+        if is_explicit_header:
+            line = re.sub(r'\[/?HEADER\]|\[/?header\]', '', line).strip()
+        is_explicit_footer = bool(re.search(r'\[/?FOOTER\]|\[/?footer\]', line))
+        if is_explicit_footer:
+            line = re.sub(r'\[/?FOOTER\]|\[/?footer\]', '', line).strip()
+
         explicit_align = None
         if re.search(r'\[/?CENTER\]|\[/?center\]', line):
             explicit_align = WD_ALIGN_PARAGRAPH.CENTER
@@ -626,10 +677,20 @@ def _add_markdown_to_docx(doc, markdown_text):
             explicit_align = WD_ALIGN_PARAGRAPH.LEFT
             line = re.sub(r'\[/?LEFT\]|\[/?left\]', '', line).strip()
 
-        font_size = DOC_FONT_SIZE
+        if is_explicit_footer:
+            font_size = 9.5
+            space_before = Pt(6)
+            space_after = Pt(0)
+        elif is_explicit_header:
+            font_size = 10
+            space_before = Pt(0)
+            space_after = Pt(2)
+        else:
+            font_size = DOC_FONT_SIZE
+            space_before = Pt(0)
+            space_after = Pt(0)
+
         is_heading_bold = False
-        space_before = Pt(0)
-        space_after = Pt(0)
         is_heading = False
 
         # Check Heading levels

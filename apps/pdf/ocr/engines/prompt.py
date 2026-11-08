@@ -34,6 +34,11 @@ def _get_vision_prompt(ocr_lang='eng'):
         "     * Bottom approval & signature columns (e.g. a 3-column row with applicant/case on left, spacer in middle, judge/director on right).\n"
         "   - Use 'layout': 'grid' for standard bordered data tables.\n"
         "   - Use '\\n' for multiple lines inside a cell.\n"
-        "5. Omit standalone running page numbers (e.g. standalone '1', '2', '១', '២' at page margins).\n\n"
+        "5. Header: {\"type\": \"header\", \"align\": \"left\"|\"center\"|\"right\", \"text\": \"...\"}\n"
+        "   - Use for running headers, top document codes or reference numbers at the top margin (e.g. 'លេខ: ...', 'សាលាក្តី...'), or top banner text.\n"
+        "   - Arrange them faithfully at the top of the page in their exact original alignment.\n"
+        "6. Footer: {\"type\": \"footer\", \"align\": \"center\"|\"left\"|\"right\", \"text\": \"...\"}\n"
+        "   - Use for all bottom running footers, page numbers (e.g. 'ទំព័រទី ១', '- 1 -', '1', '1/3'), office contact/address bars at the bottom, footnotes, or legal disclaimers.\n"
+        "   - ALWAYS PRESERVE page numbers and footers. NEVER omit them. Output them at the bottom matching their original layout and alignment.\n\n"
         "CRITICAL: Return ONLY a raw JSON array starting with '[' and ending with ']'. Do not include markdown code block fences (no ```json)."
     )
