@@ -92,7 +92,10 @@ def _run_with_retry(engine, doc, page, gray):
     for attempt in range(attempts):
         try:
             return engine.run(doc, page, gray)
-        except Exception:
+        except Exception as e:
+            err_str = str(e).lower()
+            if 'authentication' in err_str or 'invalid x-api-key' in err_str or 'sk-ant-usr' in err_str:
+                raise
             if attempt == attempts - 1:
                 raise
             delay = BACKOFF_SECONDS * (2 ** attempt)
