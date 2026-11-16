@@ -12,14 +12,6 @@ def _claude_ocr_page(api_key, model, pil_image, ocr_lang='eng'):
     import anthropic
 
     clean_key = (api_key or '').strip()
-    if clean_key.startswith('sk-ant-usr-'):
-        raise RuntimeError(
-            "កូនសោ Anthropic API Key មិនត្រឹមត្រូវ (Invalid API Key)។ "
-            "កូនសោដែលចាប់ផ្ដើមដោយ 'sk-ant-usr-...' គឺជា User Token មិនមែន API Key ឡើយ។ "
-            "កូនសោ Anthropic API Key ត្រឹមត្រូវត្រូវតែចាប់ផ្ដើមដោយ 'sk-ant-api03-...' (បង្កើតនៅ console.anthropic.com/settings/keys)។ "
-            "សូមចូលទៅ Admin -> OCR Settings ដើម្បីផ្លាស់ប្ដូរកូនសោឱ្យបានត្រឹមត្រូវ។"
-        )
-
     client = anthropic.Anthropic(api_key=clean_key)
 
     buf = io.BytesIO()
