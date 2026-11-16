@@ -1333,7 +1333,8 @@
             </div>
         </div>
 
-        <!-- OCR Tier Mode (Standard Free vs VIP AI) -->
+        <!-- OCR Tier Mode (Standard vs VIP) -->
+        {% if ocr_settings.ocr_mode == 'both' %}
         <div class="options-section" style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px;">
             <div class="lang-section-header">
                 <div class="lang-header-title">
@@ -1341,7 +1342,7 @@
                     <span>{% trans "OCR Mode" %}</span>
                 </div>
                 <span style="font-size:11px; font-weight:700; color:#7c3aed; background:#ede9fe; padding:2px 8px; border-radius:12px;" x-show="isVip">
-                    VIP AI
+                    VIP
                 </span>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
@@ -1349,10 +1350,11 @@
                     <div style="font-weight:700; font-size:13.5px;">{% trans "Standard" %}</div>
                 </button>
                 <button type="button" class="lang-pill" :class="{ active: isVip }" @click="isVip = true" style="justify-content:center; text-align:center; padding:10px 8px; border-color: rgba(124, 58, 237, 0.4);">
-                    <div style="font-weight:700; font-size:13.5px; color:#7c3aed;">✨ {% trans "VIP AI" %}</div>
+                    <div style="font-weight:700; font-size:13.5px; color:#7c3aed;">✨ {% trans "VIP" %}</div>
                 </button>
             </div>
         </div>
+        {% endif %}
 
         <!-- Action Button -->
         <button class="action-btn" :disabled="selectedCount === 0 || isLoadingPages" @click="submit()">
@@ -1690,7 +1692,7 @@
                 {% if LANGUAGE_CODE == 'km' %}
                     DAMSPEY ប្រើប្រាស់បច្ចេកវិទ្យា OCR ទំនើបដើម្បីស្កេន និងសម្គាល់តួអក្សរខ្មែរ ស្រៈ ព្យញ្ជនៈ ជើងអក្សរ និងលេខខ្មែរ ពីរូបភាព ឬ PDF ស្កេន រួចបម្លែងទៅជាអត្ថបទយូនីកូដស្អាតក្នុងទម្រង់ Microsoft Word (.docx)។
                 {% else %}
-                    DAMSPEY utilizes state-of-the-art AI and Netra OCR engines to identify Khmer consonant clusters, vowels, subscripts (ជើង), and Khmer numbers from scanned PDFs and photos, accurately converting them into editable Microsoft Word (.docx) documents.
+                    DAMSPEY utilizes advanced and Netra OCR engines to identify Khmer consonant clusters, vowels, subscripts (ជើង), and Khmer numbers from scanned PDFs and photos, accurately converting them into editable Microsoft Word (.docx) documents.
                 {% endif %}
             </div>
         </div>
@@ -1826,7 +1828,8 @@ function ocrApp() {
         pages: [],
         loadedFiles: new Set(),
         ocrLang: (typeof isKhmer !== 'undefined' && isKhmer) ? 'khm' : 'eng+khm',
-        isVip: false,
+        ocrModeSetting: '{{ ocr_settings.ocr_mode|default:"both" }}',
+        isVip: ('{{ ocr_settings.ocr_mode }}' === 'vip_only'),
         isLoadingPages: false,
         loadingProgress: '',
         draggingRight: false,
@@ -1880,9 +1883,9 @@ function ocrApp() {
             }
             if (this.isVip) {
                 if (typeof isKhmer !== 'undefined' && isKhmer) {
-                    return `បម្លែង ${toKhNum(count)} ទំព័រ (VIP AI ✨)`;
+                    return `បម្លែង ${toKhNum(count)} ទំព័រ (VIP ✨)`;
                 }
-                return `Convert ${count} Pages (VIP AI ✨)`;
+                return `Convert ${count} Pages (VIP ✨)`;
             }
             if (typeof isKhmer !== 'undefined' && isKhmer) {
                 return `បម្លែង ${toKhNum(count)} ទំព័រទៅជា Word`;

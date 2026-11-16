@@ -30,6 +30,11 @@ def build_engines(ocr_settings, ocr_lang, is_vip=False):
     """
     s = ocr_settings
     fallback_ok = s.fallback_to_tesseract if s else True
+    mode = getattr(s, 'ocr_mode', 'both') if s else 'both'
+    if mode == 'standard_only':
+        is_vip = False
+    elif mode == 'vip_only':
+        is_vip = True
     khmer = ocr_lang in ('khm', 'eng+khm')
     engines = []
 

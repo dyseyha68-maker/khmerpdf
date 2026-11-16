@@ -171,6 +171,7 @@ def ocr_page(request):
     ocr_settings = OCRSettings.load()
     return render(request, 'ocr.html', {
         'ocr_settings': ocr_settings,
+        'ocr_mode': ocr_settings.ocr_mode,
         'vip_price_khr': ocr_settings.vip_price_khr or 2000,
         'enable_khqr_paywall': ocr_settings.enable_khqr_paywall,
     })
@@ -745,8 +746,13 @@ def ocr_api(request):
     
     orig_name = getattr(file, 'name', '') or 'document.pdf'
     page_range = (request.data.get('page_range') or '').strip()
-    is_vip = str(request.data.get('is_vip', 'false')).lower() in ('true', '1')
     ocr_settings = OCRSettings.load()
+    if ocr_settings.ocr_mode == 'standard_only':
+        is_vip = False
+    elif ocr_settings.ocr_mode == 'vip_only':
+        is_vip = True
+    else:
+        is_vip = str(request.data.get('is_vip', 'false')).lower() in ('true', '1')
     vip_price = ocr_settings.vip_price_khr or 2000
 
     job = Job.objects.create(

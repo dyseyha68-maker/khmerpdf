@@ -70,7 +70,7 @@ class JobAdmin(admin.ModelAdmin):
 
     def vip_badge(self, obj):
         if obj.is_vip:
-            return format_html('<span style="background:#7c3aed;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">VIP AI</span>')
+            return format_html('<span style="background:#7c3aed;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">VIP</span>')
         return format_html('<span style="color:#64748b;font-size:11px;">Standard</span>')
     vip_badge.short_description = 'Tier'
 
@@ -384,6 +384,12 @@ class OCRSettingsAdmin(admin.ModelAdmin):
     form = OCRSettingsForm
     readonly_fields = ['updated_at']
     fieldsets = (
+        ('OCR Mode Availability', {
+            'fields': ('ocr_mode',),
+            'description': 'Choose which OCR modes are enabled for users. '
+                           'Select <strong>Standard Only</strong> to disable VIP and completely remove all VIP/AI options from the website, '
+                           'or <strong>VIP Only</strong> to disable Standard, or <strong>Both Standard & VIP</strong> to let users choose.'
+        }),
         ('Local Offline Engine (Zero-Cost & Offline)', {
             'fields': ('local_engine',),
             'description': 'Select which local engine to use when Cloud/AI APIs are off or unavailable. <strong>KhmerOCR ONNX</strong> is highly recommended for Khmer (trained on 3M lines over 800+ fonts with Moul font detection).'

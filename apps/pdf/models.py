@@ -141,6 +141,21 @@ class OCRSettings(models.Model):
     without touching code or redeploying. See apps/pdf/ocr/pipeline.py:build_engines
     for how this is read."""
 
+    OCR_MODE_CHOICES = [
+        ('both', 'Both Standard & VIP (Users can choose)'),
+        ('standard_only', 'Standard Only (Disable VIP / Remove AI)'),
+        ('vip_only', 'VIP Only (Disable Standard)'),
+    ]
+    ocr_mode = models.CharField(
+        max_length=20,
+        choices=OCR_MODE_CHOICES,
+        default='both',
+        verbose_name='OCR Mode Availability',
+        help_text='Select which OCR modes are available on the website. '
+                  '"Standard Only" disables VIP and completely hides all VIP/AI options from the user interface. '
+                  '"VIP Only" disables Standard mode.',
+    )
+
     use_claude = models.BooleanField(
         default=False,
         verbose_name='Use Claude AI (Anthropic) for OCR',
