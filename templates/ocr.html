@@ -309,78 +309,83 @@
 
     /* OCR Processing Modal & Support QR Styles */
     .ocr-processing-modal {
-        max-width: 430px;
-        width: 92%;
+        max-width: 580px;
+        width: 95%;
         max-height: 90vh;
         overflow-y: auto;
-        padding: 26px 20px 22px;
+        padding: 34px 32px 28px;
         box-sizing: border-box;
+        border-radius: 18px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
     }
     .modal-support-box {
-        margin-top: 16px;
+        margin-top: 20px;
+        background: var(--surface-hover);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px 20px 16px;
     }
     .modal-support-divider {
-        height: 1px;
-        background: var(--border);
-        margin: 14px auto 14px;
-        width: 100%;
+        display: none;
     }
     .modal-support-title {
-        font-size: 14px;
+        font-size: 15.5px;
         font-weight: 700;
         color: var(--text);
-        margin-bottom: 2px;
+        margin-bottom: 4px;
     }
     .modal-support-sub {
-        font-size: 11.5px;
+        font-size: 13px;
         color: var(--text-secondary);
-        margin: 0 0 10px;
-        line-height: 1.4;
+        margin: 0 0 12px;
+        line-height: 1.45;
     }
     .modal-qr-wrapper {
         display: flex;
         justify-content: center;
-        margin: 6px 0 10px;
+        margin: 8px 0 12px;
     }
     .modal-support-qr-img {
         width: 100%;
-        max-width: 180px;
+        max-width: 240px;
         height: auto;
         aspect-ratio: 471 / 623;
         object-fit: contain;
         display: block;
         border-radius: 12px;
         border: 1px solid var(--border);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        background: #ffffff;
     }
     .donation-amounts {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        margin: 8px 0 4px;
+        gap: 10px;
+        margin: 10px 0 6px;
         flex-wrap: wrap;
     }
     .donate-chip {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: #ffffff;
+        background: var(--surface);
         color: var(--text);
         border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 3px 12px;
-        font-size: 12px;
+        border-radius: 20px;
+        padding: 5px 16px;
+        font-size: 13px;
         font-weight: 700;
         text-decoration: none;
         transition: all 0.15s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     }
     .donate-chip:hover {
         background: var(--primary);
         color: #ffffff;
         border-color: var(--primary);
         transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
     }
     [data-theme="dark"] .donate-chip {
         background: var(--surface);
@@ -392,10 +397,26 @@
         color: #ffffff;
     }
     .modal-support-note {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--text-secondary);
-        margin: 6px 0 0;
-        line-height: 1.35;
+        margin: 8px 0 0;
+        line-height: 1.4;
+    }
+    @media (max-width: 600px) {
+        .ocr-processing-modal {
+            max-width: 95%;
+            padding: 24px 16px 20px;
+        }
+        .modal-support-box {
+            padding: 14px 12px 12px;
+        }
+        .modal-support-qr-img {
+            max-width: 200px;
+        }
+        .donate-chip {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
     }
 
     .drop-zone { margin-bottom: 18px; }
@@ -1606,24 +1627,23 @@
     <!-- Processing Modal -->
     <div class="modal-overlay" x-show="modalVisible" x-cloak>
         <div class="modal ocr-processing-modal">
-            <h2 style="font-size:20px; font-weight:800; color:var(--text); margin-bottom:4px;">{% trans "Processing OCR..." %}</h2>
-            <div class="progress-container" style="margin-top:14px;">
-                <div class="progress-bar-bg" :style="progressPercent > 0 ? 'background: #e2e8f0; position: relative; overflow: hidden; height: 10px; border-radius: 6px;' : ''">
+            <h2 style="font-size:23px; font-weight:800; color:var(--text); margin-bottom:6px;">{% trans "Processing OCR..." %}</h2>
+            <div class="progress-container" style="margin-top:16px;">
+                <div class="progress-bar-bg" :style="progressPercent > 0 ? 'background: #e2e8f0; position: relative; overflow: hidden; height: 11px; border-radius: 6px;' : ''">
                     <div x-show="progressPercent > 0" :style="'width: ' + progressPercent + '%; height: 100%; background: var(--primary); transition: width 0.3s ease; border-radius: 6px;'"></div>
                 </div>
-                <p x-show="progressText" style="font-size:14px; font-weight:600; color:var(--primary); margin-top:12px; text-align:center;" x-text="progressText"></p>
-                <p style="font-size:13px;color:var(--text-secondary);margin-top:4px;text-align:center">
+                <p x-show="progressText" style="font-size:15px; font-weight:700; color:var(--primary); margin-top:14px; text-align:center;" x-text="progressText"></p>
+                <p style="font-size:13.5px;color:var(--text-secondary);margin-top:6px;text-align:center">
                     <span x-text="isKhmer ? 'ពេលវេលា: ' : 'Elapsed: '"></span><span
                         x-text="Math.floor(elapsed/60).toString().padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0')"></span>
                 </p>
-                <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;text-align:center;" x-show="pages.length > 25">
+                <p style="font-size:12.5px;color:var(--text-secondary);margin-top:6px;text-align:center;" x-show="pages.length > 25">
                     <span x-text="isKhmer ? 'ប្រព័ន្ធកំពុងបម្លែងម្ដងមួយទំព័រដោយសុវត្ថិភាព...' : 'Processing safely page by page in memory...'"></span>
                 </p>
             </div>
 
             <!-- Support QR Code while waiting for OCR -->
             <div class="modal-support-box">
-                <div class="modal-support-divider"></div>
                 <div class="modal-support-header">
                     <div class="modal-support-title">
                         <span>☕ {% if LANGUAGE_CODE == 'km' %}ជួយឧបត្ថម្ភសេវាកម្ម KhmerPDF{% else %}Support KhmerPDF Tools{% endif %}</span>
